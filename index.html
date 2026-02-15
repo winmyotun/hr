@@ -4,36 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Management System</title>
-    <!-- Bootstrap CSS for styling -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { padding: 20px; background-color: #f8f9fa; }
         .hidden { display: none; }
-        #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; display: none;}
+        /* Loading Spinner Overlay */
+        #loading { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+        }
     </style>
 </head>
 <body>
 
     <!-- Loading Spinner -->
-    <div id="loading" class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+    <div id="loading" class="hidden">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
     </div>
 
     <!-- Login Section -->
     <div class="container" id="loginSection">
         <div class="row justify-content-center">
-            <div class="col-md-4">
-                <div class="card mt-5">
-                    <div class="card-header text-center">
+            <div class="col-md-5">
+                <div class="card mt-5 shadow">
+                    <div class="card-header text-center bg-primary text-white">
                         <h4>Login</h4>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-4">
                         <div class="mb-3">
-                            <label>Username</label>
+                            <label class="form-label">Username</label>
                             <input type="text" id="username" class="form-control">
                         </div>
                         <div class="mb-3">
-                            <label>Password</label>
+                            <label class="form-label">Password</label>
                             <input type="password" id="password" class="form-control">
                         </div>
                         <button onclick="login()" class="btn btn-primary w-100">Login</button>
@@ -45,32 +52,36 @@
 
     <!-- Main Dashboard -->
     <div class="container-fluid hidden" id="dashboardSection">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3>Employee List</h3>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3>Employee Management System</h3>
             <div>
-                <span id="userRoleDisplay" class="badge bg-secondary me-2"></span>
-                <button id="btnAdd" class="btn btn-success hidden" onclick="showModal('add')">Add New</button>
+                <span id="userRoleDisplay" class="badge bg-info text-dark me-2 p-2"></span>
+                <button id="btnAdd" class="btn btn-success hidden" onclick="showModal('add')">+ Add New</button>
                 <button onclick="logout()" class="btn btn-danger">Logout</button>
             </div>
         </div>
 
-        <div class="table-responsive bg-white p-3 shadow-sm rounded">
-            <table class="table table-bordered table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Sr No.</th>
-                        <th>Name</th>
-                        <th>Position</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Details</th> <!-- For View More -->
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Data will be loaded here -->
-                </tbody>
-            </table>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Sr No.</th>
+                                <th>Name</th>
+                                <th>Position</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Info</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -84,26 +95,30 @@
                 </div>
                 <div class="modal-body">
                     <form id="empForm">
-                        <div class="row">
-                            <div class="col-md-4 mb-2"><label>Sr No.</label><input type="text" id="srNo" class="form-control"></div>
-                            <div class="col-md-4 mb-2"><label>Name</label><input type="text" id="name" class="form-control"></div>
-                            <div class="col-md-4 mb-2"><label>NRC No.</label><input type="text" id="nrc" class="form-control"></div>
-                            <div class="col-md-12 mb-2"><label>Address</label><input type="text" id="address" class="form-control"></div>
-                            <div class="col-md-4 mb-2"><label>Phone</label><input type="text" id="phone" class="form-control"></div>
-                            <div class="col-md-4 mb-2"><label>Email</label><input type="email" id="email" class="form-control"></div>
-                            <div class="col-md-4 mb-2"><label>Father Name</label><input type="text" id="fatherName" class="form-control"></div>
-                            <div class="col-md-4 mb-2"><label>Mother Name</label><input type="text" id="motherName" class="form-control"></div>
-                            <div class="col-md-4 mb-2"><label>Blood Type</label><input type="text" id="bloodType" class="form-control"></div>
-                            <div class="col-md-4 mb-2"><label>Education</label><input type="text" id="education" class="form-control"></div>
-                            <div class="col-md-4 mb-2"><label>Start Date</label><input type="date" id="startDate" class="form-control"></div>
-                            <div class="col-md-4 mb-2"><label>Resign Date</label><input type="date" id="resignDate" class="form-control"></div>
-                            <div class="col-md-4 mb-2"><label>Position</label><input type="text" id="position" class="form-control"></div>
+                        <div class="row g-3">
+                            <div class="col-md-4"><label class="form-label">Sr No.</label><input type="text" id="srNo" class="form-control"></div>
+                            <div class="col-md-4"><label class="form-label">Name</label><input type="text" id="name" class="form-control"></div>
+                            <div class="col-md-4"><label class="form-label">NRC No.</label><input type="text" id="nrc" class="form-control"></div>
+                            
+                            <div class="col-md-12"><label class="form-label">Address</label><input type="text" id="address" class="form-control"></div>
+                            
+                            <div class="col-md-4"><label class="form-label">Phone</label><input type="text" id="phone" class="form-control"></div>
+                            <div class="col-md-4"><label class="form-label">Email</label><input type="email" id="email" class="form-control"></div>
+                            <div class="col-md-4"><label class="form-label">Position</label><input type="text" id="position" class="form-control"></div>
+
+                            <div class="col-md-4"><label class="form-label">Father Name</label><input type="text" id="fatherName" class="form-control"></div>
+                            <div class="col-md-4"><label class="form-label">Mother Name</label><input type="text" id="motherName" class="form-control"></div>
+                            <div class="col-md-4"><label class="form-label">Blood Type</label><input type="text" id="bloodType" class="form-control"></div>
+                            
+                            <div class="col-md-4"><label class="form-label">Education</label><input type="text" id="education" class="form-control"></div>
+                            <div class="col-md-4"><label class="form-label">Start Date</label><input type="date" id="startDate" class="form-control"></div>
+                            <div class="col-md-4"><label class="form-label">Resign Date</label><input type="date" id="resignDate" class="form-control"></div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="btnSave" onclick="saveData()">Save</button>
+                    <button type="button" class="btn btn-primary" onclick="saveData()">Save Changes</button>
                 </div>
             </div>
         </div>
@@ -113,26 +128,37 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // *** အရေးကြီး ***: ဒီနေရာမှာ GAS Web App URL ကို ထည့်ပါ
+        // Mapped to your provided URL
         const API_URL = "https://script.google.com/macros/s/AKfycbzjtsmd95MiCTmtT_gwcYbFG_W6_0DczqRb-MSyKvTFu5qLJXMIlDvwJ6DenRraZ2d3/exec"; 
 
         let currentUserRole = "";
-        let currentAction = ""; // 'add' or 'edit'
+        let currentAction = ""; 
 
-        // Loading ပြသရန်
+        // Loading Controller
         function toggleLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            const el = document.getElementById('loading');
+            if(show) el.classList.remove('hidden');
+            else el.classList.add('hidden');
         }
 
-        // Login Function
+        // --- LOGIN ---
         function login() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
             
+            if(!u || !p) { alert("Please enter username and password"); return; }
+
             toggleLoading(true);
+            
+            // Using URLSearchParams to avoid CORS preflight issues
+            const params = new URLSearchParams();
+            params.append('action', 'login');
+            params.append('username', u);
+            params.append('password', p);
+
             fetch(API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "login", username: u, password: p })
+                body: params
             })
             .then(res => res.json())
             .then(data => {
@@ -148,10 +174,12 @@
                     alert(data.message);
                 }
             })
-            .catch(e => { toggleLoading(false); alert("Error: " + e); });
+            .catch(e => { 
+                toggleLoading(false); 
+                alert("Connection Error. Please check if the script is deployed as 'Anyone'.\nDetails: " + e); 
+            });
         }
 
-        // Role ပေါ်မူတည်ပြီး Button တွေ အဖွင့်အပိတ်လုပ်ခြင်း
         function setupPermissions() {
             const btnAdd = document.getElementById('btnAdd');
             if (currentUserRole === 'Root') {
@@ -161,7 +189,7 @@
             }
         }
 
-        // Data ဆွဲထုတ်ခြင်း (Read)
+        // --- READ DATA ---
         function loadData() {
             toggleLoading(true);
             fetch(API_URL + "?action=read")
@@ -171,23 +199,25 @@
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = "";
                 
+                if(!response.status || !response.data) {
+                    tbody.innerHTML = "<tr><td colspan='7' class='text-center'>No data found or Error loading</td></tr>";
+                    return;
+                }
+
                 response.data.forEach(row => {
                     let actions = "";
-                    
-                    // Root: Edit + Delete
+                    // Action Buttons Logic
                     if (currentUserRole === 'Root') {
                         actions = `
-                            <button class="btn btn-warning btn-sm" onclick='openEdit(${JSON.stringify(row)})'>Edit</button>
+                            <button class="btn btn-warning btn-sm me-1" onclick='openEdit(${JSON.stringify(row)})'>Edit</button>
                             <button class="btn btn-danger btn-sm" onclick="deleteData('${row.srNo}')">Delete</button>
                         `;
-                    } 
-                    // Admin: Edit only
-                    else if (currentUserRole === 'Admin') {
+                    } else if (currentUserRole === 'Admin') {
                         actions = `<button class="btn btn-warning btn-sm" onclick='openEdit(${JSON.stringify(row)})'>Edit</button>`;
+                    } else {
+                        actions = `<span class="text-muted text-small">View Only</span>`;
                     }
-                    // User: View only (None)
                     
-                    // Detailed info ကို Modal နဲ့ပြဖို့ logic သပ်သပ်ရေးနိုင်ပါတယ်၊ လောလောဆယ် အဓိက column တွေပဲပြထားပါတယ်
                     const tr = `
                         <tr>
                             <td>${row.srNo}</td>
@@ -195,26 +225,28 @@
                             <td>${row.position}</td>
                             <td>${row.phone}</td>
                             <td>${row.email}</td>
-                            <td>${row.education}, ${row.address}</td>
+                            <td><small>${row.education}<br>${row.address}</small></td>
                             <td>${actions}</td>
                         </tr>
                     `;
                     tbody.innerHTML += tr;
                 });
+            })
+            .catch(e => {
+                toggleLoading(false);
+                console.error(e);
             });
         }
 
-        // Modal ဖွင့်ခြင်း (Add or Edit)
+        // --- MODAL & FORM HANDLING ---
         const myModal = new bootstrap.Modal(document.getElementById('employeeModal'));
         
         function showModal(type) {
             currentAction = type;
             document.getElementById('modalTitle').innerText = type === 'add' ? "Add New Employee" : "Edit Employee";
             
-            // Clear form if adding
             if (type === 'add') {
                 document.getElementById('empForm').reset();
-                // SrNo ကို edit ခွင့်ပေးမလား မပေးဘူးလား ဆုံးဖြတ်နိုင်သည်
                 document.getElementById('srNo').readOnly = false; 
             }
             myModal.show();
@@ -224,9 +256,9 @@
             currentAction = 'edit';
             showModal('edit');
             
-            // Fill data
+            // Mapping data to inputs
             document.getElementById('srNo').value = row.srNo;
-            document.getElementById('srNo').readOnly = true; // ID should not be changed during edit
+            document.getElementById('srNo').readOnly = true; // Cannot change ID
             document.getElementById('name').value = row.name;
             document.getElementById('nrc').value = row.nrc;
             document.getElementById('address').value = row.address;
@@ -236,15 +268,13 @@
             document.getElementById('motherName').value = row.motherName;
             document.getElementById('bloodType').value = row.bloodType;
             document.getElementById('education').value = row.education;
+            document.getElementById('position').value = row.position;
             
-            // Date formatting might be needed dependent on Sheet format
+            // Handle Dates
             document.getElementById('startDate').value = formatDateForInput(row.startDate);
             document.getElementById('resignDate').value = formatDateForInput(row.resignDate);
-            
-            document.getElementById('position').value = row.position;
         }
         
-        // Helper to format date string to yyyy-MM-dd
         function formatDateForInput(dateStr) {
             if(!dateStr) return "";
             const d = new Date(dateStr);
@@ -252,29 +282,31 @@
             return d.toISOString().split('T')[0];
         }
 
-        // Save Data (Add or Edit)
+        // --- SAVE (ADD/EDIT) ---
         function saveData() {
-            const data = {
-                action: currentAction, // 'add' or 'edit'
-                srNo: document.getElementById('srNo').value,
-                name: document.getElementById('name').value,
-                nrc: document.getElementById('nrc').value,
-                address: document.getElementById('address').value,
-                phone: document.getElementById('phone').value,
-                email: document.getElementById('email').value,
-                fatherName: document.getElementById('fatherName').value,
-                motherName: document.getElementById('motherName').value,
-                bloodType: document.getElementById('bloodType').value,
-                education: document.getElementById('education').value,
-                startDate: document.getElementById('startDate').value,
-                resignDate: document.getElementById('resignDate').value,
-                position: document.getElementById('position').value
-            };
+            const srNo = document.getElementById('srNo').value;
+            if(!srNo) { alert("Sr No. is required"); return; }
+
+            const params = new URLSearchParams();
+            params.append('action', currentAction);
+            params.append('srNo', srNo);
+            params.append('name', document.getElementById('name').value);
+            params.append('nrc', document.getElementById('nrc').value);
+            params.append('address', document.getElementById('address').value);
+            params.append('phone', document.getElementById('phone').value);
+            params.append('email', document.getElementById('email').value);
+            params.append('fatherName', document.getElementById('fatherName').value);
+            params.append('motherName', document.getElementById('motherName').value);
+            params.append('bloodType', document.getElementById('bloodType').value);
+            params.append('education', document.getElementById('education').value);
+            params.append('startDate', document.getElementById('startDate').value);
+            params.append('resignDate', document.getElementById('resignDate').value);
+            params.append('position', document.getElementById('position').value);
 
             toggleLoading(true);
             fetch(API_URL, {
                 method: "POST",
-                body: JSON.stringify(data)
+                body: params
             })
             .then(res => res.json())
             .then(response => {
@@ -284,17 +316,22 @@
                     myModal.hide();
                     loadData();
                 }
-            });
+            })
+            .catch(e => { toggleLoading(false); alert("Error saving data: " + e); });
         }
 
-        // Delete Data
+        // --- DELETE ---
         function deleteData(srNo) {
             if (!confirm("Are you sure you want to delete this employee?")) return;
             
             toggleLoading(true);
+            const params = new URLSearchParams();
+            params.append('action', 'delete');
+            params.append('srNo', srNo);
+
             fetch(API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "delete", srNo: srNo })
+                body: params
             })
             .then(res => res.json())
             .then(response => {
@@ -303,7 +340,8 @@
                 if (response.status) {
                     loadData();
                 }
-            });
+            })
+            .catch(e => { toggleLoading(false); alert("Error deleting: " + e); });
         }
 
         function logout() {
