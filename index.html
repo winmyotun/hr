@@ -10,31 +10,20 @@
     
     <style>
         body { background-color: #f0f2f5; font-family: 'Poppins', sans-serif; }
-        
-        /* Initial State: Hide Everything */
-        #loginPage, #mainPage { display: none; opacity: 0; transition: opacity 0.5s ease-in-out; }
-        
-        /* Fade In Effect */
-        .fade-in-active { display: block !important; opacity: 1 !important; }
-
         .hidden { display: none !important; }
         
-        /* Loading Screen (Always on top initially) */
-        #appLoader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #ffffff; z-index: 99999;
-            display: flex; justify-content: center; align-items: center; flex-direction: column;
-            transition: opacity 0.5s ease;
-        }
+        /* Smooth Fade In */
+        #loginPage, #mainPage { opacity: 0; transition: opacity 0.3s ease-in; }
+        .fade-in { opacity: 1 !important; }
 
-        /* Standard Loader Overlay */
+        /* Loader */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8); z-index: 10000;
+            background: rgba(255,255,255,0.95); z-index: 9999;
             display: flex; justify-content: center; align-items: center; flex-direction: column;
         }
-
-        .profile-thumb { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        [...](asc_slot://start-slot-31).profile-thumb { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .profile-preview { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid #0d6efd; margin-bottom: 15px; background: #eee; }
         .search-box { border-radius: 20px; }
         .page-link { cursor: pointer; user-select: none; }
@@ -42,28 +31,22 @@
 </head>
 <body>
 
-    <!-- 1. App Startup Loader (Shows immediately) -->
-    <div id="appLoader">
-        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-        <p class="mt-3 fw-bold text-secondary">Starting System...</p>
-    </div>
-
-    <!-- 2. Processing Overlay (For actions) -->
-    <div id="actionLoader" class="loading-overlay hidden">
+    <!-- Loading -->
+    <div id="loading" class="loading-overlay hidden">
         <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2 fw-bold text-primary" id="loadingText">Processing...</p>
-        <div class="progress w-25 mt-2 hidden" id="uploadProgressBox">
-            <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width: 0%"></div>
-        </div>
+        <p class="mt-2 fw-bold text-primary" id="loadingText">Connecting...</p>
     </div>
 
     <!-- Login -->
-    <div class="container mt-5" id="loginPage">
+    <div class="container mt-5 hidden" id="loginPage">
         <div class="row justify-content-center">
             <div class="col-md-4">
                 <div class="card shadow border-0 mt-5">
                     <div class="card-body p-5">
-                        <div class="text-center mb-4"><h3 class="fw-bold text-primary">Login</h3></div>
+                        <div class="text-center mb-4">
+                            <h3 class="fw-bold text-primary">Login</h3>
+                        </div>
+                        <div id="loginError" class="alert alert-danger hidden text-center p-2 small"></div>
                         <input type="text" id="loginUser" class="form-control mb-3" placeholder="Username">
                         <input type="password" id="loginPass" class="form-control mb-3" placeholder="Password" onkeyup="if(event.key==='Enter') doLogin()">
                         <button onclick="doLogin()" class="btn btn-primary w-100">Sign In</button>
@@ -74,7 +57,7 @@
     </div>
 
     <!-- Dashboard -->
-    <div class="container-fluid" id="mainPage" style="max-width: 1400px;">
+    <div class="container-fluid hidden" id="mainPage" style="max-width: 1400px;">
         <nav class="navbar navbar-dark bg-primary px-3 mb-4 shadow rounded-bottom">
             <span class="navbar-brand h1 m-0"><i class="bi bi-people-fill me-2"></i> Employee System</span>
             <div>
@@ -111,15 +94,22 @@
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Modal -->
     <div class="modal fade" id="dataModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white"><h5 class="modal-title" id="modalTitle">Employee Info</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header bg-primary text-white"><h5 class="modal-title" id="modalTitle">Info</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body p-4">
                     <form id="empForm">
                         <input type="hidden" id="actionType"><input type="hidden" id="currentImage">
-                        <div class="text-center mb-4"><img id="previewImg" src="https://via.placeholder.com/140" class="profile-preview shadow-sm"><br><label class="btn btn-sm btn-outline-primary rounded-pill px-4"><i class="bi bi-camera-fill me-2"></i> Select Photo<input type="file" id="fileInput" hidden accept="image/*" onchange="compressAndPreview(this)"></label><input type="hidden" id="base64Code"></div>
+                        <div class="text-center mb-4">
+                            <img id="previewImg" src="https://via.placeholder.com/140" class="profile-preview shadow-sm"><br>
+                            <label class="btn btn-sm btn-outline-primary rounded-pill px-4">
+                                <i class="bi bi-camera-fill me-2"></i> Photo
+                                <input type="file" id="fileInput" hidden accept="image/*" onchange="compressAndPreview(this)">
+                            </label>
+                            <input type="hidden" id="base64Code">
+                        </div>
                         <div class="row g-3">
                             <div class="col-md-4"><label class="small text-muted">ID</label><input type="text" id="srNo" class="form-control"></div>
                             <div class="col-md-4"><label class="small text-muted">Name</label><input type="text" id="name" class="form-control"></div>
@@ -142,6 +132,7 @@
         </div>
     </div>
 
+    <!-- View & Delete Modals -->
     <div class="modal fade" id="viewModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body text-center p-4"><button class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button><img id="v_img" class="profile-preview mb-3"><h4 id="v_name" class="fw-bold"></h4><span id="v_pos" class="badge bg-primary rounded-pill mb-4"></span><div class="text-start table-responsive"><table class="table table-sm"><tbody id="viewBody"></tbody></table></div></div></div></div></div>
     <div class="modal fade" id="deleteModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5 class="modal-title">Confirm Delete</h5></div><div class="modal-body p-4 text-center"><p>Are you sure?</p></div><div class="modal-footer justify-content-center"><button class="btn btn-secondary" data-bs-dismiss="modal">No</button><button class="btn btn-danger" onclick="executeDelete()">Yes, Delete</button></div></div></div></div>
 
@@ -150,15 +141,15 @@
         // ********************************************
         // URL အသစ်ကို ဒီမှာ ထည့်ပါ
         // ********************************************
-        const API_URL = "https://script.google.com/macros/s/AKfycby13c2f8jPvqi_3g05YzqZfHt3Hz2rdn-5RxinQQJRn1LUoq8R1WBXQVNAPWMTvZoSt/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycby8FytAJK7Eb_at9WkOLomUvEaqTgI2QioNmd6yGNQopBU3K08r-NjbrukA2KMKxfEq/exec";
 
         let userRole="", globalData=[], filtered=[], currentPage=1, rowsPerPage=10;
         let deleteIndex=null;
-        const SESSION_KEY = "ems_user_session"; 
+        const SESSION_KEY = "ems_session_final";
 
         const getEl = id => document.getElementById(id);
-        const toggleActionLoad = (s, txt="Processing...") => {
-            getEl('actionLoader').classList.toggle('hidden', !s);
+        const toggleLoading = (s, txt="Processing...") => {
+            getEl('loading').classList.toggle('hidden', !s);
             getEl('loadingText').innerText = txt;
         };
 
@@ -171,54 +162,45 @@
                     redirect: "follow"
                 });
                 return await response.json();
-            } catch (error) { throw new Error("Connection Failed."); }
+            } catch (error) { throw new Error("Connection Error. Please check your internet or URL."); }
         };
 
-        // --- 1. INITIALIZATION (NO FLICKER LOGIC) ---
+        // --- AUTH (No Flicker) ---
         window.addEventListener('DOMContentLoaded', () => {
-            const savedSession = localStorage.getItem(SESSION_KEY);
-            const loader = getEl('appLoader');
-            
-            // Artificial delay to make it look smooth (500ms)
-            setTimeout(() => {
-                loader.style.opacity = '0'; // Fade out loader
-                setTimeout(() => loader.style.display = 'none', 500); // Remove from DOM
-
-                if(savedSession) {
-                    // Logged In -> Fade In Dashboard
-                    const session = JSON.parse(savedSession);
-                    userRole = session.role;
-                    getEl('mainPage').classList.add('fade-in-active');
-                    setupDash();
-                } else {
-                    // Not Logged In -> Fade In Login
-                    getEl('loginPage').classList.add('fade-in-active');
-                }
-            }, 500);
+            const session = localStorage.getItem(SESSION_KEY);
+            if(session) {
+                userRole = JSON.parse(session).role;
+                getEl('mainPage').classList.remove('hidden');
+                setTimeout(() => getEl('mainPage').classList.add('fade-in'), 50);
+                setupDash();
+            } else {
+                getEl('loginPage').classList.remove('hidden');
+                setTimeout(() => getEl('loginPage').classList.add('fade-in'), 50);
+            }
         });
 
-        // --- AUTHENTICATION ---
         function doLogin() {
             const u=getEl('loginUser').value, p=getEl('loginPass').value;
-            if(!u||!p) return alert("Enter credentials");
-            toggleActionLoad(true, "Logging In...");
-            
+            getEl('loginError').classList.add('hidden');
+            if(!u||!p) return;
+            toggleLoading(true, "Logging In...");
             apiCall({action:'login', username:u, password:p}).then(res => {
-                toggleActionLoad(false);
+                toggleLoading(false);
                 if(res.status) {
-                    userRole = res.role;
-                    localStorage.setItem(SESSION_KEY, JSON.stringify({ role: userRole }));
-                    
-                    // Smooth Transition to Dashboard
-                    getEl('loginPage').classList.remove('fade-in-active');
+                    userRole=res.role;
+                    localStorage.setItem(SESSION_KEY, JSON.stringify({role:userRole}));
+                    getEl('loginPage').classList.remove('fade-in');
                     setTimeout(() => {
-                        getEl('loginPage').style.display = 'none'; // Ensure it's gone
-                        getEl('mainPage').classList.add('fade-in-active');
+                        getEl('loginPage').classList.add('hidden');
+                        getEl('mainPage').classList.remove('hidden');
+                        getEl('mainPage').classList.add('fade-in');
                         setupDash();
                     }, 300);
-                    
-                } else alert(res.message);
-            }).catch(e => { toggleActionLoad(false); alert(e.message); });
+                } else {
+                    getEl('loginError').innerText = res.message;
+                    getEl('loginError').classList.remove('hidden');
+                }
+            }).catch(e => { toggleLoading(false); alert(e.message); });
         }
 
         function doLogout() {
@@ -233,15 +215,14 @@
         }
 
         function loadData() {
-            // Background load, don't block UI unless empty
-            if(globalData.length === 0) toggleActionLoad(true, "Loading Data...");
+            if(globalData.length === 0) toggleLoading(true, "Loading Data...");
             apiCall({action:'read'}).then(res => {
-                toggleActionLoad(false);
+                toggleLoading(false);
                 if(res.status) { globalData = res.data; filtered = globalData; currentPage=1; renderTable(); }
-            }).catch(e => toggleActionLoad(false));
+            }).catch(e => toggleLoading(false));
         }
 
-        // --- IMAGE COMPRESSION (Max 3MB Logic) ---
+        // --- COMPRESSION (Max 800px Width) ---
         function compressAndPreview(input) {
             const file = input.files[0];
             if(!file) return;
@@ -253,20 +234,12 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    
-                    // Logic: If image is HUGE, resize significantly. If small, resize less.
-                    let MAX_WIDTH = 800; 
-                    if(file.size > 2 * 1024 * 1024) MAX_WIDTH = 600; // If > 2MB, shrink more
-                    
+                    const MAX_WIDTH = 800; 
                     const scaleSize = MAX_WIDTH / img.width;
                     canvas.width = MAX_WIDTH;
                     canvas.height = img.height * scaleSize;
-                    
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
-                    // Compress Quality (0.6 is safe for 3MB limit)
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6); 
-                    
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6); // 60% Quality
                     getEl('previewImg').src = dataUrl;
                     getEl('base64Code').value = dataUrl;
                 }
@@ -286,7 +259,7 @@
                 let btns = `<button class="btn btn-info btn-sm me-1 rounded-circle text-white shadow-sm" onclick="openView(${realIdx})"><i class="bi bi-eye"></i></button>`;
                 if(userRole==='Root') btns += `<button class="btn btn-warning btn-sm me-1 rounded-circle shadow-sm" onclick="openModal('edit', ${realIdx})"><i class="bi bi-pencil"></i></button><button class="btn btn-danger btn-sm rounded-circle shadow-sm" onclick="askDelete(${realIdx})"><i class="bi bi-trash"></i></button>`;
                 else if(userRole==='Admin') btns += `<button class="btn btn-warning btn-sm rounded-circle shadow-sm" onclick="openModal('edit', ${realIdx})"><i class="bi bi-pencil"></i></button>`;
-                tbody.innerHTML += `<tr><td class="ps-3"><img src="${img}" class="profile-thumb"></td><td class="fw-bold text-secondary">#${r.srNo}</td><td class="fw-bold">${r.name}</td><td>${r.position}</td><td>${r.phone}</td><td class="text-end pe-3">${btns}</td></tr>`;
+                tbody.innerHTML += `<tr><td class="ps-3"><img src="${img}" class="profile-thumb"></td><td class="fw-bold text-secondary">#${r.srNo}</td><td class="fw-bold">${r.name}</td><td><span class="badge bg-light text-dark border">${r.position}</span></td><td>${r.phone}</td><td class="text-end pe-3">${btns}</td></tr>`;
             });
             renderPagination();
         }
@@ -323,15 +296,15 @@
         function submitData() {
             const obj = { action: getEl('actionType').value, imageFile: getEl('base64Code').value, currentImage: getEl('currentImage').value };
             ['srNo','name','position','phone','email','nrc','address','fatherName','motherName','bloodType','education','startDate','resignDate'].forEach(k => obj[k] = getEl(k).value);
-            toggleActionLoad(true, "Saving...");
-            apiCall(obj).then(res => { toggleActionLoad(false); alert(res.message); if(res.status) { dataModal.hide(); loadData(); } }).catch(e => { toggleActionLoad(false); alert(e.message); });
+            toggleLoading(true, "Saving...");
+            apiCall(obj).then(res => { toggleLoading(false); alert(res.message); if(res.status) { dataModal.hide(); loadData(); } }).catch(e => { toggleLoading(false); alert(e.message); });
         }
 
         const delModal = new bootstrap.Modal(getEl('deleteModal'));
         function askDelete(idx) { deleteIndex=idx; delModal.show(); }
         function executeDelete() {
-            const d = filtered[deleteIndex]; delModal.hide(); toggleActionLoad(true, "Deleting...");
-            apiCall({action:'delete', srNo:d.srNo}).then(res => { toggleActionLoad(false); alert(res.message); loadData(); });
+            const d = filtered[deleteIndex]; delModal.hide(); toggleLoading(true, "Deleting...");
+            apiCall({action:'delete', srNo:d.srNo}).then(res => { toggleLoading(false); alert(res.message); loadData(); });
         }
 
         const viewModal = new bootstrap.Modal(getEl('viewModal'));
