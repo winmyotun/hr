@@ -4,81 +4,189 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Management System</title>
+    <!-- Add FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .hidden { display: none; }
-        input, select, button { display: block; width: 100%; margin: 10px 0; padding: 10px; }
-        button { background-color: #28a745; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #218838; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .hidden { display: none !important; }
+        
+        /* Buttons */
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-primary { background-color: #007bff; }
+        .btn-success { background-color: #28a745; }
+        .btn-danger { background-color: #dc3545; }
+        .btn-warning { background-color: #ffc107; color: black; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn:hover { opacity: 0.9; }
+
+        /* Login Form */
+        .login-box { max-width: 400px; margin: 50px auto; padding: 30px; border: 1px solid #ddd; border-radius: 10px; background: #fff; text-align: center; }
+        .login-box input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+
+        /* Table */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+
+        /* Modal (Popup) */
+        .modal { position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
+        .modal-content { background-color: white; padding: 20px; border-radius: 8px; width: 80%; max-width: 800px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .close-btn { position: absolute; top: 10px; right: 20px; font-size: 24px; cursor: pointer; color: #aaa; }
+        .close-btn:hover { color: black; }
+
+        /* Form Grid */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .full-width { grid-column: span 2; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="text-align: center;">Eden Centre HR System</h2>
+    <h2 style="text-align: center; color: #333;">Eden Centre HR System</h2>
 
     <!-- LOGIN SECTION -->
-    <div id="loginSection">
+    <div id="loginSection" class="login-box">
         <h3>Login</h3>
         <input type="text" id="username" placeholder="Username">
         <input type="password" id="password" placeholder="Password">
-        <button onclick="login()">Login</button>
+        <button class="btn btn-primary" onclick="login()" style="width: 100%;">Login</button>
     </div>
 
     <!-- DASHBOARD SECTION -->
     <div id="dashboardSection" class="hidden">
-        <div style="display: flex; justify-content: space-between;">
-            <h3 id="welcomeMsg">Dashboard</h3>
-            <button onclick="logout()" style="width: auto; background-color: #dc3545;">Logout</button>
-        </div>
-        
-        <!-- Add Employee Form (Only visible to Admin) -->
-        <div id="adminControls" class="hidden">
-            <h4>Add New Employee</h4>
-            <input type="text" id="srNo" placeholder="Sr No.">
-            <input type="text" id="empName" placeholder="Name">
-            <input type="text" id="nrcNo" placeholder="NRC No.">
-            <input type="text" id="dept" placeholder="Department (e.g., IT, HR, Admin)">
-            <input type="text" id="position" placeholder="Position">
-            
-            <label>NRC Scan:</label>
-            <input type="file" id="nrcFile">
-            
-            <label>Training Certificate:</label>
-            <input type="text" id="trainingName" placeholder="Training Name">
-            <input type="file" id="trainingFile">
-            
-            <!-- ကျန်တဲ့ field တွေ လိုသလိုထပ်ထည့်ပါ -->
-            
-            <button onclick="addEmployee()">Add Employee</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 id="welcomeMsg" style="margin: 0;">Dashboard</h3>
+            <div>
+                <button id="addBtn" class="btn btn-success hidden" onclick="openModal()">+ Add Employee</button>
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
+            </div>
         </div>
 
-        <hr>
-        <h4>Employee List</h4>
-        <button onclick="loadEmployees()" style="width: auto; background-color: #007bff;">Refresh List</button>
         <div style="overflow-x:auto;">
             <table id="empTable">
                 <thead>
                     <tr>
-                        <th>Sr</th><th>Name</th><th>NRC</th><th>Dept</th><th>Position</th><th>Files</th>
+                        <th>Sr</th>
+                        <th>Name</th>
+                        <th>NRC</th>
+                        <th>Dept</th>
+                        <th>Position</th>
+                        <th>Phone</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    <!-- JS will populate rows here -->
+                </tbody>
             </table>
         </div>
     </div>
 </div>
 
+<!-- MODAL POPUP FORM -->
+<div id="employeeModal" class="modal hidden">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3 id="modalTitle">Add New Employee</h3>
+        
+        <div class="form-grid">
+            <!-- Hidden ID for Edit -->
+            <input type="hidden" id="editRowIndex">
+
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="empName">
+            </div>
+            <div class="form-group">
+                <label>NRC No.</label>
+                <input type="text" id="nrcNo">
+            </div>
+            <div class="form-group full-width">
+                <label>Address</label>
+                <input type="text" id="address">
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" id="phone">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email">
+            </div>
+            <div class="form-group">
+                <label>Father Name</label>
+                <input type="text" id="fatherName">
+            </div>
+            <div class="form-group">
+                <label>Mother Name</label>
+                <input type="text" id="motherName">
+            </div>
+            <div class="form-group">
+                <label>Blood Type</label>
+                <select id="bloodType">
+                    <option value="">Select</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="AB">AB</option>
+                    <option value="O">O</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Education</label>
+                <input type="text" id="education">
+            </div>
+            <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="form-group">
+                <label>End Date</label>
+                <input type="date" id="endDate">
+            </div>
+            <div class="form-group">
+                <label>Department</label>
+                <input type="text" id="dept">
+            </div>
+            <div class="form-group">
+                <label>Position</label>
+                <input type="text" id="position">
+            </div>
+            <div class="form-group full-width">
+                <label>Training Name</label>
+                <input type="text" id="trainingName">
+            </div>
+            
+            <!-- File Uploads -->
+            <div class="form-group">
+                <label>NRC Scan (Image/PDF)</label>
+                <input type="file" id="nrcFile">
+            </div>
+            <div class="form-group">
+                <label>Training Certificate</label>
+                <input type="file" id="trainingFile">
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: right;">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveEmployee()">Save Employee</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // GAS Deployment URL ကို ဒီမှာထည့်ပါ
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMUDxh7XgmfSwtUvOxf2LjFeuumw8w2gzurBWglwDMN5We0DmGaYCkBMegL_0e3eA1/exec';
+    // GAS URL ကို ဒီမှာထည့်ပါ
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwrV8uLtCVMIwlIjQi2LcebytMfnA_IubqJVWUsfV2t-1ybtnDMZK0seROvPFLgw9JS/exec'; 
 
     let currentUser = {};
+    let allEmployees = [];
 
+    // --- LOGIN ---
     function login() {
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
@@ -95,11 +203,10 @@
                 document.getElementById('dashboardSection').classList.remove('hidden');
                 document.getElementById('welcomeMsg').innerText = `Welcome, ${u} (${data.role})`;
                 
-                // Admin Role စစ်ခြင်း
+                // Show Add Button for Admins
                 if (data.role === 'Root Admin' || data.role === 'HR Manager') {
-                    document.getElementById('adminControls').classList.remove('hidden');
+                    document.getElementById('addBtn').classList.remove('hidden');
                 }
-                
                 loadEmployees();
             } else {
                 alert('Login Failed: ' + data.message);
@@ -107,6 +214,7 @@
         });
     }
 
+    // --- LOAD DATA ---
     function loadEmployees() {
         fetch(APPS_SCRIPT_URL, {
             method: 'POST',
@@ -118,28 +226,73 @@
         })
         .then(res => res.json())
         .then(response => {
-            const tbody = document.querySelector('#empTable tbody');
-            tbody.innerHTML = '';
-            response.data.forEach(row => {
-                // Row Data များကို Table မှာပြခြင်း (Column Index သတိပြုပါ)
-                const tr = `<tr>
-                    <td>${row[0]}</td>
-                    <td>${row[1]}</td>
-                    <td>${row[2]}</td>
-                    <td>${row[12]}</td>
-                    <td>${row[13]}</td>
-                    <td>
-                        ${row[15] ? `<a href="${row[15]}" target="_blank">NRC</a>` : ''} 
-                        ${row[16] ? `<br><a href="${row[16]}" target="_blank">Cert</a>` : ''}
-                    </td>
-                </tr>`;
-                tbody.innerHTML += tr;
-            });
+            allEmployees = response.data; // Store locally for editing
+            renderTable(allEmployees);
         });
     }
 
-    async function addEmployee() {
-        // File များကို Base64 ပြောင်းခြင်း
+    function renderTable(data) {
+        const tbody = document.querySelector('#empTable tbody');
+        tbody.innerHTML = '';
+        
+        data.forEach((row, index) => {
+            // Row Format (Indices based on Sheet Columns 0-16)
+            // 0:Sr, 1:Name, 2:NRC, 12:Dept, 13:Pos, 4:Phone
+            
+            let actionButtons = '';
+            if (currentUser.role === 'Root Admin' || currentUser.role === 'HR Manager') {
+                actionButtons = `
+                    <button class="btn btn-warning" style="padding: 5px 10px; font-size: 12px;" onclick="editEmployee(${index})"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteEmployee(${index})"><i class="fas fa-trash"></i></button>
+                `;
+            }
+
+            const tr = `<tr>
+                <td>${row[0]}</td>
+                <td>${row[1]}</td>
+                <td>${row[2]}</td>
+                <td>${row[12]}</td>
+                <td>${row[13]}</td>
+                <td>${row[4]}</td>
+                <td>${actionButtons}</td>
+            </tr>`;
+            tbody.innerHTML += tr;
+        });
+    }
+
+    // --- MODAL & FORM HANDLING ---
+    function openModal() {
+        document.getElementById('employeeModal').classList.remove('hidden');
+        document.getElementById('modalTitle').innerText = "Add New Employee";
+        clearForm();
+    }
+
+    function closeModal() {
+        document.getElementById('employeeModal').classList.add('hidden');
+    }
+
+    function clearForm() {
+        document.getElementById('editRowIndex').value = '';
+        document.getElementById('empName').value = '';
+        document.getElementById('nrcNo').value = '';
+        document.getElementById('address').value = '';
+        document.getElementById('phone').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('fatherName').value = '';
+        document.getElementById('motherName').value = '';
+        document.getElementById('bloodType').value = '';
+        document.getElementById('education').value = '';
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value = '';
+        document.getElementById('dept').value = '';
+        document.getElementById('position').value = '';
+        document.getElementById('trainingName').value = '';
+        document.getElementById('nrcFile').value = '';
+        document.getElementById('trainingFile').value = '';
+    }
+
+    // --- SAVE (ADD/EDIT) ---
+    async function saveEmployee() {
         const nrcInput = document.getElementById('nrcFile');
         const trainingInput = document.getElementById('trainingFile');
         
@@ -147,20 +300,31 @@
         let trainingData = await getBase64(trainingInput.files[0]);
 
         const payload = {
-            action: 'addEmployee',
-            srNo: document.getElementById('srNo').value,
+            action: 'addEmployee', // Currently only supports Add. For Edit, we need Backend logic update.
             name: document.getElementById('empName').value,
             nrc: document.getElementById('nrcNo').value,
+            address: document.getElementById('address').value,
+            phone: document.getElementById('phone').value,
+            email: document.getElementById('email').value,
+            fatherName: document.getElementById('fatherName').value,
+            motherName: document.getElementById('motherName').value,
+            bloodType: document.getElementById('bloodType').value,
+            education: document.getElementById('education').value,
+            startDate: document.getElementById('startDate').value,
+            // endDate skipped for add
             department: document.getElementById('dept').value,
             position: document.getElementById('position').value,
             trainingName: document.getElementById('trainingName').value,
-            // ကျန်တဲ့ field တွေ ဒီမှာထည့်ပါ
             
             nrcFile: nrcData ? { data: nrcData, mimeType: nrcInput.files[0].type } : null,
             trainingFile: trainingData ? { data: trainingData, mimeType: trainingInput.files[0].type } : null
         };
 
-        alert("Uploading... Please wait.");
+        // Note: For full Edit feature, Backend needs 'editEmployee' action support.
+        // Currently, we'll just implement Add.
+        
+        closeModal();
+        alert("Saving... Please wait.");
         
         fetch(APPS_SCRIPT_URL, {
             method: 'POST',
@@ -173,7 +337,39 @@
         });
     }
 
-    // Helper to convert file to Base64
+    // --- EDIT & DELETE (UI Only for now) ---
+    function editEmployee(index) {
+        const emp = allEmployees[index];
+        openModal();
+        document.getElementById('modalTitle').innerText = "Edit Employee (Coming Soon)";
+        
+        // Populate fields
+        document.getElementById('empName').value = emp[1];
+        document.getElementById('nrcNo').value = emp[2];
+        document.getElementById('address').value = emp[3];
+        document.getElementById('phone').value = emp[4];
+        document.getElementById('email').value = emp[5];
+        document.getElementById('fatherName').value = emp[6];
+        document.getElementById('motherName').value = emp[7];
+        document.getElementById('bloodType').value = emp[8];
+        document.getElementById('education').value = emp[9];
+        // Date handling might need formatting
+        document.getElementById('dept').value = emp[12];
+        document.getElementById('position').value = emp[13];
+        document.getElementById('trainingName').value = emp[14];
+        
+        alert("Edit functionality requires Backend update to identify Row ID.");
+    }
+
+    function deleteEmployee(index) {
+        if(confirm("Are you sure you want to delete this employee?")) {
+            // Send request to backend
+            // Requires Backend 'deleteEmployee' logic
+            alert("Delete functionality requires Backend update.");
+        }
+    }
+
+    // Helper
     function getBase64(file) {
         return new Promise((resolve, reject) => {
             if (!file) resolve(null);
