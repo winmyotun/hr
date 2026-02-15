@@ -3,242 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HR Management System</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <title>Employee Management System</title>
     <style>
-      body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f4f6f9;
-      }
-      /* Sidebar Styles */
-      .sidebar {
-        height: 100vh;
-        width: 250px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        background-color: #2c5bf2;
-        color: white;
-        transition: 0.3s;
-        z-index: 1000;
-      }
-      .sidebar-header {
-        padding: 20px;
-        background-color: #1a237e;
-      }
-      .user-panel {
-        padding: 15px;
-        display: flex;
-        align-items: center;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-      }
-      .user-img {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: #fff;
-        margin-right: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #333;
-      }
-      .sidebar a {
-        padding: 12px 20px;
-        text-decoration: none;
-        font-size: 15px;
-        color: rgba(255,255,255,0.8);
-        display: block;
-      }
-      .sidebar a:hover, .sidebar a.active {
-        color: #fff;
-        background-color: rgba(255,255,255,0.2);
-      }
-      .sidebar i { width: 25px; }
-      
-      /* Main Content */
-      .main-content {
-        margin-left: 250px;
-        padding: 20px;
-      }
-      .top-navbar {
-        background: #fff;
-        padding: 10px 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      
-      /* Card & Table */
-      .card { border: none; box-shadow: 0 0 10px rgba(0,0,0,0.05); border-radius: 5px; }
-      .card-header { background-color: #fff; border-bottom: 1px solid #eee; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-      .btn-add { background-color: #2c5bf2; color: white; }
-      .action-btn { padding: 5px 10px; margin: 0 2px; border-radius: 4px; color: white; border: none; cursor: pointer; }
-      .btn-view { background-color: #0dcaf0; }
-      .btn-edit { background-color: #ffc107; color: #000; }
-      .btn-delete { background-color: #dc3545; }
-      
-      @media (max-width: 768px) {
-        .sidebar { margin-left: -250px; }
-        .main-content { margin-left: 0; }
-      }
+        body { font-family: sans-serif; padding: 20px; }
+        .hidden { display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .btn { padding: 5px 10px; cursor: pointer; margin-right: 5px; }
+        .btn-red { background-color: #ff4d4d; color: white; border: none; }
+        .btn-blue { background-color: #007bff; color: white; border: none; }
+        .btn-green { background-color: #28a745; color: white; border: none; }
+        input { padding: 5px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 20px; width: 400px; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="sidebar-header"><h5>HR System</h5></div>
-      <div class="user-panel">
-        <div class="user-img"><i class="fas fa-user"></i></div>
-        <div>
-          <div style="font-weight:bold;">System Admin</div>
-          <small class="badge bg-primary">Super Admin</small>
-        </div>
-      </div>
-      <a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-      <a href="#" class="active"><i class="fas fa-users"></i> User Management</a>
-      <a href="#"><i class="fas fa-calendar-alt"></i> Leave Management</a>
-      <a href="#"><i class="fas fa-user-tie"></i> HR Page</a>
+    <!-- Login Form -->
+    <div id="loginSection">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()" class="btn btn-blue">Login</button>
+        <p id="loginError" style="color: red;"></p>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <div class="top-navbar">
-        <i class="fas fa-bars"></i>
-        <div><i class="fas fa-user-circle fa-lg"></i> System</div>
-      </div>
-
-      <h3>User Management</h3>
-      <p class="text-muted">Dashboard / User Management</p>
-
-      <div class="card">
-        <div class="card-header">
-          <h5 class="m-0">Employees</h5>
-          <button class="btn btn-add btn-sm"><i class="fas fa-plus"></i> Add Employee</button>
-        </div>
-        <div class="card-body">
-          <div class="row mb-3">
-            <div class="col-md-6">Show 10 entries</div>
-            <div class="col-md-6 text-end">
-              Search: <input type="text" id="searchInput" class="form-control d-inline-block" style="width: 200px;" onkeyup="searchTable()">
-            </div>
-          </div>
-
-          <div class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead>
+    <!-- Dashboard -->
+    <div id="dashboardSection" class="hidden">
+        <h2>Employee List</h2>
+        <p>Logged in as: <span id="displayRole" style="font-weight: bold;"></span></p>
+        <button id="btnAdd" onclick="showAddModal()" class="btn btn-green hidden">Add New Employee</button>
+        <button onclick="logout()" class="btn btn-red" style="float: right;">Logout</button>
+        
+        <table>
+            <thead>
                 <tr>
-                  <th>Sr No.</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Department</th>
-                  <th>Position</th>
-                  <th>Actions</th>
+                    <th>Sr No.</th>
+                    <th>Name</th>
+                    <th>NRC No.</th>
+                    <th>Position</th>
+                    <th>Phone</th>
+                    <th>Actions</th>
                 </tr>
-              </thead>
-              <tbody id="employeeTableBody">
-                <!-- Data will be populated here -->
-              </tbody>
-            </table>
-            <div id="loading" class="text-center p-3">
-              <div class="spinner-border text-primary" role="status"></div>
-              <p>Fetching data from Google Sheet...</p>
-            </div>
-          </div>
-        </div>
-      </div>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
     </div>
 
-    <!-- Script to Fetch Data -->
+    <!-- Modal for Add/Edit -->
+    <div id="employeeModal" class="hidden modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Employee Info</h3>
+            <input type="hidden" id="editRowIndex">
+            <input type="text" id="srNo" placeholder="Sr No.">
+            <input type="text" id="name" placeholder="Name">
+            <input type="text" id="nrc" placeholder="NRC No.">
+            <input type="text" id="address" placeholder="Address">
+            <input type="text" id="phone" placeholder="Phone">
+            <input type="text" id="email" placeholder="Email">
+            <input type="text" id="father" placeholder="Father Name">
+            <input type="text" id="mother" placeholder="Mother Name">
+            <input type="text" id="blood" placeholder="Blood Type">
+            <input type="text" id="edu" placeholder="Education">
+            <input type="text" id="start" placeholder="Start Date">
+            <input type="text" id="resign" placeholder="Resign Date">
+            <input type="text" id="pos" placeholder="Position">
+            <br><br>
+            <button onclick="saveEmployee()" class="btn btn-green">Save</button>
+            <button onclick="closeModal()" class="btn btn-red">Cancel</button>
+        </div>
+    </div>
+
     <script>
-      // ******************************************************
-      // TODO: ဒီနေရာမှာ မိမိရဲ့ Google Apps Script Web App URL ကို ထည့်ပါ
-      const API_URL = "https://script.google.com/macros/s/AKfycbzYJc_AoZeWb5y4lw7S0XR9f_il2mQ5weKaQ_Q41T_9rQcioqkYoe0587n8DsHK1T_9/exec"; 
-      // ******************************************************
+        // *** ဒီနေရာမှာ Web App URL ထည့်ပါ ***
+        const API_URL = "https://script.google.com/macros/s/AKfycbx_x2Y-co6Mad5Q1FLeLQzWoGAXqe3-m8vbkZakCepB8rhH2kPsKiAJ6iUqamOvC5cG/exec"; 
+        
+        let currentUserRole = "";
 
-      document.addEventListener("DOMContentLoaded", function() {
-        fetchData();
-      });
-
-      function fetchData() {
-        fetch(API_URL)
-          .then(response => response.json())
-          .then(data => {
-            renderTable(data);
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            document.getElementById("loading").innerHTML = "<span class='text-danger'>Error loading data. Check console.</span>";
-          });
-      }
-
-      function renderTable(employees) {
-        var tableBody = document.getElementById("employeeTableBody");
-        document.getElementById("loading").style.display = "none";
-        tableBody.innerHTML = "";
-
-        employees.forEach(function(emp) {
-          var row = `<tr>
-            <td>${emp.srNo}</td>
-            <td>${emp.name}</td>
-            <td>${emp.email}</td>
-            <td><span class="badge bg-info text-dark">${emp.role}</span></td>
-            <td>${emp.dept}</td>
-            <td>${emp.position}</td>
-            <td>
-              <button class="action-btn btn-view"><i class="fas fa-eye"></i></button>
-              <button class="action-btn btn-edit"><i class="fas fa-edit"></i></button>
-              <button class="action-btn btn-delete" onclick="deleteUser('${emp.email}')"><i class="fas fa-trash"></i></button>
-            </td>
-          </tr>`;
-          tableBody.innerHTML += row;
-        });
-      }
-
-      function deleteUser(email) {
-        if(confirm("Are you sure you want to delete " + email + "?")) {
-          // Show loading state if needed
-          fetch(API_URL + "?action=delete&email=" + encodeURIComponent(email))
-            .then(response => response.json())
-            .then(data => {
-               if(data.result === "Success") {
-                 alert("User deleted successfully!");
-                 fetchData(); // Reload table
-               } else {
-                 alert("Failed to delete user.");
-               }
-            })
-            .catch(error => console.error('Error:', error));
+        async function postData(action, data = {}) {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action, ...data })
+            });
+            return await response.json();
         }
-      }
 
-      function searchTable() {
-        var input = document.getElementById("searchInput");
-        var filter = input.value.toUpperCase();
-        var table = document.querySelector("table");
-        var tr = table.getElementsByTagName("tr");
-        for (var i = 1; i < tr.length; i++) {
-          var tdName = tr[i].getElementsByTagName("td")[1];
-          var tdEmail = tr[i].getElementsByTagName("td")[2];
-          if (tdName || tdEmail) {
-            var txtValueName = tdName.textContent || tdName.innerText;
-            var txtValueEmail = tdEmail.textContent || tdEmail.innerText;
-            if (txtValueName.toUpperCase().indexOf(filter) > -1 || txtValueEmail.toUpperCase().indexOf(filter) > -1) {
-              tr[i].style.display = "";
+        async function login() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            
+            const res = await postData("login", { username: user, password: pass });
+            
+            if (res.status === "success") {
+                currentUserRole = res.role;
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('dashboardSection').classList.remove('hidden');
+                document.getElementById('displayRole').innerText = currentUserRole;
+                
+                // Root ဖြစ်မှ Add ခလုတ်ပြမယ်
+                if (currentUserRole === "Root") {
+                    document.getElementById('btnAdd').classList.remove('hidden');
+                }
+                loadEmployees();
             } else {
-              tr[i].style.display = "none";
+                document.getElementById('loginError').innerText = res.message;
             }
-          }
         }
-      }
+
+        async function loadEmployees() {
+            const res = await postData("read");
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = "";
+
+            res.data.forEach(row => {
+                const info = row.data;
+                const rowIndex = row.rowIndex;
+                // Header: Sr, Name, NRC, Address, Phone, Email, Father, Mother, Blood, Edu, Start, Resign, Position
+                // Array Index: 0, 1, 2, ...
+                
+                let actionButtons = "";
+                
+                // Role အလိုက် Button တွေကို ထိန်းချုပ်ခြင်း
+                if (currentUserRole === "Root" || currentUserRole === "Admin") {
+                    // JSON stringify လုပ်ပြီး data တွေ pass လုပ်ပါမယ်
+                    const rowDataStr = JSON.stringify(info).replace(/"/g, '&quot;');
+                    actionButtons += `<button onclick="showEditModal(${rowIndex}, ${rowDataStr})" class="btn btn-blue">Edit</button>`;
+                }
+                if (currentUserRole === "Root") {
+                    actionButtons += `<button onclick="deleteEmployee(${rowIndex})" class="btn btn-red">Delete</button>`;
+                }
+
+                // Table မှာ အရေးကြီးတဲ့ အချက်အလက်အချို့ပဲ ပြထားပါတယ် (Design ကျဉ်းလို့ပါ)
+                const tr = `<tr>
+                    <td>${info[0]}</td>
+                    <td>${info[1]}</td>
+                    <td>${info[2]}</td>
+                    <td>${info[12]}</td>
+                    <td>${info[4]}</td>
+                    <td>${actionButtons}</td>
+                </tr>`;
+                tbody.innerHTML += tr;
+            });
+        }
+
+        function showAddModal() {
+            document.getElementById('modalTitle').innerText = "Add New Employee";
+            document.getElementById('editRowIndex').value = ""; // Clear Index
+            clearInputs();
+            document.getElementById('employeeModal').classList.remove('hidden');
+        }
+
+        function showEditModal(rowIndex, data) {
+            document.getElementById('modalTitle').innerText = "Edit Employee";
+            document.getElementById('editRowIndex').value = rowIndex;
+            
+            // Fill Inputs
+            const ids = ['srNo', 'name', 'nrc', 'address', 'phone', 'email', 'father', 'mother', 'blood', 'edu', 'start', 'resign', 'pos'];
+            ids.forEach((id, index) => {
+                document.getElementById(id).value = data[index] || "";
+            });
+
+            document.getElementById('employeeModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('employeeModal').classList.add('hidden');
+        }
+
+        function clearInputs() {
+            const ids = ['srNo', 'name', 'nrc', 'address', 'phone', 'email', 'father', 'mother', 'blood', 'edu', 'start', 'resign', 'pos'];
+            ids.forEach(id => document.getElementById(id).value = "");
+        }
+
+        async function saveEmployee() {
+            const rowIndex = document.getElementById('editRowIndex').value;
+            const ids = ['srNo', 'name', 'nrc', 'address', 'phone', 'email', 'father', 'mother', 'blood', 'edu', 'start', 'resign', 'pos'];
+            const data = ids.map(id => document.getElementById(id).value);
+
+            if (rowIndex) {
+                // Edit Mode
+                await postData("edit", { data: data, rowIndex: rowIndex });
+            } else {
+                // Add Mode
+                await postData("add", { data: data });
+            }
+            closeModal();
+            loadEmployees();
+        }
+
+        async function deleteEmployee(rowIndex) {
+            if (confirm("Are you sure you want to delete?")) {
+                await postData("delete", { rowIndex: rowIndex });
+                loadEmployees();
+            }
+        }
+
+        function logout() {
+            location.reload();
+        }
     </script>
 </body>
 </html>
