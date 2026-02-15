@@ -1,203 +1,309 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="my">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Management System</title>
+    <!-- Bootstrap CSS for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; padding: 20px; }
+        body { padding: 20px; background-color: #f8f9fa; }
         .hidden { display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .btn { padding: 5px 10px; cursor: pointer; margin-right: 5px; }
-        .btn-red { background-color: #ff4d4d; color: white; border: none; }
-        .btn-blue { background-color: #007bff; color: white; border: none; }
-        .btn-green { background-color: #28a745; color: white; border: none; }
-        input { padding: 5px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 20px; width: 400px; border-radius: 5px; }
+        #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; display: none;}
     </style>
 </head>
 <body>
 
-    <!-- Login Form -->
-    <div id="loginSection">
-        <h2>Login</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="login()" class="btn btn-blue">Login</button>
-        <p id="loginError" style="color: red;"></p>
+    <!-- Loading Spinner -->
+    <div id="loading" class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
     </div>
 
-    <!-- Dashboard -->
-    <div id="dashboardSection" class="hidden">
-        <h2>Employee List</h2>
-        <p>Logged in as: <span id="displayRole" style="font-weight: bold;"></span></p>
-        <button id="btnAdd" onclick="showAddModal()" class="btn btn-green hidden">Add New Employee</button>
-        <button onclick="logout()" class="btn btn-red" style="float: right;">Logout</button>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th>Sr No.</th>
-                    <th>Name</th>
-                    <th>NRC No.</th>
-                    <th>Position</th>
-                    <th>Phone</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </div>
-
-    <!-- Modal for Add/Edit -->
-    <div id="employeeModal" class="hidden modal">
-        <div class="modal-content">
-            <h3 id="modalTitle">Employee Info</h3>
-            <input type="hidden" id="editRowIndex">
-            <input type="text" id="srNo" placeholder="Sr No.">
-            <input type="text" id="name" placeholder="Name">
-            <input type="text" id="nrc" placeholder="NRC No.">
-            <input type="text" id="address" placeholder="Address">
-            <input type="text" id="phone" placeholder="Phone">
-            <input type="text" id="email" placeholder="Email">
-            <input type="text" id="father" placeholder="Father Name">
-            <input type="text" id="mother" placeholder="Mother Name">
-            <input type="text" id="blood" placeholder="Blood Type">
-            <input type="text" id="edu" placeholder="Education">
-            <input type="text" id="start" placeholder="Start Date">
-            <input type="text" id="resign" placeholder="Resign Date">
-            <input type="text" id="pos" placeholder="Position">
-            <br><br>
-            <button onclick="saveEmployee()" class="btn btn-green">Save</button>
-            <button onclick="closeModal()" class="btn btn-red">Cancel</button>
+    <!-- Login Section -->
+    <div class="container" id="loginSection">
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="card mt-5">
+                    <div class="card-header text-center">
+                        <h4>Login</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label>Username</label>
+                            <input type="text" id="username" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label>Password</label>
+                            <input type="password" id="password" class="form-control">
+                        </div>
+                        <button onclick="login()" class="btn btn-primary w-100">Login</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Main Dashboard -->
+    <div class="container-fluid hidden" id="dashboardSection">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Employee List</h3>
+            <div>
+                <span id="userRoleDisplay" class="badge bg-secondary me-2"></span>
+                <button id="btnAdd" class="btn btn-success hidden" onclick="showModal('add')">Add New</button>
+                <button onclick="logout()" class="btn btn-danger">Logout</button>
+            </div>
+        </div>
+
+        <div class="table-responsive bg-white p-3 shadow-sm rounded">
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Sr No.</th>
+                        <th>Name</th>
+                        <th>Position</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Details</th> <!-- For View More -->
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="employeeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Employee Info</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="empForm">
+                        <div class="row">
+                            <div class="col-md-4 mb-2"><label>Sr No.</label><input type="text" id="srNo" class="form-control"></div>
+                            <div class="col-md-4 mb-2"><label>Name</label><input type="text" id="name" class="form-control"></div>
+                            <div class="col-md-4 mb-2"><label>NRC No.</label><input type="text" id="nrc" class="form-control"></div>
+                            <div class="col-md-12 mb-2"><label>Address</label><input type="text" id="address" class="form-control"></div>
+                            <div class="col-md-4 mb-2"><label>Phone</label><input type="text" id="phone" class="form-control"></div>
+                            <div class="col-md-4 mb-2"><label>Email</label><input type="email" id="email" class="form-control"></div>
+                            <div class="col-md-4 mb-2"><label>Father Name</label><input type="text" id="fatherName" class="form-control"></div>
+                            <div class="col-md-4 mb-2"><label>Mother Name</label><input type="text" id="motherName" class="form-control"></div>
+                            <div class="col-md-4 mb-2"><label>Blood Type</label><input type="text" id="bloodType" class="form-control"></div>
+                            <div class="col-md-4 mb-2"><label>Education</label><input type="text" id="education" class="form-control"></div>
+                            <div class="col-md-4 mb-2"><label>Start Date</label><input type="date" id="startDate" class="form-control"></div>
+                            <div class="col-md-4 mb-2"><label>Resign Date</label><input type="date" id="resignDate" class="form-control"></div>
+                            <div class="col-md-4 mb-2"><label>Position</label><input type="text" id="position" class="form-control"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="btnSave" onclick="saveData()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        // *** ဒီနေရာမှာ Web App URL ထည့်ပါ ***
-        const API_URL = "https://script.google.com/macros/s/AKfycbx_x2Y-co6Mad5Q1FLeLQzWoGAXqe3-m8vbkZakCepB8rhH2kPsKiAJ6iUqamOvC5cG/exec"; 
-        
+        // *** အရေးကြီး ***: ဒီနေရာမှာ GAS Web App URL ကို ထည့်ပါ
+        const API_URL = "https://script.google.com/macros/s/AKfycbzjtsmd95MiCTmtT_gwcYbFG_W6_0DczqRb-MSyKvTFu5qLJXMIlDvwJ6DenRraZ2d3/exec"; 
+
         let currentUserRole = "";
+        let currentAction = ""; // 'add' or 'edit'
 
-        async function postData(action, data = {}) {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action, ...data })
-            });
-            return await response.json();
+        // Loading ပြသရန်
+        function toggleLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
         }
 
-        async function login() {
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
+        // Login Function
+        function login() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
             
-            const res = await postData("login", { username: user, password: pass });
-            
-            if (res.status === "success") {
-                currentUserRole = res.role;
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('dashboardSection').classList.remove('hidden');
-                document.getElementById('displayRole').innerText = currentUserRole;
-                
-                // Root ဖြစ်မှ Add ခလုတ်ပြမယ်
-                if (currentUserRole === "Root") {
-                    document.getElementById('btnAdd').classList.remove('hidden');
+            toggleLoading(true);
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "login", username: u, password: p })
+            })
+            .then(res => res.json())
+            .then(data => {
+                toggleLoading(false);
+                if (data.status) {
+                    currentUserRole = data.role;
+                    document.getElementById('userRoleDisplay').innerText = "Role: " + currentUserRole;
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('dashboardSection').classList.remove('hidden');
+                    setupPermissions();
+                    loadData();
+                } else {
+                    alert(data.message);
                 }
-                loadEmployees();
+            })
+            .catch(e => { toggleLoading(false); alert("Error: " + e); });
+        }
+
+        // Role ပေါ်မူတည်ပြီး Button တွေ အဖွင့်အပိတ်လုပ်ခြင်း
+        function setupPermissions() {
+            const btnAdd = document.getElementById('btnAdd');
+            if (currentUserRole === 'Root') {
+                btnAdd.classList.remove('hidden');
             } else {
-                document.getElementById('loginError').innerText = res.message;
+                btnAdd.classList.add('hidden');
             }
         }
 
-        async function loadEmployees() {
-            const res = await postData("read");
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = "";
-
-            res.data.forEach(row => {
-                const info = row.data;
-                const rowIndex = row.rowIndex;
-                // Header: Sr, Name, NRC, Address, Phone, Email, Father, Mother, Blood, Edu, Start, Resign, Position
-                // Array Index: 0, 1, 2, ...
+        // Data ဆွဲထုတ်ခြင်း (Read)
+        function loadData() {
+            toggleLoading(true);
+            fetch(API_URL + "?action=read")
+            .then(res => res.json())
+            .then(response => {
+                toggleLoading(false);
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = "";
                 
-                let actionButtons = "";
-                
-                // Role အလိုက် Button တွေကို ထိန်းချုပ်ခြင်း
-                if (currentUserRole === "Root" || currentUserRole === "Admin") {
-                    // JSON stringify လုပ်ပြီး data တွေ pass လုပ်ပါမယ်
-                    const rowDataStr = JSON.stringify(info).replace(/"/g, '&quot;');
-                    actionButtons += `<button onclick="showEditModal(${rowIndex}, ${rowDataStr})" class="btn btn-blue">Edit</button>`;
-                }
-                if (currentUserRole === "Root") {
-                    actionButtons += `<button onclick="deleteEmployee(${rowIndex})" class="btn btn-red">Delete</button>`;
-                }
-
-                // Table မှာ အရေးကြီးတဲ့ အချက်အလက်အချို့ပဲ ပြထားပါတယ် (Design ကျဉ်းလို့ပါ)
-                const tr = `<tr>
-                    <td>${info[0]}</td>
-                    <td>${info[1]}</td>
-                    <td>${info[2]}</td>
-                    <td>${info[12]}</td>
-                    <td>${info[4]}</td>
-                    <td>${actionButtons}</td>
-                </tr>`;
-                tbody.innerHTML += tr;
+                response.data.forEach(row => {
+                    let actions = "";
+                    
+                    // Root: Edit + Delete
+                    if (currentUserRole === 'Root') {
+                        actions = `
+                            <button class="btn btn-warning btn-sm" onclick='openEdit(${JSON.stringify(row)})'>Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteData('${row.srNo}')">Delete</button>
+                        `;
+                    } 
+                    // Admin: Edit only
+                    else if (currentUserRole === 'Admin') {
+                        actions = `<button class="btn btn-warning btn-sm" onclick='openEdit(${JSON.stringify(row)})'>Edit</button>`;
+                    }
+                    // User: View only (None)
+                    
+                    // Detailed info ကို Modal နဲ့ပြဖို့ logic သပ်သပ်ရေးနိုင်ပါတယ်၊ လောလောဆယ် အဓိက column တွေပဲပြထားပါတယ်
+                    const tr = `
+                        <tr>
+                            <td>${row.srNo}</td>
+                            <td>${row.name}</td>
+                            <td>${row.position}</td>
+                            <td>${row.phone}</td>
+                            <td>${row.email}</td>
+                            <td>${row.education}, ${row.address}</td>
+                            <td>${actions}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += tr;
+                });
             });
         }
 
-        function showAddModal() {
-            document.getElementById('modalTitle').innerText = "Add New Employee";
-            document.getElementById('editRowIndex').value = ""; // Clear Index
-            clearInputs();
-            document.getElementById('employeeModal').classList.remove('hidden');
-        }
-
-        function showEditModal(rowIndex, data) {
-            document.getElementById('modalTitle').innerText = "Edit Employee";
-            document.getElementById('editRowIndex').value = rowIndex;
+        // Modal ဖွင့်ခြင်း (Add or Edit)
+        const myModal = new bootstrap.Modal(document.getElementById('employeeModal'));
+        
+        function showModal(type) {
+            currentAction = type;
+            document.getElementById('modalTitle').innerText = type === 'add' ? "Add New Employee" : "Edit Employee";
             
-            // Fill Inputs
-            const ids = ['srNo', 'name', 'nrc', 'address', 'phone', 'email', 'father', 'mother', 'blood', 'edu', 'start', 'resign', 'pos'];
-            ids.forEach((id, index) => {
-                document.getElementById(id).value = data[index] || "";
+            // Clear form if adding
+            if (type === 'add') {
+                document.getElementById('empForm').reset();
+                // SrNo ကို edit ခွင့်ပေးမလား မပေးဘူးလား ဆုံးဖြတ်နိုင်သည်
+                document.getElementById('srNo').readOnly = false; 
+            }
+            myModal.show();
+        }
+
+        function openEdit(row) {
+            currentAction = 'edit';
+            showModal('edit');
+            
+            // Fill data
+            document.getElementById('srNo').value = row.srNo;
+            document.getElementById('srNo').readOnly = true; // ID should not be changed during edit
+            document.getElementById('name').value = row.name;
+            document.getElementById('nrc').value = row.nrc;
+            document.getElementById('address').value = row.address;
+            document.getElementById('phone').value = row.phone;
+            document.getElementById('email').value = row.email;
+            document.getElementById('fatherName').value = row.fatherName;
+            document.getElementById('motherName').value = row.motherName;
+            document.getElementById('bloodType').value = row.bloodType;
+            document.getElementById('education').value = row.education;
+            
+            // Date formatting might be needed dependent on Sheet format
+            document.getElementById('startDate').value = formatDateForInput(row.startDate);
+            document.getElementById('resignDate').value = formatDateForInput(row.resignDate);
+            
+            document.getElementById('position').value = row.position;
+        }
+        
+        // Helper to format date string to yyyy-MM-dd
+        function formatDateForInput(dateStr) {
+            if(!dateStr) return "";
+            const d = new Date(dateStr);
+            if(isNaN(d.getTime())) return "";
+            return d.toISOString().split('T')[0];
+        }
+
+        // Save Data (Add or Edit)
+        function saveData() {
+            const data = {
+                action: currentAction, // 'add' or 'edit'
+                srNo: document.getElementById('srNo').value,
+                name: document.getElementById('name').value,
+                nrc: document.getElementById('nrc').value,
+                address: document.getElementById('address').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                fatherName: document.getElementById('fatherName').value,
+                motherName: document.getElementById('motherName').value,
+                bloodType: document.getElementById('bloodType').value,
+                education: document.getElementById('education').value,
+                startDate: document.getElementById('startDate').value,
+                resignDate: document.getElementById('resignDate').value,
+                position: document.getElementById('position').value
+            };
+
+            toggleLoading(true);
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(response => {
+                toggleLoading(false);
+                alert(response.message);
+                if (response.status) {
+                    myModal.hide();
+                    loadData();
+                }
             });
-
-            document.getElementById('employeeModal').classList.remove('hidden');
         }
 
-        function closeModal() {
-            document.getElementById('employeeModal').classList.add('hidden');
-        }
-
-        function clearInputs() {
-            const ids = ['srNo', 'name', 'nrc', 'address', 'phone', 'email', 'father', 'mother', 'blood', 'edu', 'start', 'resign', 'pos'];
-            ids.forEach(id => document.getElementById(id).value = "");
-        }
-
-        async function saveEmployee() {
-            const rowIndex = document.getElementById('editRowIndex').value;
-            const ids = ['srNo', 'name', 'nrc', 'address', 'phone', 'email', 'father', 'mother', 'blood', 'edu', 'start', 'resign', 'pos'];
-            const data = ids.map(id => document.getElementById(id).value);
-
-            if (rowIndex) {
-                // Edit Mode
-                await postData("edit", { data: data, rowIndex: rowIndex });
-            } else {
-                // Add Mode
-                await postData("add", { data: data });
-            }
-            closeModal();
-            loadEmployees();
-        }
-
-        async function deleteEmployee(rowIndex) {
-            if (confirm("Are you sure you want to delete?")) {
-                await postData("delete", { rowIndex: rowIndex });
-                loadEmployees();
-            }
+        // Delete Data
+        function deleteData(srNo) {
+            if (!confirm("Are you sure you want to delete this employee?")) return;
+            
+            toggleLoading(true);
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "delete", srNo: srNo })
+            })
+            .then(res => res.json())
+            .then(response => {
+                toggleLoading(false);
+                alert(response.message);
+                if (response.status) {
+                    loadData();
+                }
+            });
         }
 
         function logout() {
