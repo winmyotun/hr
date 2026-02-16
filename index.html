@@ -8,18 +8,17 @@
     <!-- CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Google Fonts: Padauk -->
     <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- JS Libraries (REQUIRED) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <!-- JS Libraries (Word Export & Utils) -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- html-docx-js for converting HTML to Word -->
+    <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
+    <!-- FileSaver for saving the file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
-        /* Apply Padauk to whole website */
         body { font-family: 'Padauk', sans-serif; background-color: #f4f6f9; }
-        
         .login-container { max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .main-content { display: none; padding: 20px; }
         .profile-img-small { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
@@ -86,7 +85,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 2.1<br>Padauk Font PDF</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 5.0 (Word Export)<br>HR Management System</div>
         </div>
     </div>
 
@@ -170,7 +169,8 @@
 
 <!-- View Details Modal -->
 <div class="modal fade" id="viewModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-body" id="viewDetailsBody"></div><div class="modal-footer p-1">
-    <button type="button" class="btn btn-primary btn-sm me-auto" onclick="downloadProfilePDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+    <!-- CHANGED: Download Word Button -->
+    <button type="button" class="btn btn-primary btn-sm me-auto" onclick="downloadProfileWord()"><i class="fas fa-file-word"></i> Download Word Profile</button>
     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
 </div></div></div></div>
 
@@ -185,40 +185,6 @@
     let compressedImageBase64 = null, deleteImageFlag = false;
     let eduFilesToDelete = []; 
     let currentViewedEmp = null;
-    let fontsLoaded = false;
-
-    // --- 1. LOAD PADAUK FONT (Contains both EN & MM) ---
-    async function loadFonts() {
-        const fontURL = "https://raw.githubusercontent.com/google/fonts/main/ofl/padauk/Padauk-Regular.ttf";
-        const fontBoldURL = "https://raw.githubusercontent.com/google/fonts/main/ofl/padauk/Padauk-Bold.ttf";
-        try {
-            const fetchFont = async (url) => {
-                const response = await fetch(url);
-                const blob = await response.blob();
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                    reader.readAsDataURL(blob);
-                });
-            };
-            const regular = await fetchFont(fontURL);
-            const bold = await fetchFont(fontBoldURL);
-            
-            window.pdfMake.vfs["Padauk-Regular.ttf"] = regular;
-            window.pdfMake.vfs["Padauk-Bold.ttf"] = bold;
-            window.pdfMake.fonts = {
-                Padauk: {
-                    normal: "Padauk-Regular.ttf",
-                    bold: "Padauk-Bold.ttf",
-                    italics: "Padauk-Regular.ttf",
-                    bolditalics: "Padauk-Bold.ttf"
-                }
-            };
-            fontsLoaded = true;
-            console.log("Padauk Font Loaded");
-        } catch (e) { console.error("Font Load Error:", e); }
-    }
-    loadFonts();
 
     // Login
     document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -262,11 +228,11 @@
         div.className = 'edu-row row g-2 align-items-center';
         let fileDisplay = "";
         if(url) { fileDisplay = `<a href="${url}" target="_blank" class="ms-2 small text-success"><i class="fas fa-check-circle"></i> File Uploaded</a>`; }
-        div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png"><input type="hidden" class="edu-existing-url" value="${url}">${fileDisplay}</div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`;
+        div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name (e.g. LLB)" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png"><input type="hidden" class="edu-existing-url" value="${url}">${fileDisplay}</div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`;
         container.appendChild(div);
     }
 
-    // FIXED: Global Scope
+    // FIXED: Global Scope for Inline Onclick
     window.removeEduRow = function(btn) {
         const row = btn.closest('.edu-row');
         const url = row.querySelector('.edu-existing-url').value;
@@ -307,14 +273,14 @@
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    // --- PDF GENERATION (Using Padauk) ---
-    window.downloadProfilePDF = async function() {
+    // --- WORD GENERATION (Using HTML-DOCX-JS Logic) ---
+    async function downloadProfileWord() {
         if(!currentViewedEmp) return;
         const emp = currentViewedEmp;
         showLoading(true);
 
-        // Fetch Image
-        let profileImage = null;
+        // Fetch Image Base64
+        let profileImage = "";
         if (emp['Profile Pic']) {
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getImageBase64', fileUrl: emp['Profile Pic'] }) });
@@ -322,109 +288,99 @@
                 if(result.status === 'success') profileImage = result.data;
             } catch(e) {}
         }
+        // Placeholder if no image
         if(!profileImage) profileImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
-        let eduContent = [];
+        let eduListHtml = '<p style="color:#777">- None -</p>';
         try {
             if(emp.Education && emp.Education.trim() !== "") {
                 const eduList = JSON.parse(emp.Education);
-                eduList.forEach(item => { eduContent.push({ text: item.title, style: 'eduItem' }); });
+                if(eduList.length > 0) {
+                    eduListHtml = '';
+                    eduList.forEach(item => {
+                        eduListHtml += `<div style="padding:5px; background:#f5f5f5; margin-bottom:5px; border-left:3px solid #0d6efd; font-size:14px;">${item.title}</div>`;
+                    });
+                }
             }
         } catch(e) {}
-        if(eduContent.length === 0) eduContent.push({ text: '- None -', color: '#777', italics: true });
 
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
 
-        // PDF Definition
-        const docDefinition = {
-            content: [
-                {
-                    table: {
-                        widths: ['*', 100], 
-                        body: [
-                            [
-                                {
-                                    fillColor: '#0d6efd',
-                                    color: 'white',
-                                    margin: [20, 20, 10, 20],
-                                    stack: [
-                                        { text: emp.Name, style: 'headerName' },
-                                        { text: `${emp.Position || '-'}  |  ${emp.Department || '-'}`, style: 'headerPos' }
-                                    ],
-                                    alignment: 'left',
-                                    border: [false, false, false, false]
-                                },
-                                {
-                                    fillColor: '#0d6efd',
-                                    margin: [0, 15, 20, 15],
-                                    // WHITE BORDER around IMAGE
-                                    table: {
-                                        body: [[{
-                                            image: profileImage,
-                                            width: 80, height: 80,
-                                            fit: [80, 80],
-                                            alignment: 'center'
-                                        }]]
-                                    },
-                                    layout: {
-                                        defaultBorder: false,
-                                        paddingLeft: function(i) { return 5; }, paddingRight: function(i) { return 5; },
-                                        paddingTop: function(i) { return 5; }, paddingBottom: function(i) { return 5; },
-                                        fillColor: 'white' 
-                                    },
-                                    border: [false, false, false, false]
-                                }
-                            ]
-                        ]
-                    },
-                    layout: 'noBorders'
-                },
-                { text: '', margin: [0, 0, 0, 20] },
-                {
-                    columns: [
-                        {
-                            width: '45%',
-                            stack: [
-                                { text: 'CONTACT INFO', style: 'sectionTitle' },
-                                { text: 'Phone', style: 'label' }, { text: emp.Phone || '-', style: 'value' },
-                                { text: 'Email', style: 'label' }, { text: emp.Email || '-', style: 'value' },
-                                { text: 'Address', style: 'label' }, { text: emp.Address || '-', style: 'value' },
-                                { text: '', margin: [0, 0, 0, 15] },
-                                { text: 'PERSONAL DETAILS', style: 'sectionTitle' },
-                                { text: 'NRC No.', style: 'label' }, { text: emp['NRC No.'] || '-', style: 'value' },
-                                { text: 'Blood Type', style: 'label' }, { text: emp['Blood Type'] || '-', style: 'value' },
-                                { text: 'Father Name', style: 'label' }, { text: emp['Father Name'] || '-', style: 'value' },
-                                { text: 'Mother Name', style: 'label' }, { text: emp['Mother Name'] || '-', style: 'value' },
-                            ]
-                        },
-                        {
-                            width: '55%',
-                            stack: [
-                                { text: 'EMPLOYMENT', style: 'sectionTitle' },
-                                { text: 'Employee ID', style: 'label' }, { text: emp['Sr No.'], style: 'value' },
-                                { text: 'Start Date', style: 'label' }, { text: formatDate(emp['Start Date']), style: 'value' },
-                                { text: 'Resign Date', style: 'label' }, { text: formatDate(emp['Resign Date']), style: 'value' },
-                                { text: '', margin: [0, 0, 0, 15] },
-                                { text: 'EDUCATION & CERTIFICATES', style: 'sectionTitle' },
-                                { stack: eduContent }
-                            ]
-                        }
-                    ],
-                    columnGap: 20
-                }
-            ],
-            styles: {
-                headerName: { fontSize: 22, bold: true, color: 'white' },
-                headerPos: { fontSize: 14, color: '#e0e0e0', margin: [0, 5, 0, 0] },
-                sectionTitle: { fontSize: 11, bold: true, color: '#0d6efd', margin: [0, 0, 0, 5], decoration: 'underline', decorationStyle: 'solid', decorationColor: '#eee' },
-                label: { fontSize: 9, color: '#666', margin: [0, 2, 0, 0] },
-                value: { fontSize: 11, bold: true, color: '#333', margin: [0, 0, 0, 8] },
-                eduItem: { fontSize: 10, margin: [0, 2, 0, 2], background: '#f5f5f5', color: '#333' }
-            },
-            defaultStyle: { font: fontsLoaded ? 'Padauk' : 'Roboto' }
-        };
+        // Construct HTML String for Word
+        const content = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    body { font-family: 'Padauk', 'Pyidaungsu', Arial, sans-serif; }
+                    table { width: 100%; border-collapse: collapse; }
+                    .header { background-color: #0d6efd; color: white; padding: 20px; }
+                    .photo-container { text-align: right; }
+                    .photo { width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; object-fit: cover; }
+                    .title h1 { margin: 0; font-size: 24px; }
+                    .title h3 { margin: 5px 0 0; font-size: 16px; opacity: 0.9; }
+                    .section { margin-top: 20px; }
+                    .section-title { color: #0d6efd; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; }
+                    .field { margin-bottom: 10px; }
+                    .label { color: #666; font-size: 12px; display: block; }
+                    .value { color: #333; font-size: 14px; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <table class="header">
+                    <tr>
+                        <td class="title">
+                            <h1>${emp.Name}</h1>
+                            <h3>${emp.Position || '-'} | ${emp.Department || '-'}</h3>
+                        </td>
+                        <td class="photo-container">
+                            <img src="${profileImage}" class="photo" width="100" height="100">
+                        </td>
+                    </tr>
+                </table>
 
-        pdfMake.createPdf(docDefinition).download(`${emp.Name}_Profile.pdf`);
+                <br>
+
+                <table>
+                    <tr>
+                        <td width="45%" valign="top">
+                            <div class="section">
+                                <div class="section-title">Contact Info</div>
+                                <div class="field"><span class="label">Phone</span><div class="value">${emp.Phone || '-'}</div></div>
+                                <div class="field"><span class="label">Email</span><div class="value">${emp.Email || '-'}</div></div>
+                                <div class="field"><span class="label">Address</span><div class="value">${emp.Address || '-'}</div></div>
+                            </div>
+                            <div class="section">
+                                <div class="section-title">Personal Details</div>
+                                <div class="field"><span class="label">NRC No.</span><div class="value">${emp['NRC No.'] || '-'}</div></div>
+                                <div class="field"><span class="label">Blood Type</span><div class="value">${emp['Blood Type'] || '-'}</div></div>
+                                <div class="field"><span class="label">Father Name</span><div class="value">${emp['Father Name'] || '-'}</div></div>
+                                <div class="field"><span class="label">Mother Name</span><div class="value">${emp['Mother Name'] || '-'}</div></div>
+                            </div>
+                        </td>
+                        <td width="5%"></td> <!-- Spacer -->
+                        <td width="50%" valign="top">
+                            <div class="section">
+                                <div class="section-title">Employment</div>
+                                <div class="field"><span class="label">Employee ID (Sr)</span><div class="value">${emp['Sr No.'] || '-'}</div></div>
+                                <div class="field"><span class="label">Start Date</span><div class="value">${formatDate(emp['Start Date'])}</div></div>
+                                <div class="field"><span class="label">Resign Date</span><div class="value">${formatDate(emp['Resign Date'])}</div></div>
+                            </div>
+                            <div class="section">
+                                <div class="section-title">Education & Certificates</div>
+                                ${eduListHtml}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `;
+
+        // Generate Blob using html-docx-js
+        const converted = htmlDocx.asBlob(content);
+        saveAs(converted, `${emp.Name}_Profile.docx`);
         showLoading(false);
     }
 
