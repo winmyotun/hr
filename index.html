@@ -24,11 +24,32 @@
         .sidebar-item:hover { background-color: #f1f3f5; color: #0d6efd; padding-left: 25px; }
         .sidebar-item i { width: 25px; text-align: center; margin-right: 10px; }
         
-        /* Pagination */
+        /* Pagination Styling - Requested Fixed Design */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
-        .page-input-box { width: 50px; text-align: center; border: 1px solid #dee2e6; color: #0d6efd; font-weight: 400; padding: 0.375rem 0.75rem; line-height: 1.5; outline: none; background: #fff; border-radius: 0; display: block; height: 100%; }
-        .page-input-box:focus { border-color: #86b7fe; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); z-index: 2; position: relative; }
+        
+        .page-input-box {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            color: #0d6efd;
+            font-weight: 340;        /* Requested Font Weight */
+            padding: 0.14rem 0.4rem; /* Requested Padding */
+            line-height: 1;          /* Requested Line Height */
+            outline: none;
+            background: #fff;
+            border-radius: 0;
+            display: block;
+            height: 100%;
+        }
+        
+        .page-input-box:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            z-index: 2;
+            position: relative;
+        }
+
         .pagination .page-item:first-child .page-link { border-top-right-radius: 0; border-bottom-right-radius: 0; }
         .pagination .page-item:last-child .page-link { border-top-left-radius: 0; border-bottom-left-radius: 0; }
         .pagination .page-item + .page-item .page-input-box { margin-left: -1px; }
@@ -76,7 +97,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 2.3<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 2.4<br>HR Management System</div>
         </div>
     </div>
 
@@ -176,7 +197,7 @@
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [] }; 
     let compressedImageBase64 = null, deleteImageFlag = false;
-    let eduFilesToDelete = []; // ARRAY TO STORE FILES TO DELETE
+    let eduFilesToDelete = []; // Array to store files to delete
 
     // Login
     document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -216,7 +237,7 @@
 
     function refreshData() { loadEmployees(); loadAllDropdowns(); }
 
-    // --- EDUCATION FUNCTIONS ---
+    // --- EDUCATION FUNCTIONS (WITH DELETE LOGIC) ---
     function addEduRow(title = "", url = "") {
         const container = document.getElementById('eduContainer');
         const div = document.createElement('div');
@@ -237,7 +258,6 @@
                 ${fileDisplay}
             </div>
             <div class="col-1 text-end">
-                <!-- UPDATED: call removeEduRow instead of remove() directly -->
                 <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button>
             </div>
         `;
@@ -248,7 +268,7 @@
         const row = btn.closest('.edu-row');
         const url = row.querySelector('.edu-existing-url').value;
         if (url) {
-            eduFilesToDelete.push(url); // Mark for deletion
+            eduFilesToDelete.push(url); // Add to delete list for backend
         }
         row.remove();
     }
@@ -259,11 +279,10 @@
         document.getElementById('employeeForm').reset(); 
         document.getElementById('eduContainer').innerHTML = ''; 
         compressedImageBase64 = null; deleteImageFlag = false;
-        eduFilesToDelete = []; // RESET DELETE ARRAY
+        eduFilesToDelete = []; // RESET
         
         document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none'; 
         
-        // Reset Tabs
         var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]')
         var firstTab = new bootstrap.Tab(firstTabEl)
         firstTab.show()
@@ -275,7 +294,6 @@
             if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0]; if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; 
             if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
             
-            // Populate Education
             try {
                 if(emp.Education && emp.Education.trim() !== "") {
                     const eduList = JSON.parse(emp.Education);
@@ -294,7 +312,6 @@
         showLoading(true);
         const rowIndex = document.getElementById('editRowIndex').value;
         
-        // Gather Education Data
         const eduRows = document.querySelectorAll('.edu-row');
         const educationData = [];
         
@@ -327,7 +344,7 @@
             employee: employeeData, 
             rowIndex: rowIndex ? parseInt(rowIndex) : null, 
             deleteImageFlag: deleteImageFlag,
-            deleted_edu_files: eduFilesToDelete // SEND DELETED FILES LIST
+            deleted_edu_files: eduFilesToDelete // Sending deleted files list to backend
         }; 
         
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); });
@@ -362,6 +379,7 @@
 
     const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
 
+    // Standard Functions
     function renderTable() {
         const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
         const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage);
