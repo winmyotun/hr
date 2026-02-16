@@ -4,35 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Management System</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
         body { font-family: 'Poppins', 'Padauk', sans-serif; background-color: #f4f6f9; }
         .login-container { max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .main-content { display: none; padding: 20px; }
-        /* Image Styles */
         .profile-img-small { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
         .details-img { width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        /* Search & Controls */
         .search-box { position: relative; }
         .search-box input { border-radius: 20px; padding-left: 35px; }
         .search-box i { position: absolute; left: 15px; top: 10px; color: #aaa; }
         #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; display:none; justify-content:center; align-items:center; }
+        .list-group-item { display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
-<!-- Loading Spinner -->
-<div id="loadingOverlay">
-    <div class="spinner-border text-primary" role="status"></div>
-</div>
+<div id="loadingOverlay"><div class="spinner-border text-primary" role="status"></div></div>
 
-<!-- Login Section -->
+<!-- Login -->
 <div class="container" id="loginSection">
     <div class="login-container">
         <h3 class="text-center text-primary fw-bold mb-4">HR System Login</h3>
@@ -44,7 +37,7 @@
     </div>
 </div>
 
-<!-- Main Dashboard -->
+<!-- Dashboard -->
 <div class="container-fluid main-content" id="dashboardSection">
     <nav class="navbar navbar-light bg-white rounded shadow-sm mb-4 p-3">
         <span class="navbar-brand fw-bold text-primary"><i class="fas fa-users-cog"></i> Employee Management</span>
@@ -56,44 +49,33 @@
 
     <div class="card p-4 border-0 shadow-sm">
         <div class="d-flex justify-content-between flex-wrap gap-3 mb-4">
-            <!-- Action Buttons -->
             <div>
                 <button class="btn btn-success" id="btnAdd" onclick="openModal('add')"><i class="fas fa-plus"></i> Add New</button>
-                <button class="btn btn-outline-success ms-2" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Export</button>
+                <!-- Combined Settings Button -->
+                <button class="btn btn-outline-dark ms-1" id="btnSettings" onclick="openSettingsModal()"><i class="fas fa-cogs"></i> Manage Dropdowns</button>
+                <button class="btn btn-outline-success ms-1" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Export</button>
             </div>
-            <!-- Search & Filter -->
             <div class="d-flex gap-2">
                 <select class="form-select w-auto" id="rowsPerPage" onchange="changeRowsPerPage()">
                     <option value="10">10</option>
                     <option value="25">25</option>
                     <option value="50">50</option>
-                    <option value="100">100</option>
                 </select>
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" class="form-control" id="searchInput" placeholder="Search name, dept..." onkeyup="filterData()">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search..." onkeyup="filterData()">
                 </div>
             </div>
         </div>
 
-        <!-- Table -->
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="bg-light">
-                    <tr>
-                        <th>Photo</th>
-                        <th>Sr</th>
-                        <th>Name</th>
-                        <th>Position</th>
-                        <th>Department</th>
-                        <th>Phone</th>
-                        <th>Actions</th>
-                    </tr>
+                    <tr><th>Photo</th><th>Sr</th><th>Name</th><th>Position</th><th>Department</th><th>Phone</th><th>Actions</th></tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
-        <!-- Pagination -->
         <div class="d-flex justify-content-between mt-3">
             <span id="pageInfo" class="text-muted small"></span>
             <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
@@ -101,7 +83,7 @@
     </div>
 </div>
 
-<!-- Add/Edit Modal -->
+<!-- Employee Modal -->
 <div class="modal fade" id="employeeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -114,7 +96,6 @@
                     <input type="hidden" id="editRowIndex">
                     <input type="hidden" id="currentImage">
                     <div class="row g-3">
-                        <!-- Photo Section -->
                         <div class="col-12 text-center mb-3">
                             <img id="imgPreview" src="" class="details-img" style="display:none; margin: 0 auto 10px auto;">
                             <div>
@@ -126,35 +107,35 @@
                             </div>
                         </div>
 
-                        <!-- Data Fields -->
                         <div class="col-md-6"><label>Name</label><input type="text" class="form-control" id="empName" required></div>
-                        <div class="col-md-6"><label>Position</label><input type="text" class="form-control" id="empPos"></div>
                         
-                        <!-- UPDATED: Department Dropdown -->
+                        <!-- Dynamic Position -->
+                        <div class="col-md-6">
+                            <label>Position</label>
+                            <select class="form-select" id="empPos"><option value="" disabled selected>Loading...</option></select>
+                        </div>
+                        
+                        <!-- Dynamic Department -->
                         <div class="col-md-6">
                             <label>Department</label>
-                            <select class="form-select" id="empDept">
-                                <option value="" selected disabled>Choose Department...</option>
-                                <option value="IT">IT</option>
-                                <option value="HR">HR</option>
-                                <option value="Finance">Finance</option>
-                                <option value="Marketing">Marketing</option>
-                                <option value="Sales">Sales</option>
-                                <option value="Operations">Operations</option>
-                                <option value="Management">Management</option>
-                                <option value="Admin">Admin</option>
-                            </select>
+                            <select class="form-select" id="empDept"><option value="" disabled selected>Loading...</option></select>
                         </div>
 
                         <div class="col-md-6"><label>Phone</label><input type="text" class="form-control" id="empPhone"></div>
                         <div class="col-md-6"><label>Email</label><input type="email" class="form-control" id="empEmail"></div>
                         <div class="col-md-6"><label>NRC No.</label><input type="text" class="form-control" id="empNrc"></div>
+                        
+                        <!-- Dynamic Blood Type -->
+                        <div class="col-md-6">
+                            <label>Blood Type</label>
+                            <select class="form-select" id="empBlood"><option value="" disabled selected>Loading...</option></select>
+                        </div>
+                        
+                        <div class="col-md-6"><label>Education</label><input type="text" class="form-control" id="empEdu"></div>
                         <div class="col-md-6"><label>Start Date</label><input type="date" class="form-control" id="empStart"></div>
                         <div class="col-md-6"><label>Resign Date</label><input type="date" class="form-control" id="empResign"></div>
                         <div class="col-md-6"><label>Father Name</label><input type="text" class="form-control" id="empFather"></div>
                         <div class="col-md-6"><label>Mother Name</label><input type="text" class="form-control" id="empMother"></div>
-                        <div class="col-md-6"><label>Education</label><input type="text" class="form-control" id="empEdu"></div>
-                        <div class="col-md-6"><label>Blood Type</label><input type="text" class="form-control" id="empBlood"></div>
                         <div class="col-12"><label>Address</label><textarea class="form-control" id="empAddr" rows="2"></textarea></div>
                     </div>
                 </form>
@@ -162,6 +143,36 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="saveEmployee()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Modal (Manage Dropdowns) -->
+<div class="modal fade" id="settingsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title"><i class="fas fa-list"></i> Manage Dropdowns</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="fw-bold">Select Category:</label>
+                    <select class="form-select" id="settingsCategory" onchange="renderSettingsList()">
+                        <option value="Department">Department</option>
+                        <option value="Position">Position</option>
+                        <option value="Blood Type">Blood Type</option>
+                    </select>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="newItemName" placeholder="New Item Name">
+                    <button class="btn btn-primary" onclick="addDropdownItem()">Add</button>
+                </div>
+                <h6 class="text-muted">Current Items:</h6>
+                <div class="list-group" id="settingsList" style="max-height: 250px; overflow-y: auto;">
+                    <!-- Items will appear here -->
+                </div>
             </div>
         </div>
     </div>
@@ -179,18 +190,21 @@
     </div>
 </div>
 
-<!-- Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz0cEl1oteM5B57ygpXcFVb4BHIfSjnucQmwGAJ1YJgR1jsjlK7wX3F1nNwXxELu6H-xQ/exec"; // *** URL ကို ပြန်ထည့်ပေးပါ ***
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzyJKwDgNEfMMYo0i6GDMwMFaCoSs99dOl_f0yoEh7av32WMdoSeMoTmmxMEZSjoJNY6w/exec"; // *** URL ထည့်ပါ ***
     let currentUser = { role: null, username: null };
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
+    
+    // Stores all dropdown data: { "Department": [], "Position": [], "Blood Type": [] }
+    let dropdownData = { "Department": [], "Position": [], "Blood Type": [] }; 
+    
     let compressedImageBase64 = null, deleteImageFlag = false;
 
-    // Login Handler
+    // Login
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
         showLoading(true);
@@ -210,10 +224,115 @@
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('dashboardSection').style.display = 'block';
         document.getElementById('userDisplay').innerText = `${currentUser.username} (${currentUser.role})`;
-        if(currentUser.role !== 'Root') document.getElementById('btnAdd').style.display = 'none';
+        
+        if(currentUser.role !== 'Root') {
+            document.getElementById('btnAdd').style.display = 'none';
+            document.getElementById('btnSettings').style.display = 'none';
+        }
+        
         loadEmployees();
+        loadAllDropdowns();
     }
 
+    // --- DROPDOWN LOGIC ---
+    function loadAllDropdowns() {
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) })
+        .then(res => res.json()).then(resp => {
+            if(resp.status === 'success') {
+                dropdownData = resp.data;
+                populateSelects();
+            }
+        });
+    }
+
+    function populateSelects() {
+        populateSingleSelect('empDept', dropdownData['Department']);
+        populateSingleSelect('empPos', dropdownData['Position']);
+        populateSingleSelect('empBlood', dropdownData['Blood Type']);
+    }
+
+    function populateSingleSelect(id, items) {
+        const select = document.getElementById(id);
+        select.innerHTML = `<option value="" selected disabled>Choose...</option>`;
+        if(items) {
+            items.forEach(item => {
+                select.innerHTML += `<option value="${item}">${item}</option>`;
+            });
+        }
+    }
+
+    // --- SETTINGS MODAL LOGIC ---
+    function openSettingsModal() {
+        renderSettingsList();
+        new bootstrap.Modal(document.getElementById('settingsModal')).show();
+    }
+
+    function renderSettingsList() {
+        const category = document.getElementById('settingsCategory').value;
+        const listContainer = document.getElementById('settingsList');
+        const items = dropdownData[category] || [];
+        
+        listContainer.innerHTML = '';
+        if(items.length === 0) {
+            listContainer.innerHTML = '<div class="p-3 text-center text-muted">No items found.</div>';
+            return;
+        }
+
+        items.forEach(item => {
+            listContainer.innerHTML += `
+                <div class="list-group-item">
+                    <span>${item}</span>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteDropdownItem('${category}', '${item}')"><i class="fas fa-trash"></i></button>
+                </div>`;
+        });
+    }
+
+    function addDropdownItem() {
+        const category = document.getElementById('settingsCategory').value;
+        const value = document.getElementById('newItemName').value.trim();
+        if(!value) return;
+
+        showLoading(true);
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addDropdownItem', category: category, value: value }) })
+        .then(res => res.json()).then(resp => {
+            showLoading(false);
+            if(resp.status === 'success') {
+                document.getElementById('newItemName').value = '';
+                loadAllDropdowns(); // Refresh all
+                // Simulate refresh in modal
+                setTimeout(() => {
+                    // Update local data temporarily for smooth UI or wait for fetch
+                    // For simplicity, we wait for fetch which calls populateSelects.
+                    // We also need to re-render the list inside the modal.
+                    // Since loadAllDropdowns is async, we should actually chain this, but for simplicity:
+                    fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) })
+                    .then(r => r.json()).then(d => {
+                        dropdownData = d.data;
+                        renderSettingsList();
+                    });
+                }, 1000);
+            }
+        });
+    }
+
+    function deleteDropdownItem(category, value) {
+        if(!confirm(`Delete "${value}" from ${category}?`)) return;
+        showLoading(true);
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteDropdownItem', category: category, value: value }) })
+        .then(res => res.json()).then(resp => {
+            showLoading(false);
+            loadAllDropdowns();
+            setTimeout(() => {
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) })
+                .then(r => r.json()).then(d => {
+                    dropdownData = d.data;
+                    renderSettingsList();
+                });
+            }, 1000);
+        });
+    }
+
+    // --- EMPLOYEE LOGIC ---
     function loadEmployees() {
         showLoading(true);
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) })
@@ -245,8 +364,8 @@
                     <td>${picHtml}</td>
                     <td>${row['Sr No.']}</td>
                     <td class="fw-bold">${row.Name}</td>
-                    <td>${row.Position}</td>
-                    <td><span class="badge bg-light text-dark border">${row.Department || '-'}</span></td>
+                    <td><span class="badge bg-secondary">${row.Position || '-'}</span></td>
+                    <td><span class="badge bg-primary">${row.Department || '-'}</span></td>
                     <td>${row.Phone}</td>
                     <td>${actions}</td>
                 </tr>
@@ -255,7 +374,7 @@
         updatePaginationInfo();
     }
 
-    // Image Helper: Preview & Compress
+    // Image & Modal Core Logic
     function previewAndCompress(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -291,7 +410,6 @@
         deleteImageFlag = true;
     }
 
-    // Modal Logic
     function openModal(mode, rowIndex = null) {
         const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
         document.getElementById('employeeForm').reset();
@@ -305,17 +423,19 @@
             document.getElementById('editRowIndex').value = rowIndex;
             document.getElementById('currentImage').value = emp['Profile Pic'];
 
-            // Populate Form Fields
             document.getElementById('empName').value = emp.Name;
-            document.getElementById('empPos').value = emp.Position;
-            document.getElementById('empDept').value = emp.Department; // Dropdown value set here
+            
+            // Set Dropdown Values
+            document.getElementById('empDept').value = emp.Department || "";
+            document.getElementById('empPos').value = emp.Position || "";
+            document.getElementById('empBlood').value = emp['Blood Type'] || "";
+
             document.getElementById('empPhone').value = emp.Phone;
             document.getElementById('empEmail').value = emp.Email;
             document.getElementById('empNrc').value = emp['NRC No.'];
             document.getElementById('empEdu').value = emp.Education;
             document.getElementById('empFather').value = emp['Father Name'];
             document.getElementById('empMother').value = emp['Mother Name'];
-            document.getElementById('empBlood').value = emp['Blood Type'];
             document.getElementById('empAddr').value = emp.Address;
             if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0];
             if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0];
@@ -328,6 +448,10 @@
         } else {
             document.getElementById('modalTitle').innerText = "Add New Employee";
             document.getElementById('editRowIndex').value = "";
+            // Reset selects
+            document.getElementById('empDept').value = "";
+            document.getElementById('empPos').value = "";
+            document.getElementById('empBlood').value = "";
         }
         modal.show();
     }
@@ -336,8 +460,9 @@
         const rowIndex = document.getElementById('editRowIndex').value;
         const employeeData = {
             Name: document.getElementById('empName').value,
-            Department: document.getElementById('empDept').value, // Get Dropdown Value
+            Department: document.getElementById('empDept').value,
             Position: document.getElementById('empPos').value,
+            BloodType: document.getElementById('empBlood').value,
             Nrc: document.getElementById('empNrc').value,
             Phone: document.getElementById('empPhone').value,
             Email: document.getElementById('empEmail').value,
@@ -345,20 +470,12 @@
             Address: document.getElementById('empAddr').value,
             FatherName: document.getElementById('empFather').value,
             MotherName: document.getElementById('empMother').value,
-            BloodType: document.getElementById('empBlood').value,
             StartDate: document.getElementById('empStart').value,
             ResignDate: document.getElementById('empResign').value,
             image_base64: compressedImageBase64,
             current_image: document.getElementById('currentImage').value
         };
-
-        const payload = { 
-            action: rowIndex ? 'editEmployee' : 'addEmployee', 
-            employee: employeeData, 
-            rowIndex: rowIndex ? parseInt(rowIndex) : null,
-            deleteImageFlag: deleteImageFlag
-        };
-
+        const payload = { action: rowIndex ? 'editEmployee' : 'addEmployee', employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag };
         showLoading(true);
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json()).then(data => {
@@ -382,20 +499,19 @@
     function viewDetails(rowIndex) {
         const emp = allData.find(r => r.row_index === rowIndex);
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`;
-        
         document.getElementById('viewDetailsBody').innerHTML = `
-            ${pic}
-            <h4 class="fw-bold">${emp.Name}</h4>
-            <div class="badge bg-primary mb-3">${emp.Position} | ${emp.Department || 'No Dept'}</div>
+            ${pic} <h4 class="fw-bold">${emp.Name}</h4>
+            <div class="mb-3">
+                <span class="badge bg-primary">${emp.Department || 'No Dept'}</span>
+                <span class="badge bg-secondary">${emp.Position || 'No Pos'}</span>
+            </div>
             <table class="table table-bordered table-sm text-start">
                 <tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr>
+                <tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr>
                 <tr><th>Phone</th><td>${emp.Phone}</td></tr>
                 <tr><th>Email</th><td>${emp.Email}</td></tr>
                 <tr><th>NRC</th><td>${emp['NRC No.']}</td></tr>
                 <tr><th>Address</th><td>${emp.Address}</td></tr>
-                <tr><th>Father</th><td>${emp['Father Name']}</td></tr>
-                <tr><th>Mother</th><td>${emp['Mother Name']}</td></tr>
-                <tr><th>Start Date</th><td>${emp['Start Date'] ? new Date(emp['Start Date']).toLocaleDateString() : '-'}</td></tr>
             </table>
         `;
         new bootstrap.Modal(document.getElementById('viewModal')).show();
@@ -406,22 +522,18 @@
         filteredData = allData.filter(i => 
             i.Name.toLowerCase().includes(term) || 
             (i.Department && i.Department.toLowerCase().includes(term)) || 
-            i.Position.toLowerCase().includes(term)
+            (i.Position && i.Position.toLowerCase().includes(term))
         );
-        currentPage = 1;
-        renderTable();
+        currentPage = 1; renderTable();
     }
-
     function updatePaginationInfo() {
         document.getElementById('pageInfo').innerText = `Showing ${(currentPage-1)*rowsPerPage + 1} to ${Math.min(currentPage*rowsPerPage, filteredData.length)} of ${filteredData.length}`;
         const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-        
         let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Prev</a></li>`;
         html += `<li class="page-item disabled"><span class="page-link">${currentPage}</span></li>`;
         html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a></li>`;
         document.getElementById('pagination').innerHTML = html;
     }
-
     function changePage(p) { currentPage = p; renderTable(); }
     function changeRowsPerPage() { rowsPerPage = parseInt(document.getElementById('rowsPerPage').value); currentPage = 1; renderTable(); }
     function exportToExcel() { const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(filteredData.map(({row_index, ...i}) => i)); XLSX.utils.book_append_sheet(wb, ws, "Employees"); XLSX.writeFile(wb, "Employees.xlsx"); }
