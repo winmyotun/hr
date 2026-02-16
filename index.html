@@ -383,4 +383,74 @@
                 showLoading(true);
                 fetch(GAS_URL, { 
                     method: 'POST', 
-            
+                    body: JSON.stringify({ action: 'deleteEmployee', rowIndex: rowIndex }) 
+                })
+                .then(res => res.json())
+                .then(data => {
+                    showLoading(false);
+                    Swal.fire('Deleted!', data.message, 'success');
+                    loadEmployees();
+                });
+            }
+        });
+    }
+
+    // --- SEARCH & VIEW & UTILS ---
+    function filterData() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        filteredData = allData.filter(item => 
+            item.Name.toLowerCase().includes(term) || 
+            item['NRC No.'].toLowerCase().includes(term) ||
+            item.Position.toLowerCase().includes(term)
+        );
+        currentPage = 1;
+        renderTable();
+    }
+    
+    function viewDetails(rowIndex) {
+        const emp = allData.find(r => r.row_index === rowIndex);
+        const pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="img-fluid rounded mb-3" style="max-height:200px">` : '';
+        
+        const html = `
+            <div class="text-center">${pic}</div>
+            <table class="table table-bordered">
+                <tr><th>Name</th><td>${emp.Name}</td></tr>
+                <tr><th>Position</th><td>${emp.Position}</td></tr>
+                <tr><th>Email</th><td>${emp.Email}</td></tr>
+                <tr><th>Address</th><td>${emp.Address}</td></tr>
+                <tr><th>NRC</th><td>${emp['NRC No.']}</td></tr>
+                <tr><th>Father</th><td>${emp['Father Name']}</td></tr>
+                <tr><th>Mother</th><td>${emp['Mother Name']}</td></tr>
+            </table>
+        `;
+        document.getElementById('viewDetailsBody').innerHTML = html;
+        new bootstrap.Modal(document.getElementById('viewModal')).show();
+    }
+
+    function exportToExcel() {
+        const wb = XLSX.utils.book_new();
+        // Remove internal fields like row_index before exporting
+        const cleanData = filteredData.map(({row_index, ...item}) => item);
+        const ws = XLSX.utils.json_to_sheet(cleanData);
+        XLSX.utils.book_append_sheet(wb, ws, "Employees");
+        XLSX.writeFile(wb, "Employee_Report.xlsx");
+    }
+
+    function logout() {
+        location.reload();
+    }
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+
+    function showLoading(show) {
+        document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+    }
+</script>
+
+</body>
+</html>
