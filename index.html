@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Management System</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- HTML2PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -45,24 +41,18 @@
         #pdf-template { width: 800px; background: white; font-family: 'Poppins', sans-serif; color: #333; display: none; }
         .pdf-header { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white; padding: 30px; display: flex; align-items: center; border-bottom: 5px solid #ffc107; }
         
-        /* UPDATED PDF PHOTO STYLES */
-        .pdf-photo-wrapper {
+        /* UPDATED PDF PHOTO (USING DIV BACKGROUND) */
+        .pdf-photo {
             width: 120px;
             height: 120px;
             border-radius: 50%;
             border: 4px solid white;
             margin-right: 25px;
-            background: #fff;
-            overflow: hidden; /* This crops the image */
-            position: relative;
-            flex-shrink: 0; /* Prevents shrinking */
-        }
-        .pdf-photo { 
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Ensures aspect ratio */
-            object-position: center;
-            display: block;
+            background-color: #fff;
+            /* Critical for correct aspect ratio in PDF */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
         .pdf-title h1 { margin: 0; font-weight: 700; font-size: 28px; }
@@ -116,7 +106,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 2.9<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 3.0<br>HR Management System</div>
         </div>
     </div>
 
@@ -207,10 +197,8 @@
 <!-- PDF TEMPLATE (HIDDEN) -->
 <div id="pdf-template">
     <div class="pdf-header">
-        <!-- IMAGE WRAPPED IN CONTAINER -->
-        <div class="pdf-photo-wrapper">
-            <img id="pdf-photo" class="pdf-photo" src="">
-        </div>
+        <!-- CHANGED: Use DIV instead of IMG for background technique -->
+        <div id="pdf-photo" class="pdf-photo"></div>
         <div class="pdf-title"><h1 id="pdf-name">Employee Name</h1><h4 id="pdf-position">Position</h4></div>
     </div>
     <div class="pdf-body">
@@ -291,7 +279,6 @@
         row.remove();
     }
 
-    // --- VIEW DETAILS ---
     function viewDetails(rowIndex) { 
         const emp = allData.find(r => r.row_index === rowIndex);
         currentViewedEmp = emp; 
@@ -321,7 +308,7 @@
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    // --- PDF GENERATION ---
+    // --- PDF GENERATION (UPDATED WITH BACKGROUND IMAGE TECHNIQUE) ---
     async function downloadProfilePDF() {
         if(!currentViewedEmp) return;
         const emp = currentViewedEmp;
@@ -355,6 +342,8 @@
         } catch(e) { eduContainer.innerHTML = '-'; }
 
         const imgEl = document.getElementById('pdf-photo');
+        let imgDataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="; // Blank
+
         if (emp['Profile Pic']) {
             try {
                 const res = await fetch(GAS_URL, {
@@ -363,14 +352,13 @@
                 });
                 const result = await res.json();
                 if(result.status === 'success') {
-                    imgEl.src = result.data;
-                } else {
-                    imgEl.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="; 
+                    imgDataUrl = result.data;
                 }
-            } catch(e) { imgEl.src = ""; }
-        } else {
-            imgEl.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="; 
+            } catch(e) {}
         }
+        
+        // Use Background Image instead of SRC
+        imgEl.style.backgroundImage = `url('${imgDataUrl}')`;
 
         const element = document.getElementById('pdf-template');
         element.style.display = 'block'; 
@@ -389,7 +377,6 @@
         });
     }
 
-    // --- MAIN CRUD ---
     function openModal(mode, rowIndex = null) { 
         const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
         document.getElementById('employeeForm').reset(); 
