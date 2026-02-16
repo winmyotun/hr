@@ -3,345 +3,384 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee CRUD System</title>
+    <title>Employee Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .hidden { display: none; }
-        input, select, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-        button { cursor: pointer; background-color: #28a745; color: white; border: none; }
-        button:hover { background-color: #218838; }
-        button.delete { background-color: #dc3545; }
-        button.edit { background-color: #ffc107; color: black; }
-        button.view { background-color: #17a2b8; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #333; color: white; }
-        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 5px; }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .control-group { display: flex; gap: 10px; }
-        .profile-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 50%; }
+        body { font-family: 'Poppins', 'Padauk', sans-serif; background-color: #f0f2f5; }
+        .login-container { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .main-content { display: none; padding: 20px; }
+        .profile-img-small { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .table th { background-color: #f8f9fa; font-weight: 600; color: #555; }
+        .btn-custom { border-radius: 8px; }
+        .modal-header { background: #4e73df; color: white; border-top-left-radius: 10px; border-top-right-radius: 10px; }
+        .modal-content { border-radius: 12px; border: none; }
+        .search-box { position: relative; }
+        .search-box i { position: absolute; left: 15px; top: 12px; color: #aaa; }
+        .search-box input { padding-left: 40px; border-radius: 20px; }
+        #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; display:none; justify-content:center; align-items:center; }
     </style>
 </head>
 <body>
 
+<!-- Loading Overlay -->
+<div id="loadingOverlay">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<!-- Login Section -->
 <div class="container" id="loginSection">
-    <h2>Login</h2>
-    <input type="text" id="loginUsername" placeholder="Username">
-    <input type="password" id="loginPassword" placeholder="Password">
-    <button onclick="login()">Login</button>
-</div>
-
-<div class="container hidden" id="dashboardSection">
-    <div style="display:flex; justify-content:space-between;">
-        <h2>Employee Management <span id="userRoleDisplay" style="font-size:14px; color:gray;"></span></h2>
-        <button onclick="logout()" style="width:auto; background-color: #666;">Logout</button>
-    </div>
-    
-    <div class="controls">
-        <div class="control-group">
-            <button id="btnAdd" onclick="openModal('add')" style="width:auto;">+ Add New</button>
-            <button onclick="exportTableToExcel('employeeTable', 'employees_data')" style="width:auto; background-color:#2c3e50;">Export Excel</button>
-        </div>
-        <div class="control-group">
-            <select id="rowsPerPage" onchange="changeRowsPerPage()" style="width:auto;">
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select>
-            <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search..." style="width:200px;">
-        </div>
-    </div>
-
-    <table id="employeeTable">
-        <thead>
-            <tr>
-                <th>Sr No.</th>
-                <th>Image</th>
-                <th>Name</th>
-                <th>Position</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            <!-- Data will be populated here -->
-        </tbody>
-    </table>
-    <div id="paginationInfo" style="margin-top:10px;"></div>
-</div>
-
-<!-- Modal for Add/Edit/View -->
-<div id="dataModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h3 id="modalTitle">Employee Details</h3>
-        <form id="employeeForm" onsubmit="event.preventDefault(); saveEmployee();">
-            <input type="hidden" id="empId">
-            <input type="text" id="empName" placeholder="Name" required>
-            <input type="text" id="empNrc" placeholder="NRC No.">
-            <input type="text" id="empAddress" placeholder="Address">
-            <input type="text" id="empPhone" placeholder="Phone">
-            <input type="email" id="empEmail" placeholder="Email">
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="empFather" placeholder="Father Name">
-                <input type="text" id="empMother" placeholder="Mother Name">
+    <div class="login-container">
+        <h3 class="text-center mb-4 text-primary fw-bold">Login</h3>
+        <form id="loginForm">
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" required>
             </div>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="empBlood" placeholder="Blood Type">
-                <input type="text" id="empEdu" placeholder="Education">
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" required>
             </div>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="empStart" placeholder="Start Date" onfocus="(this.type='date')">
-                <input type="text" id="empResign" placeholder="Resign Date" onfocus="(this.type='date')">
-            </div>
-            <input type="text" id="empPosition" placeholder="Position">
-            <label>Profile Pic:</label>
-            <input type="file" id="empPic" accept="image/*">
-            
-            <div id="formActions" style="margin-top:15px;">
-                <button type="submit" id="btnSave">Save</button>
-            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2">Sign In</button>
         </form>
     </div>
 </div>
 
+<!-- Main Dashboard -->
+<div class="container-fluid main-content" id="dashboardSection">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white rounded shadow-sm mb-4 p-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-primary" href="#"><i class="fas fa-users-cog me-2"></i>Employee System</a>
+            <div class="d-flex align-items-center">
+                <span class="me-3 fw-bold text-secondary" id="userDisplay"></span>
+                <button class="btn btn-outline-danger btn-sm" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div class="d-flex gap-2">
+                <button class="btn btn-success btn-custom" id="btnAdd" onclick="openModal('add')"><i class="fas fa-plus me-1"></i> Add New</button>
+                <button class="btn btn-success btn-custom" onclick="exportToExcel()"><i class="fas fa-file-excel me-1"></i> Export Excel</button>
+            </div>
+            
+            <div class="d-flex gap-2 align-items-center">
+                <select class="form-select w-auto" id="rowsPerPage" onchange="changeRowsPerPage()">
+                    <option value="10">10 rows</option>
+                    <option value="25">25 rows</option>
+                    <option value="50">50 rows</option>
+                    <option value="100">100 rows</option>
+                </select>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search employees..." onkeyup="filterData()">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle" id="employeeTable">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Sr No.</th>
+                        <th>Name</th>
+                        <th>Position</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <span id="pageInfo" class="text-muted">Showing 0 to 0 of 0 entries</span>
+            <nav>
+                <ul class="pagination mb-0" id="pagination"></ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal fade" id="employeeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add Employee</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="employeeForm">
+                    <input type="hidden" id="editRowIndex">
+                    <input type="hidden" id="currentImage">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label>Name</label><input type="text" class="form-control" id="empName" required></div>
+                        <div class="col-md-6"><label>NRC No.</label><input type="text" class="form-control" id="empNrc"></div>
+                        <div class="col-md-6"><label>Phone</label><input type="text" class="form-control" id="empPhone"></div>
+                        <div class="col-md-6"><label>Email</label><input type="email" class="form-control" id="empEmail"></div>
+                        <div class="col-md-6"><label>Position</label><input type="text" class="form-control" id="empPos"></div>
+                        <div class="col-md-6"><label>Education</label><input type="text" class="form-control" id="empEdu"></div>
+                        <div class="col-md-6"><label>Start Date</label><input type="date" class="form-control" id="empStart"></div>
+                        <div class="col-md-6"><label>Resign Date</label><input type="date" class="form-control" id="empResign"></div>
+                        <div class="col-md-6"><label>Father Name</label><input type="text" class="form-control" id="empFather"></div>
+                        <div class="col-md-6"><label>Mother Name</label><input type="text" class="form-control" id="empMother"></div>
+                        <div class="col-md-12"><label>Address</label><textarea class="form-control" id="empAddr" rows="2"></textarea></div>
+                        <div class="col-md-4"><label>Blood Type</label><input type="text" class="form-control" id="empBlood"></div>
+                        <div class="col-md-8">
+                            <label>Profile Picture</label>
+                            <input type="file" class="form-control" id="empPic" accept="image/*">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveEmployee()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Details Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info">
+                <h5 class="modal-title">Employee Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="viewDetailsBody"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- For Confirmation Alerts -->
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script> <!-- For Excel Export -->
+
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyyBQIrDFq_Da1vUi0RPu2RG1q1EO1PMUWHierk201IhTf-AMA1RP9pDtHZVY5ofOyUZg/exec'; // ဒီနေရာမှာ Web App URL ထည့်ပါ
-    let currentUserRole = '';
-    let employeesData = [];
+    // --- SETUP ---
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzSSex9FdJUG1p5OCzXAEwRhPk1dXG9_meiTo5Ob7ARJUvCurViBM919deUyKxSglncHA/exec"; // *** REPLACE THIS WITH YOUR DEPLOYED URL ***
+    let currentUser = { role: null, username: null };
+    let allData = [];
+    let filteredData = [];
     let currentPage = 1;
     let rowsPerPage = 10;
 
-    // Enter Key to Login
-    document.getElementById("loginPassword").addEventListener("keypress", function(event) {
-        if (event.key === "Enter") login();
+    // --- LOGIN LOGIC ---
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        
+        showLoading(true);
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'login', username: u, password: p })
+        })
+        .then(res => res.json())
+        .then(data => {
+            showLoading(false);
+            if(data.status === 'success') {
+                currentUser.role = data.role;
+                currentUser.username = u;
+                initDashboard();
+            } else {
+                Swal.fire('Login Failed', data.message, 'error');
+            }
+        })
+        .catch(err => { showLoading(false); alert('Connection Error'); });
     });
 
-    async function apiCall(action, data = {}) {
-        document.body.style.cursor = 'wait';
-        const response = await fetch(SCRIPT_URL, {
+    function initDashboard() {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('dashboardSection').style.display = 'block';
+        document.getElementById('userDisplay').innerHTML = `User: ${currentUser.username} (${currentUser.role})`;
+        
+        // RBAC: Show/Hide Add Button
+        if(currentUser.role !== 'Root') {
+            document.getElementById('btnAdd').style.display = 'none';
+        }
+        
+        loadEmployees();
+    }
+
+    // --- DATA LOADING & PAGINATION ---
+    function loadEmployees() {
+        showLoading(true);
+        fetch(GAS_URL, {
             method: 'POST',
-            mode: 'cors', // Important for cross-origin
-            body: JSON.stringify({ action: action, ...data })
+            body: JSON.stringify({ action: 'getEmployees' })
+        })
+        .then(res => res.json())
+        .then(resp => {
+            showLoading(false);
+            if(resp.status === 'success') {
+                allData = resp.data;
+                filteredData = allData;
+                renderTable();
+            }
         });
-        document.body.style.cursor = 'default';
-        return await response.json();
-    }
-
-    async function login() {
-        const user = document.getElementById('loginUsername').value;
-        const pass = document.getElementById('loginPassword').value;
-        const res = await apiCall('login', { username: user, password: pass });
-
-        if (res.status === 'success') {
-            currentUserRole = res.role;
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('dashboardSection').classList.remove('hidden');
-            document.getElementById('userRoleDisplay').innerText = `(${currentUserRole})`;
-            setupPermissions();
-            loadEmployees();
-        } else {
-            alert(res.message);
-        }
-    }
-
-    function logout() {
-        location.reload();
-    }
-
-    function setupPermissions() {
-        const btnAdd = document.getElementById('btnAdd');
-        if (currentUserRole === 'Root') {
-            btnAdd.style.display = 'block';
-        } else {
-            btnAdd.style.display = 'none';
-        }
-    }
-
-    async function loadEmployees() {
-        const res = await apiCall('getEmployees');
-        if (res.status === 'success') {
-            employeesData = res.data;
-            renderTable();
-        }
     }
 
     function renderTable() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
         
-        // Filter
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const filteredData = employeesData.filter(row => 
-            row.some(val => String(val).toLowerCase().includes(searchTerm))
-        );
-
-        // Pagination
         const start = (currentPage - 1) * rowsPerPage;
-        const paginatedData = filteredData.slice(start, start + parseInt(rowsPerPage));
+        const end = start + rowsPerPage;
+        const pageData = filteredData.slice(start, end);
 
-        paginatedData.forEach(emp => {
-            const tr = document.createElement('tr');
-            // Assuming emp array structure matches sheet columns
-            // 0:Sr, 1:Name, ... 13:PicUrl
-            let actionButtons = `<button class="view" onclick='viewDetails(${JSON.stringify(emp)})'>View</button> `;
+        pageData.forEach(row => {
+            let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`;
             
-            if (currentUserRole === 'Root' || currentUserRole === 'Admin') {
-                actionButtons += `<button class="edit" onclick='openModal("edit", ${JSON.stringify(emp)})'>Edit</button> `;
+            if (currentUser.role === 'Root' || currentUser.role === 'Admin') {
+                actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`;
             }
-            if (currentUserRole === 'Root') {
-                actionButtons += `<button class="delete" onclick="deleteEmp(${emp[0]})">Delete</button>`;
+            if (currentUser.role === 'Root') {
+                actions += `<button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`;
             }
 
-            tr.innerHTML = `
-                <td>${emp[0]}</td>
-                <td>${emp[13] ? `<img src="${emp[13]}" class="profile-thumb">` : '-'}</td>
-                <td>${emp[1]}</td>
-                <td>${emp[12]}</td>
-                <td>${emp[4]}</td>
-                <td>${emp[5]}</td>
-                <td style="white-space:nowrap;">${actionButtons}</td>
+            const pic = row['Profile Pic'] ? `<img src="${row['Profile Pic']}" class="profile-img-small">` : `<div class="profile-img-small d-flex align-items-center justify-content-center bg-secondary text-white"><i class="fas fa-user"></i></div>`;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${pic}</td>
+                    <td>${row['Sr No.']}</td>
+                    <td class="fw-bold">${row.Name}</td>
+                    <td><span class="badge bg-light text-dark border">${row.Position}</span></td>
+                    <td>${row.Phone}</td>
+                    <td>${row.Email}</td>
+                    <td>${actions}</td>
+                </tr>
             `;
-            tbody.appendChild(tr);
         });
-
-        document.getElementById('paginationInfo').innerText = `Showing ${paginatedData.length} of ${filteredData.length} entries`;
-    }
-
-    function changeRowsPerPage() {
-        rowsPerPage = document.getElementById('rowsPerPage').value;
-        currentPage = 1;
-        renderTable();
-    }
-
-    function searchTable() {
-        currentPage = 1;
-        renderTable();
-    }
-
-    let currentMode = '';
-    
-    function openModal(mode, emp = null) {
-        currentMode = mode;
-        document.getElementById('dataModal').style.display = 'block';
-        const form = document.getElementById('employeeForm');
-        form.reset();
         
-        const inputs = form.querySelectorAll('input');
-        inputs.forEach(input => input.disabled = (mode === 'view'));
-        document.getElementById('btnSave').style.display = (mode === 'view') ? 'none' : 'block';
+        updatePaginationInfo();
+    }
 
-        if (mode === 'add') {
-            document.getElementById('modalTitle').innerText = "Add New Employee";
+    function updatePaginationInfo() {
+        document.getElementById('pageInfo').innerText = `Showing ${(currentPage-1)*rowsPerPage + 1} to ${Math.min(currentPage*rowsPerPage, filteredData.length)} of ${filteredData.length} entries`;
+        // Simple Pagination Logic (Previous / Next)
+        const ul = document.getElementById('pagination');
+        const pageCount = Math.ceil(filteredData.length / rowsPerPage);
+        
+        let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a></li>`;
+        html += `<li class="page-item disabled"><a class="page-link">${currentPage} / ${pageCount}</a></li>`;
+        html += `<li class="page-item ${currentPage === pageCount ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a></li>`;
+        
+        ul.innerHTML = html;
+    }
+
+    function changePage(page) {
+        if (page < 1 || page > Math.ceil(filteredData.length / rowsPerPage)) return;
+        currentPage = page;
+        renderTable();
+    }
+    
+    function changeRowsPerPage() {
+        rowsPerPage = parseInt(document.getElementById('rowsPerPage').value);
+        currentPage = 1;
+        renderTable();
+    }
+
+    // --- CRUD OPERATIONS ---
+    function openModal(mode, rowIndex = null) {
+        const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
+        document.getElementById('employeeForm').reset();
+        
+        if(mode === 'edit') {
+            const emp = allData.find(r => r.row_index === rowIndex);
+            document.getElementById('modalTitle').innerText = "Edit Employee";
+            document.getElementById('editRowIndex').value = rowIndex;
+            document.getElementById('currentImage').value = emp['Profile Pic'];
+            
+            // Fill fields
+            document.getElementById('empName').value = emp.Name;
+            document.getElementById('empNrc').value = emp['NRC No.'];
+            document.getElementById('empPhone').value = emp.Phone;
+            document.getElementById('empEmail').value = emp.Email;
+            document.getElementById('empPos').value = emp.Position;
+            document.getElementById('empEdu').value = emp.Education;
+            document.getElementById('empAddr').value = emp.Address;
+            document.getElementById('empFather').value = emp['Father Name'];
+            document.getElementById('empMother').value = emp['Mother Name'];
+            document.getElementById('empBlood').value = emp['Blood Type'];
+            // Dates need formatting to YYYY-MM-DD for input type=date
+            if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0];
+            if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0];
+            
         } else {
-            document.getElementById('modalTitle').innerText = mode === 'edit' ? "Edit Employee" : "View Details";
-            document.getElementById('empId').value = emp[0];
-            document.getElementById('empName').value = emp[1];
-            document.getElementById('empNrc').value = emp[2];
-            document.getElementById('empAddress').value = emp[3];
-            document.getElementById('empPhone').value = emp[4];
-            document.getElementById('empEmail').value = emp[5];
-            document.getElementById('empFather').value = emp[6];
-            document.getElementById('empMother').value = emp[7];
-            document.getElementById('empBlood').value = emp[8];
-            document.getElementById('empEdu').value = emp[9];
-            // Fix date format if needed
-            document.getElementById('empStart').value = emp[10] ? new Date(emp[10]).toISOString().split('T')[0] : '';
-            document.getElementById('empResign').value = emp[11] ? new Date(emp[11]).toISOString().split('T')[0] : '';
-            document.getElementById('empPosition').value = emp[12];
+            document.getElementById('modalTitle').innerText = "Add Employee";
+            document.getElementById('editRowIndex').value = "";
         }
-    }
-
-    function viewDetails(emp) {
-        openModal('view', emp);
-    }
-
-    function closeModal() {
-        document.getElementById('dataModal').style.display = 'none';
+        modal.show();
     }
 
     async function saveEmployee() {
+        const rowIndex = document.getElementById('editRowIndex').value;
         const fileInput = document.getElementById('empPic');
-        let base64 = "";
-        
+        let base64Img = "";
+
         if (fileInput.files.length > 0) {
-            base64 = await toBase64(fileInput.files[0]);
+            base64Img = await toBase64(fileInput.files[0]);
         }
 
-        const data = {
-            srNo: document.getElementById('empId').value,
-            name: document.getElementById('empName').value,
-            nrc: document.getElementById('empNrc').value,
-            address: document.getElementById('empAddress').value,
-            phone: document.getElementById('empPhone').value,
-            email: document.getElementById('empEmail').value,
-            fatherName: document.getElementById('empFather').value,
-            motherName: document.getElementById('empMother').value,
-            bloodType: document.getElementById('empBlood').value,
-            education: document.getElementById('empEdu').value,
-            startDate: document.getElementById('empStart').value,
-            resignDate: document.getElementById('empResign').value,
-            position: document.getElementById('empPosition').value,
-            profilePicBase64: base64
+        const employeeData = {
+            Name: document.getElementById('empName').value,
+            Nrc: document.getElementById('empNrc').value,
+            Phone: document.getElementById('empPhone').value,
+            Email: document.getElementById('empEmail').value,
+            Position: document.getElementById('empPos').value,
+            Education: document.getElementById('empEdu').value,
+            Address: document.getElementById('empAddr').value,
+            FatherName: document.getElementById('empFather').value,
+            MotherName: document.getElementById('empMother').value,
+            BloodType: document.getElementById('empBlood').value,
+            StartDate: document.getElementById('empStart').value,
+            ResignDate: document.getElementById('empResign').value,
+            image_base64: base64Img,
+            current_image: document.getElementById('currentImage').value
         };
 
-        let action = currentMode === 'add' ? 'addEmployee' : 'editEmployee';
-        const res = await apiCall(action, { data: data });
-        
-        alert(res.message);
-        closeModal();
-        loadEmployees();
+        const action = rowIndex ? 'editEmployee' : 'addEmployee';
+        const payload = { action: action, employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null };
+
+        showLoading(true);
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(res => res.json())
+        .then(data => {
+            showLoading(false);
+            bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide();
+            Swal.fire('Success', data.message, 'success');
+            loadEmployees(); // Reload data
+        });
     }
 
-    async function deleteEmp(id) {
-        if (confirm("Are you sure you want to delete this employee? This cannot be undone.")) {
-            const res = await apiCall('deleteEmployee', { id: id });
-            alert(res.message);
-            loadEmployees();
-        }
-    }
-
-    const toBase64 = file => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
-
-    function exportTableToExcel(tableID, filename = ''){
-        var downloadLink;
-        var dataType = 'application/vnd.ms-excel';
-        var tableSelect = document.getElementById(tableID);
-        var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
-        
-        filename = filename?filename+'.xls':'excel_data.xls';
-        downloadLink = document.createElement("a");
-        document.body.appendChild(downloadLink);
-        
-        if(navigator.msSaveOrOpenBlob){
-            var blob = new Blob(['\ufeff', tableHTML], {
-                type: dataType
-            });
-            navigator.msSaveOrOpenBlob( blob, filename);
-        }else{
-            downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
-            downloadLink.download = filename;
-            downloadLink.click();
-        }
-    }
-
-    // Close modal if outside click
-    window.onclick = function(event) {
-        if (event.target == document.getElementById('dataModal')) {
-            closeModal();
-        }
-    }
-</script>
-
-</body>
-</html>
+    function deleteEmployee(rowIndex) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                showLoading(true);
+                fetch(GAS_URL, { 
+                    method: 'POST', 
+            
