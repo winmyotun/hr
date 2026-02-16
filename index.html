@@ -1,320 +1,347 @@
 <!DOCTYPE html>
-<html lang="my">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
+    <title>Employee CRUD System</title>
     <style>
-        body { background-color: #f0f2f5; font-family: 'Poppins', sans-serif; }
-        .hidden { display: none !important; }
-        
-        /* Smooth Fade In */
-        #loginPage, #mainPage { opacity: 0; transition: opacity 0.3s ease-in; }
-        .fade-in { opacity: 1 !important; }
-
-        /* Loader */
-        .loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95); z-index: 9999;
-            display: flex; justify-content: center; align-items: center; flex-direction: column;
-        }
-        
-        [...](asc_slot://start-slot-31).profile-thumb { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .profile-preview { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 4px solid #0d6efd; margin-bottom: 15px; background: #eee; }
-        .search-box { border-radius: 20px; }
-        .page-link { cursor: pointer; user-select: none; }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+        input, select, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        button { cursor: pointer; background-color: #28a745; color: white; border: none; }
+        button:hover { background-color: #218838; }
+        button.delete { background-color: #dc3545; }
+        button.edit { background-color: #ffc107; color: black; }
+        button.view { background-color: #17a2b8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #333; color: white; }
+        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 5px; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .control-group { display: flex; gap: 10px; }
+        .profile-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 50%; }
     </style>
 </head>
 <body>
 
-    <!-- Loading -->
-    <div id="loading" class="loading-overlay hidden">
-        <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2 fw-bold text-primary" id="loadingText">Connecting...</p>
-    </div>
+<div class="container" id="loginSection">
+    <h2>Login</h2>
+    <input type="text" id="loginUsername" placeholder="Username">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
 
-    <!-- Login -->
-    <div class="container mt-5 hidden" id="loginPage">
-        <div class="row justify-content-center">
-            <div class="col-md-4">
-                <div class="card shadow border-0 mt-5">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <h3 class="fw-bold text-primary">Login</h3>
-                        </div>
-                        <div id="loginError" class="alert alert-danger hidden text-center p-2 small"></div>
-                        <input type="text" id="loginUser" class="form-control mb-3" placeholder="Username">
-                        <input type="password" id="loginPass" class="form-control mb-3" placeholder="Password" onkeyup="if(event.key==='Enter') doLogin()">
-                        <button onclick="doLogin()" class="btn btn-primary w-100">Sign In</button>
-                    </div>
-                </div>
-            </div>
+<div class="container hidden" id="dashboardSection">
+    <div style="display:flex; justify-content:space-between;">
+        <h2>Employee Management <span id="userRoleDisplay" style="font-size:14px; color:gray;"></span></h2>
+        <button onclick="logout()" style="width:auto; background-color: #666;">Logout</button>
+    </div>
+    
+    <div class="controls">
+        <div class="control-group">
+            <button id="btnAdd" onclick="openModal('add')" style="width:auto;">+ Add New</button>
+            <button onclick="exportTableToExcel('employeeTable', 'employees_data')" style="width:auto; background-color:#2c3e50;">Export Excel</button>
+        </div>
+        <div class="control-group">
+            <select id="rowsPerPage" onchange="changeRowsPerPage()" style="width:auto;">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search..." style="width:200px;">
         </div>
     </div>
 
-    <!-- Dashboard -->
-    <div class="container-fluid hidden" id="mainPage" style="max-width: 1400px;">
-        <nav class="navbar navbar-dark bg-primary px-3 mb-4 shadow rounded-bottom">
-            <span class="navbar-brand h1 m-0"><i class="bi bi-people-fill me-2"></i> Employee System</span>
-            <div>
-                <span id="roleBadge" class="badge bg-white text-primary me-2"></span>
-                <button onclick="doLogout()" class="btn btn-sm btn-outline-light">Logout</button>
-            </div>
-        </nav>
+    <table id="employeeTable">
+        <thead>
+            <tr>
+                <th>Sr No.</th>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Data will be populated here -->
+        </tbody>
+    </table>
+    <div id="paginationInfo" style="margin-top:10px;"></div>
+</div>
 
-        <div class="card shadow mb-4 border-0">
-            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div class="d-flex gap-2">
-                    <input type="text" id="searchInput" class="form-control search-box" placeholder="Search..." onkeyup="filterData()">
-                    <button onclick="exportToExcel()" class="btn btn-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Export</button>
-                </div>
-                <button id="btnAdd" class="btn btn-primary btn-sm hidden" onclick="openModal('add')"><i class="bi bi-plus-lg"></i> Add New</button>
+<!-- Modal for Add/Edit/View -->
+<div id="dataModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3 id="modalTitle">Employee Details</h3>
+        <form id="employeeForm" onsubmit="event.preventDefault(); saveEmployee();">
+            <input type="hidden" id="empId">
+            <input type="text" id="empName" placeholder="Name" required>
+            <input type="text" id="empNrc" placeholder="NRC No.">
+            <input type="text" id="empAddress" placeholder="Address">
+            <input type="text" id="empPhone" placeholder="Phone">
+            <input type="email" id="empEmail" placeholder="Email">
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="empFather" placeholder="Father Name">
+                <input type="text" id="empMother" placeholder="Mother Name">
             </div>
-        </div>
-
-        <div class="card shadow border-0">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light"><tr><th class="ps-3">Img</th><th>ID</th><th>Name</th><th>Position</th><th>Phone</th><th class="text-end pe-3">Actions</th></tr></thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
-                </div>
-                <div id="noDataMsg" class="text-center text-muted mt-4 hidden">No records found</div>
-                <hr>
-                <div class="d-flex justify-content-between align-items-center">
-                    <span id="pageInfo" class="small fw-bold text-muted ms-2"></span>
-                    <ul class="pagination pagination-sm mb-0 me-2" id="paginationControls"></ul>
-                </div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="empBlood" placeholder="Blood Type">
+                <input type="text" id="empEdu" placeholder="Education">
             </div>
-        </div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="empStart" placeholder="Start Date" onfocus="(this.type='date')">
+                <input type="text" id="empResign" placeholder="Resign Date" onfocus="(this.type='date')">
+            </div>
+            <input type="text" id="empPosition" placeholder="Position">
+            <label>Profile Pic:</label>
+            <input type="file" id="empPic" accept="image/*">
+            
+            <div id="formActions" style="margin-top:15px;">
+                <button type="submit" id="btnSave">Save</button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="dataModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white"><h5 class="modal-title" id="modalTitle">Info</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body p-4">
-                    <form id="empForm">
-                        <input type="hidden" id="actionType"><input type="hidden" id="currentImage">
-                        <div class="text-center mb-4">
-                            <img id="previewImg" src="https://via.placeholder.com/140" class="profile-preview shadow-sm"><br>
-                            <label class="btn btn-sm btn-outline-primary rounded-pill px-4">
-                                <i class="bi bi-camera-fill me-2"></i> Photo
-                                <input type="file" id="fileInput" hidden accept="image/*" onchange="compressAndPreview(this)">
-                            </label>
-                            <input type="hidden" id="base64Code">
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-4"><label class="small text-muted">ID</label><input type="text" id="srNo" class="form-control"></div>
-                            <div class="col-md-4"><label class="small text-muted">Name</label><input type="text" id="name" class="form-control"></div>
-                            <div class="col-md-4"><label class="small text-muted">Position</label><input type="text" id="position" class="form-control"></div>
-                            <div class="col-md-4"><label class="small text-muted">Phone</label><input type="text" id="phone" class="form-control"></div>
-                            <div class="col-md-4"><label class="small text-muted">Email</label><input type="text" id="email" class="form-control"></div>
-                            <div class="col-md-4"><label class="small text-muted">NRC</label><input type="text" id="nrc" class="form-control"></div>
-                            <div class="col-12"><label class="small text-muted">Address</label><input type="text" id="address" class="form-control"></div>
-                            <div class="col-md-4"><label class="small text-muted">Father</label><input type="text" id="fatherName" class="form-control"></div>
-                            <div class="col-md-4"><label class="small text-muted">Mother</label><input type="text" id="motherName" class="form-control"></div>
-                            <div class="col-md-4"><label class="small text-muted">Blood</label><input type="text" id="bloodType" class="form-control"></div>
-                            <div class="col-md-4"><label class="small text-muted">Education</label><input type="text" id="education" class="form-control"></div>
-                            <div class="col-md-4"><label class="small text-muted">Joined</label><input type="date" id="startDate" class="form-control"></div>
-                            <div class="col-md-4"><label class="small text-muted">Resigned</label><input type="date" id="resignDate" class="form-control"></div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer bg-light"><button class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary px-4" onclick="submitData()">Save</button></div>
-            </div>
-        </div>
-    </div>
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyyBQIrDFq_Da1vUi0RPu2RG1q1EO1PMUWHierk201IhTf-AMA1RP9pDtHZVY5ofOyUZg/exec'; // ဒီနေရာမှာ Web App URL ထည့်ပါ
+    let currentUserRole = '';
+    let employeesData = [];
+    let currentPage = 1;
+    let rowsPerPage = 10;
 
-    <!-- View & Delete Modals -->
-    <div class="modal fade" id="viewModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body text-center p-4"><button class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button><img id="v_img" class="profile-preview mb-3"><h4 id="v_name" class="fw-bold"></h4><span id="v_pos" class="badge bg-primary rounded-pill mb-4"></span><div class="text-start table-responsive"><table class="table table-sm"><tbody id="viewBody"></tbody></table></div></div></div></div></div>
-    <div class="modal fade" id="deleteModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-danger text-white"><h5 class="modal-title">Confirm Delete</h5></div><div class="modal-body p-4 text-center"><p>Are you sure?</p></div><div class="modal-footer justify-content-center"><button class="btn btn-secondary" data-bs-dismiss="modal">No</button><button class="btn btn-danger" onclick="executeDelete()">Yes, Delete</button></div></div></div></div>
+    // Enter Key to Login
+    document.getElementById("loginPassword").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") login();
+    });
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // ********************************************
-        // URL အသစ်ကို ဒီမှာ ထည့်ပါ
-        // ********************************************
-        const API_URL = "https://script.google.com/macros/s/AKfycbyE6LSHNTicPav5BTEibpaMEor8YWsis_A-oaYtnj4isib2N-eWf66D59moesNMHQ_fqA/exec";
+    async function apiCall(action, data = {}) {
+        document.body.style.cursor = 'wait';
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'cors', // Important for cross-origin
+            body: JSON.stringify({ action: action, ...data })
+        });
+        document.body.style.cursor = 'default';
+        return await response.json();
+    }
 
-        let userRole="", globalData=[], filtered=[], currentPage=1, rowsPerPage=10;
-        let deleteIndex=null;
-        const SESSION_KEY = "ems_session_final";
+    async function login() {
+        const user = document.getElementById('loginUsername').value;
+        const pass = document.getElementById('loginPassword').value;
+        const res = await apiCall('login', { username: user, password: pass });
 
-        const getEl = id => document.getElementById(id);
-        const toggleLoading = (s, txt="Processing...") => {
-            getEl('loading').classList.toggle('hidden', !s);
-            getEl('loadingText').innerText = txt;
-        };
+        if (res.status === 'success') {
+            currentUserRole = res.role;
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            document.getElementById('userRoleDisplay').innerText = `(${currentUserRole})`;
+            setupPermissions();
+            loadEmployees();
+        } else {
+            alert(res.message);
+        }
+    }
 
-        const apiCall = async (data) => {
-            try {
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    body: JSON.stringify(data),
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    redirect: "follow"
-                });
-                return await response.json();
-            } catch (error) { throw new Error("Connection Error. Please check your internet or URL."); }
-        };
+    function logout() {
+        location.reload();
+    }
 
-        // --- AUTH (No Flicker) ---
-        window.addEventListener('DOMContentLoaded', () => {
-            const session = localStorage.getItem(SESSION_KEY);
-            if(session) {
-                userRole = JSON.parse(session).role;
-                getEl('mainPage').classList.remove('hidden');
-                setTimeout(() => getEl('mainPage').classList.add('fade-in'), 50);
-                setupDash();
-            } else {
-                getEl('loginPage').classList.remove('hidden');
-                setTimeout(() => getEl('loginPage').classList.add('fade-in'), 50);
+    function setupPermissions() {
+        const btnAdd = document.getElementById('btnAdd');
+        if (currentUserRole === 'Root') {
+            btnAdd.style.display = 'block';
+        } else {
+            btnAdd.style.display = 'none';
+        }
+    }
+
+    async function loadEmployees() {
+        const res = await apiCall('getEmployees');
+        if (res.status === 'success') {
+            employeesData = res.data;
+            renderTable();
+        }
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        
+        // Filter
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filteredData = employeesData.filter(row => 
+            row.some(val => String(val).toLowerCase().includes(searchTerm))
+        );
+
+        // Pagination
+        const start = (currentPage - 1) * rowsPerPage;
+        const paginatedData = filteredData.slice(start, start + parseInt(rowsPerPage));
+
+        paginatedData.forEach(emp => {
+            const tr = document.createElement('tr');
+            // Assuming emp array structure matches sheet columns
+            // 0:Sr, 1:Name, ... 13:PicUrl
+            let actionButtons = `<button class="view" onclick='viewDetails(${JSON.stringify(emp)})'>View</button> `;
+            
+            if (currentUserRole === 'Root' || currentUserRole === 'Admin') {
+                actionButtons += `<button class="edit" onclick='openModal("edit", ${JSON.stringify(emp)})'>Edit</button> `;
             }
+            if (currentUserRole === 'Root') {
+                actionButtons += `<button class="delete" onclick="deleteEmp(${emp[0]})">Delete</button>`;
+            }
+
+            tr.innerHTML = `
+                <td>${emp[0]}</td>
+                <td>${emp[13] ? `<img src="${emp[13]}" class="profile-thumb">` : '-'}</td>
+                <td>${emp[1]}</td>
+                <td>${emp[12]}</td>
+                <td>${emp[4]}</td>
+                <td>${emp[5]}</td>
+                <td style="white-space:nowrap;">${actionButtons}</td>
+            `;
+            tbody.appendChild(tr);
         });
 
-        function doLogin() {
-            const u=getEl('loginUser').value, p=getEl('loginPass').value;
-            getEl('loginError').classList.add('hidden');
-            if(!u||!p) return;
-            toggleLoading(true, "Logging In...");
-            apiCall({action:'login', username:u, password:p}).then(res => {
-                toggleLoading(false);
-                if(res.status) {
-                    userRole=res.role;
-                    localStorage.setItem(SESSION_KEY, JSON.stringify({role:userRole}));
-                    getEl('loginPage').classList.remove('fade-in');
-                    setTimeout(() => {
-                        getEl('loginPage').classList.add('hidden');
-                        getEl('mainPage').classList.remove('hidden');
-                        getEl('mainPage').classList.add('fade-in');
-                        setupDash();
-                    }, 300);
-                } else {
-                    getEl('loginError').innerText = res.message;
-                    getEl('loginError').classList.remove('hidden');
-                }
-            }).catch(e => { toggleLoading(false); alert(e.message); });
+        document.getElementById('paginationInfo').innerText = `Showing ${paginatedData.length} of ${filteredData.length} entries`;
+    }
+
+    function changeRowsPerPage() {
+        rowsPerPage = document.getElementById('rowsPerPage').value;
+        currentPage = 1;
+        renderTable();
+    }
+
+    function searchTable() {
+        currentPage = 1;
+        renderTable();
+    }
+
+    let currentMode = '';
+    
+    function openModal(mode, emp = null) {
+        currentMode = mode;
+        document.getElementById('dataModal').style.display = 'block';
+        const form = document.getElementById('employeeForm');
+        form.reset();
+        
+        const inputs = form.querySelectorAll('input');
+        inputs.forEach(input => input.disabled = (mode === 'view'));
+        document.getElementById('btnSave').style.display = (mode === 'view') ? 'none' : 'block';
+
+        if (mode === 'add') {
+            document.getElementById('modalTitle').innerText = "Add New Employee";
+        } else {
+            document.getElementById('modalTitle').innerText = mode === 'edit' ? "Edit Employee" : "View Details";
+            document.getElementById('empId').value = emp[0];
+            document.getElementById('empName').value = emp[1];
+            document.getElementById('empNrc').value = emp[2];
+            document.getElementById('empAddress').value = emp[3];
+            document.getElementById('empPhone').value = emp[4];
+            document.getElementById('empEmail').value = emp[5];
+            document.getElementById('empFather').value = emp[6];
+            document.getElementById('empMother').value = emp[7];
+            document.getElementById('empBlood').value = emp[8];
+            document.getElementById('empEdu').value = emp[9];
+            // Fix date format if needed
+            document.getElementById('empStart').value = emp[10] ? new Date(emp[10]).toISOString().split('T')[0] : '';
+            document.getElementById('empResign').value = emp[11] ? new Date(emp[11]).toISOString().split('T')[0] : '';
+            document.getElementById('empPosition').value = emp[12];
+        }
+    }
+
+    function viewDetails(emp) {
+        openModal('view', emp);
+    }
+
+    function closeModal() {
+        document.getElementById('dataModal').style.display = 'none';
+    }
+
+    async function saveEmployee() {
+        const fileInput = document.getElementById('empPic');
+        let base64 = "";
+        
+        if (fileInput.files.length > 0) {
+            base64 = await toBase64(fileInput.files[0]);
         }
 
-        function doLogout() {
-            localStorage.removeItem(SESSION_KEY);
-            location.reload();
+        const data = {
+            srNo: document.getElementById('empId').value,
+            name: document.getElementById('empName').value,
+            nrc: document.getElementById('empNrc').value,
+            address: document.getElementById('empAddress').value,
+            phone: document.getElementById('empPhone').value,
+            email: document.getElementById('empEmail').value,
+            fatherName: document.getElementById('empFather').value,
+            motherName: document.getElementById('empMother').value,
+            bloodType: document.getElementById('empBlood').value,
+            education: document.getElementById('empEdu').value,
+            startDate: document.getElementById('empStart').value,
+            resignDate: document.getElementById('empResign').value,
+            position: document.getElementById('empPosition').value,
+            profilePicBase64: base64
+        };
+
+        let action = currentMode === 'add' ? 'addEmployee' : 'editEmployee';
+        const res = await apiCall(action, { data: data });
+        
+        alert(res.message);
+        closeModal();
+        loadEmployees();
+    }
+
+    async function deleteEmp(id) {
+        if (confirm("Are you sure you want to delete this employee? This cannot be undone.")) {
+            const res = await apiCall('deleteEmployee', { id: id });
+            alert(res.message);
+            loadEmployees();
         }
+    }
 
-        function setupDash() {
-            getEl('roleBadge').innerText = userRole;
-            if(userRole === 'Root') getEl('btnAdd').classList.remove('hidden');
-            loadData();
-        }
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
 
-        function loadData() {
-            if(globalData.length === 0) toggleLoading(true, "Loading Data...");
-            apiCall({action:'read'}).then(res => {
-                toggleLoading(false);
-                if(res.status) { globalData = res.data; filtered = globalData; currentPage=1; renderTable(); }
-            }).catch(e => toggleLoading(false));
-        }
-
-        // --- COMPRESSION (Max 800px Width) ---
-        function compressAndPreview(input) {
-            const file = input.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function(event) {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 800; 
-                    const scaleSize = MAX_WIDTH / img.width;
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * scaleSize;
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6); // 60% Quality
-                    getEl('previewImg').src = dataUrl;
-                    getEl('base64Code').value = dataUrl;
-                }
-            }
-        }
-
-        // --- TABLE ---
-        function renderTable() {
-            const tbody = getEl('tableBody'); tbody.innerHTML = "";
-            const start = (currentPage-1)*rowsPerPage;
-            const pageData = filtered.slice(start, start+rowsPerPage);
-            if(filtered.length === 0) getEl('noDataMsg').classList.remove('hidden'); else getEl('noDataMsg').classList.add('hidden');
-
-            pageData.forEach((r, idx) => {
-                const img = r.profilePic || "https://via.placeholder.com/45?text=Img";
-                const realIdx = start + idx; 
-                let btns = `<button class="btn btn-info btn-sm me-1 rounded-circle text-white shadow-sm" onclick="openView(${realIdx})"><i class="bi bi-eye"></i></button>`;
-                if(userRole==='Root') btns += `<button class="btn btn-warning btn-sm me-1 rounded-circle shadow-sm" onclick="openModal('edit', ${realIdx})"><i class="bi bi-pencil"></i></button><button class="btn btn-danger btn-sm rounded-circle shadow-sm" onclick="askDelete(${realIdx})"><i class="bi bi-trash"></i></button>`;
-                else if(userRole==='Admin') btns += `<button class="btn btn-warning btn-sm rounded-circle shadow-sm" onclick="openModal('edit', ${realIdx})"><i class="bi bi-pencil"></i></button>`;
-                tbody.innerHTML += `<tr><td class="ps-3"><img src="${img}" class="profile-thumb"></td><td class="fw-bold text-secondary">#${r.srNo}</td><td class="fw-bold">${r.name}</td><td><span class="badge bg-light text-dark border">${r.position}</span></td><td>${r.phone}</td><td class="text-end pe-3">${btns}</td></tr>`;
+    function exportTableToExcel(tableID, filename = ''){
+        var downloadLink;
+        var dataType = 'application/vnd.ms-excel';
+        var tableSelect = document.getElementById(tableID);
+        var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+        
+        filename = filename?filename+'.xls':'excel_data.xls';
+        downloadLink = document.createElement("a");
+        document.body.appendChild(downloadLink);
+        
+        if(navigator.msSaveOrOpenBlob){
+            var blob = new Blob(['\ufeff', tableHTML], {
+                type: dataType
             });
-            renderPagination();
+            navigator.msSaveOrOpenBlob( blob, filename);
+        }else{
+            downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+            downloadLink.download = filename;
+            downloadLink.click();
         }
+    }
 
-        function renderPagination() {
-            const total = Math.ceil(filtered.length/rowsPerPage);
-            const ul = getEl('paginationControls'); ul.innerHTML = "";
-            getEl('pageInfo').innerText = `Page ${currentPage} of ${total||1}`;
-            if(total<=1) return;
-            const addLi = (txt, p) => ul.innerHTML += `<li class="page-item ${currentPage===p?'active':''}"><button class="page-link" onclick="goToPage(${p})">${txt}</button></li>`;
-            addLi("«", Math.max(1, currentPage-1));
-            for(let i=1;i<=total;i++) if(i===1||i===total||(i>=currentPage-1&&i<=currentPage+1)) addLi(i,i);
-            addLi("»", Math.min(total, currentPage+1));
+    // Close modal if outside click
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('dataModal')) {
+            closeModal();
         }
-        function goToPage(p){currentPage=p; renderTable();}
-        function changeRowsPerPage(){rowsPerPage=parseInt(getEl('rowsPerPage').value); currentPage=1; renderTable();}
-        function filterData(){const t=getEl('searchInput').value.toLowerCase(); filtered=globalData.filter(x=>x.name.toLowerCase().includes(t)||x.srNo.toString().includes(t)); currentPage=1; renderTable();}
+    }
+</script>
 
-        // --- CRUD ---
-        const dataModal = new bootstrap.Modal(getEl('dataModal'));
-        function openModal(mode, idx=null) {
-            getEl('actionType').value = mode; getEl('empForm').reset(); getEl('base64Code').value = "";
-            getEl('modalTitle').innerText = mode==='add'?"Add Employee":"Update Info";
-            if(mode==='edit') {
-                const d = filtered[idx]; getEl('srNo').readOnly = true;
-                ['srNo','name','position','phone','email','nrc','address','fatherName','motherName','bloodType','education','startDate','resignDate'].forEach(k => getEl(k).value = d[k]||"");
-                getEl('currentImage').value = d.profilePic||""; getEl('previewImg').src = d.profilePic || "https://via.placeholder.com/150";
-            } else {
-                getEl('srNo').readOnly = false; getEl('currentImage').value = ""; getEl('previewImg').src = "https://via.placeholder.com/150?text=Upload";
-            }
-            dataModal.show();
-        }
-
-        function submitData() {
-            const obj = { action: getEl('actionType').value, imageFile: getEl('base64Code').value, currentImage: getEl('currentImage').value };
-            ['srNo','name','position','phone','email','nrc','address','fatherName','motherName','bloodType','education','startDate','resignDate'].forEach(k => obj[k] = getEl(k).value);
-            toggleLoading(true, "Saving...");
-            apiCall(obj).then(res => { toggleLoading(false); alert(res.message); if(res.status) { dataModal.hide(); loadData(); } }).catch(e => { toggleLoading(false); alert(e.message); });
-        }
-
-        const delModal = new bootstrap.Modal(getEl('deleteModal'));
-        function askDelete(idx) { deleteIndex=idx; delModal.show(); }
-        function executeDelete() {
-            const d = filtered[deleteIndex]; delModal.hide(); toggleLoading(true, "Deleting...");
-            apiCall({action:'delete', srNo:d.srNo}).then(res => { toggleLoading(false); alert(res.message); loadData(); });
-        }
-
-        const viewModal = new bootstrap.Modal(getEl('viewModal'));
-        function openView(idx) {
-            const d = filtered[idx]; getEl('v_img').src=d.profilePic||"https://via.placeholder.com/150"; getEl('v_name').innerText=d.name; getEl('v_pos').innerText=d.position;
-            let h=""; const f={srNo:"ID",nrc:"NRC",phone:"Phone",email:"Email",address:"Addr",fatherName:"Father",motherName:"Mother",bloodType:"Blood",education:"Edu"};
-            for(let k in f) h+=`<tr><td class="text-muted w-25">${f[k]}</td><td class="fw-bold">${d[k]}</td></tr>`;
-            getEl('viewBody').innerHTML=h; viewModal.show();
-        }
-        function exportToExcel() { if(filtered.length===0) return alert("No data"); let c="data:text/csv;charset=utf-8,\uFEFF"+Object.keys(filtered[0]).join(",")+"\n"; filtered.forEach(r=>c+=Object.values(r).map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")+"\n"); const a=document.createElement('a'); a.href=encodeURI(c); a.download="employees.csv"; a.click(); }
-    </script>
 </body>
 </html>
