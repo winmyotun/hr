@@ -44,7 +44,27 @@
         /* PDF TEMPLATE */
         #pdf-template { width: 800px; background: white; font-family: 'Poppins', sans-serif; color: #333; display: none; }
         .pdf-header { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white; padding: 30px; display: flex; align-items: center; border-bottom: 5px solid #ffc107; }
-        .pdf-photo { width: 120px; height: 120px; border-radius: 50%; border: 4px solid white; object-fit: cover; margin-right: 25px; background: #fff; }
+        
+        /* UPDATED PDF PHOTO STYLES */
+        .pdf-photo-wrapper {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid white;
+            margin-right: 25px;
+            background: #fff;
+            overflow: hidden; /* This crops the image */
+            position: relative;
+            flex-shrink: 0; /* Prevents shrinking */
+        }
+        .pdf-photo { 
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures aspect ratio */
+            object-position: center;
+            display: block;
+        }
+
         .pdf-title h1 { margin: 0; font-weight: 700; font-size: 28px; }
         .pdf-title h4 { margin: 5px 0 0; font-weight: 300; font-size: 18px; opacity: 0.9; }
         .pdf-body { padding: 30px; display: flex; gap: 30px; }
@@ -96,7 +116,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 2.8<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 2.9<br>HR Management System</div>
         </div>
     </div>
 
@@ -187,7 +207,10 @@
 <!-- PDF TEMPLATE (HIDDEN) -->
 <div id="pdf-template">
     <div class="pdf-header">
-        <img id="pdf-photo" class="pdf-photo" src="">
+        <!-- IMAGE WRAPPED IN CONTAINER -->
+        <div class="pdf-photo-wrapper">
+            <img id="pdf-photo" class="pdf-photo" src="">
+        </div>
         <div class="pdf-title"><h1 id="pdf-name">Employee Name</h1><h4 id="pdf-position">Position</h4></div>
     </div>
     <div class="pdf-body">
@@ -298,13 +321,12 @@
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    // --- PDF GENERATION (UPDATED WITH IMAGE FETCH) ---
+    // --- PDF GENERATION ---
     async function downloadProfilePDF() {
         if(!currentViewedEmp) return;
         const emp = currentViewedEmp;
         showLoading(true);
 
-        // 1. Setup Data
         document.getElementById('pdf-name').innerText = emp.Name;
         document.getElementById('pdf-position').innerText = emp.Position || 'Employee';
         document.getElementById('pdf-phone').innerText = emp.Phone || '-';
@@ -332,7 +354,6 @@
             } else { eduContainer.innerHTML = '<div class="pdf-item text-muted">- None -</div>'; }
         } catch(e) { eduContainer.innerHTML = '-'; }
 
-        // 2. Fetch Image Base64 from GAS if URL exists
         const imgEl = document.getElementById('pdf-photo');
         if (emp['Profile Pic']) {
             try {
@@ -344,14 +365,13 @@
                 if(result.status === 'success') {
                     imgEl.src = result.data;
                 } else {
-                    imgEl.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="; // Blank
+                    imgEl.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="; 
                 }
             } catch(e) { imgEl.src = ""; }
         } else {
-            imgEl.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="; // Blank
+            imgEl.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="; 
         }
 
-        // 3. Generate PDF
         const element = document.getElementById('pdf-template');
         element.style.display = 'block'; 
         
@@ -416,7 +436,6 @@
 
     const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
 
-    // Standard Functions
     function renderTable() {
         const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
         const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage);
