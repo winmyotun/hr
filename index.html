@@ -11,8 +11,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
     <!-- JS Libraries (REQUIRED) -->
+    <!-- PDFMake for Selectable Text PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <!-- SheetJS for Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <style>
@@ -25,11 +27,12 @@
         .search-box input { border-radius: 20px; padding-left: 35px; }
         .search-box i { position: absolute; left: 15px; top: 10px; color: #aaa; }
         #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; display:none; justify-content:center; align-items:center; }
+        
+        /* Sidebar */
         .offcanvas { width: 280px !important; }
         .sidebar-header-text { font-size: 0.75rem; font-weight: 700; color: #adb5bd; letter-spacing: 1px; padding: 15px 15px 5px 15px; }
         .sidebar-item { cursor: pointer; transition: 0.2s; border: none; padding: 12px 20px; font-size: 15px; color: #495057; background: transparent; display: block; text-decoration: none; }
         .sidebar-item:hover { background-color: #f1f3f5; color: #0d6efd; padding-left: 25px; }
-        .sidebar-item i { width: 25px; text-align: center; margin-right: 10px; }
         
         /* Pagination */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -82,7 +85,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 3.5<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 4.0 (Stable)<br>HR Management System</div>
         </div>
     </div>
 
@@ -160,8 +163,10 @@
     </div>
 </div>
 
-<!-- Settings & Report Modals -->
+<!-- Settings Modal -->
 <div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Manage Dropdowns</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="fw-bold">Select Category:</label><select class="form-select" id="settingsCategory" onchange="renderSettingsList()"><option value="Department">Department</option><option value="Position">Position</option><option value="Blood Type">Blood Type</option></select></div><div class="input-group mb-3"><input type="text" class="form-control" id="newItemName" placeholder="New Item Name"><button class="btn btn-primary" onclick="addDropdownItem()">Add</button></div><h6 class="text-muted">Current Items:</h6><div class="list-group" id="settingsList" style="max-height: 250px; overflow-y: auto;"></div></div></div></div></div>
+
+<!-- Report Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-info text-white"><h5 class="modal-title">Summary Dashboard</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row mb-4"><div class="col-md-12"><div class="card bg-light border-0 p-3 text-center"><h3 class="display-6 fw-bold text-primary" id="totalEmpCount">0</h3><span class="text-muted">Total Employees</span></div></div></div><div class="row"><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Department</h6><ul class="list-group list-group-flush" id="deptReportList"></ul></div><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Position</h6><ul class="list-group list-group-flush" id="posReportList"></ul></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
 <!-- View Details Modal -->
@@ -170,8 +175,11 @@
     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
 </div></div></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxJmeJrN1l4wbSAXMLZ4WRecmwe-o8hhKUtBzvywd4yw26-NN3yserRrbuu3WdqQZN4kA/exec"; // *** URL ထည့်ပါ ***
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxJmeJrN1l4wbSAXMLZ4WRecmwe-o8hhKUtBzvywd4yw26-NN3yserRrbuu3WdqQZN4kA/exec"; // *** FOLDER ID ပြန်ထည့်ပါ ***
     let currentUser = { role: null, username: null, department: null };
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [] }; 
@@ -192,7 +200,7 @@
                 currentUser = { role: data.role, username: document.getElementById('username').value, department: data.department };
                 initDashboard();
             } else Swal.fire('Error', data.message, 'error');
-        }).catch(e => { showLoading(false); alert('Error'); });
+        }).catch(e => { showLoading(false); alert('Error: ' + e); });
     });
 
     function initDashboard() {
@@ -266,26 +274,23 @@
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    // --- PDF GENERATION (PDFMAKE) ---
+    // --- PDF GENERATION (PDFMAKE) - FIXED ---
     async function downloadProfilePDF() {
         if(!currentViewedEmp) return;
         const emp = currentViewedEmp;
         showLoading(true);
 
-        // 1. Fetch Image Base64
+        // Fetch Image
         let profileImage = null;
         if (emp['Profile Pic']) {
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getImageBase64', fileUrl: emp['Profile Pic'] }) });
                 const result = await res.json();
                 if(result.status === 'success') profileImage = result.data;
-            } catch(e) { console.error(e); }
+            } catch(e) {}
         }
-        
-        // Fallback Image
         if(!profileImage) profileImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
-        // 2. Edu Content
         let eduContent = [];
         try {
             if(emp.Education && emp.Education.trim() !== "") {
@@ -297,13 +302,12 @@
 
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
 
-        // 3. PDF Definition (Pure PDFMake)
+        // Define PDF with PHOTO ON RIGHT and WHITE BORDER
         const docDefinition = {
             content: [
-                // Header Table (Photo Right, Text Left)
                 {
                     table: {
-                        widths: ['*', 100], // Text takes remaining space, Photo takes fixed 100px
+                        widths: ['*', 100], // Text Left (*), Image Right (100px)
                         body: [
                             [
                                 {
@@ -320,7 +324,7 @@
                                 {
                                     fillColor: '#0d6efd',
                                     margin: [0, 15, 20, 15],
-                                    // Image with White Background/Border Effect
+                                    // Simulated White Border using nested table
                                     table: {
                                         body: [[{
                                             image: profileImage,
@@ -331,11 +335,9 @@
                                     },
                                     layout: {
                                         defaultBorder: false,
-                                        paddingLeft: function(i) { return 5; },
-                                        paddingRight: function(i) { return 5; },
-                                        paddingTop: function(i) { return 5; },
-                                        paddingBottom: function(i) { return 5; },
-                                        fillColor: 'white' // White Border
+                                        paddingLeft: function(i) { return 5; }, paddingRight: function(i) { return 5; },
+                                        paddingTop: function(i) { return 5; }, paddingBottom: function(i) { return 5; },
+                                        fillColor: 'white' // White Border Color
                                     },
                                     border: [false, false, false, false]
                                 }
@@ -395,7 +397,6 @@
         showLoading(false);
     }
 
-    // --- MAIN CRUD & UTILS ---
     function openModal(mode, rowIndex = null) { 
         const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
         document.getElementById('employeeForm').reset(); 
