@@ -76,7 +76,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 2.5<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 2.6<br>HR Management System</div>
         </div>
     </div>
 
@@ -149,9 +149,7 @@
                                 <label class="fw-bold">Degrees / Certificates</label>
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="addEduRow()"><i class="fas fa-plus"></i> Add Row</button>
                             </div>
-                            <div id="eduContainer">
-                                <!-- Dynamic Rows will appear here -->
-                            </div>
+                            <div id="eduContainer"></div>
                         </div>
                     </div>
                 </form>
@@ -176,7 +174,7 @@
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [] }; 
     let compressedImageBase64 = null, deleteImageFlag = false;
-    let eduFilesToDelete = []; // Array to store files to delete
+    let eduFilesToDelete = []; 
 
     // Login
     document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -198,10 +196,8 @@
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('dashboardSection').style.display = 'block';
         document.getElementById('userDisplay').innerText = `${currentUser.username} (${currentUser.role})`;
-        
         const sidebarList = document.getElementById('sidebarList');
         let sidebarHTML = '';
-
         if(currentUser.role === 'Root') {
             document.getElementById('btnAdd').style.display = 'inline-block';
             sidebarHTML = `<div class="sidebar-header-text">ADMINISTRATION</div><a class="list-group-item sidebar-item" onclick="openSettingsModal()"><i class="fas fa-list-alt text-primary"></i> Manage Dropdowns</a><div class="sidebar-header-text mt-2">REPORTS</div><a class="list-group-item sidebar-item" onclick="openReportModal()"><i class="fas fa-chart-pie text-info"></i> Summary Dashboard</a><a class="list-group-item sidebar-item" onclick="exportToExcel()"><i class="fas fa-file-excel text-success"></i> Export to Excel</a>`;
@@ -216,18 +212,13 @@
 
     function refreshData() { loadEmployees(); loadAllDropdowns(); }
 
-    // --- EDUCATION FUNCTIONS ---
     function addEduRow(title = "", url = "") {
         const container = document.getElementById('eduContainer');
         const div = document.createElement('div');
         div.className = 'edu-row row g-2 align-items-center';
         let fileDisplay = "";
         if(url) { fileDisplay = `<a href="${url}" target="_blank" class="ms-2 small text-success"><i class="fas fa-check-circle"></i> File Uploaded</a>`; }
-        div.innerHTML = `
-            <div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name (e.g. LLB)" value="${title}"></div>
-            <div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png"><input type="hidden" class="edu-existing-url" value="${url}">${fileDisplay}</div>
-            <div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>
-        `;
+        div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name (e.g. LLB)" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png"><input type="hidden" class="edu-existing-url" value="${url}">${fileDisplay}</div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`;
         container.appendChild(div);
     }
 
@@ -238,7 +229,7 @@
         row.remove();
     }
 
-    // --- VIEW DETAILS (WITH ROOT DOWNLOAD CHECK) ---
+    // --- VIEW DETAILS (UPDATED: SHOW ALL COLUMNS) ---
     function viewDetails(rowIndex) { 
         const emp = allData.find(r => r.row_index === rowIndex); 
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; 
@@ -250,15 +241,9 @@
                 if(eduList.length > 0) {
                     eduHtml = '<ul class="list-group list-group-flush text-start">';
                     eduList.forEach(item => {
-                        // --- CHECK ROLE FOR DOWNLOAD LINK ---
                         let link = '';
-                        if (item.url && currentUser.role === 'Root') {
-                            link = `<a href="${item.url}" target="_blank" class="float-end"><i class="fas fa-download"></i></a>`;
-                        } else if (item.url) {
-                            // Optional: Show lock icon or nothing for non-root
-                            link = `<span class="float-end text-muted small"><i class="fas fa-lock"></i></span>`;
-                        }
-                        
+                        if (item.url && currentUser.role === 'Root') { link = `<a href="${item.url}" target="_blank" class="float-end"><i class="fas fa-download"></i></a>`; } 
+                        else if (item.url) { link = `<span class="float-end text-muted small"><i class="fas fa-lock"></i></span>`; }
                         eduHtml += `<li class="list-group-item py-1 px-0">${item.title} ${link}</li>`;
                     });
                     eduHtml += '</ul>';
@@ -266,21 +251,42 @@
             }
         } catch(e) {}
 
+        const formatDate = (dateStr) => {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0];
+        };
+
         document.getElementById('viewDetailsBody').innerHTML = `
             <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4><div class="mb-3"><span class="badge bg-primary">${emp.Department || 'No Dept'}</span> <span class="badge bg-secondary">${emp.Position || 'No Pos'}</span></div></div>
             <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist"><li class="nav-item"><button class="nav-link active py-1" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Info</button></li><li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li></ul>
-            <div class="tab-content text-start"><div class="tab-pane fade show active" id="view-basic"><table class="table table-bordered table-sm mb-0"><tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr><tr><th>Phone</th><td>${emp.Phone}</td></tr><tr><th>Email</th><td>${emp.Email}</td></tr><tr><th>NRC</th><td>${emp['NRC No.']}</td></tr><tr><th>Father</th><td>${emp['Father Name']}</td></tr><tr><th>Address</th><td>${emp.Address}</td></tr></table></div><div class="tab-pane fade" id="view-edu">${eduHtml}</div></div>
+            <div class="tab-content text-start">
+                <div class="tab-pane fade show active" id="view-basic">
+                    <table class="table table-bordered table-sm mb-0">
+                        <tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr>
+                        <tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr>
+                        <tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr>
+                        <tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr>
+                        <tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr>
+                        <tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr>
+                        <tr><th>Email</th><td>${emp.Email || '-'}</td></tr>
+                        <tr><th>Address</th><td>${emp.Address || '-'}</td></tr>
+                        <tr><th>Start Date</th><td>${formatDate(emp['Start Date'])}</td></tr>
+                        <tr><th>Resign Date</th><td>${formatDate(emp['Resign Date'])}</td></tr>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="view-edu">${eduHtml}</div>
+            </div>
         `; 
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    // --- MAIN CRUD ---
+    // --- MAIN CRUD & UTILS ---
     function openModal(mode, rowIndex = null) { 
         const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
         document.getElementById('employeeForm').reset(); 
         document.getElementById('eduContainer').innerHTML = ''; 
-        compressedImageBase64 = null; deleteImageFlag = false;
-        eduFilesToDelete = []; 
+        compressedImageBase64 = null; deleteImageFlag = false; eduFilesToDelete = []; 
         document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none'; 
         var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]'); var firstTab = new bootstrap.Tab(firstTabEl); firstTab.show();
 
@@ -290,12 +296,7 @@
             document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
             if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0]; if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; 
             if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
-            try {
-                if(emp.Education && emp.Education.trim() !== "") {
-                    const eduList = JSON.parse(emp.Education);
-                    eduList.forEach(item => addEduRow(item.title, item.url));
-                }
-            } catch(e) { console.log("Edu Parse Error", e); }
+            try { if(emp.Education && emp.Education.trim() !== "") { const eduList = JSON.parse(emp.Education); eduList.forEach(item => addEduRow(item.title, item.url)); } } catch(e) {}
         } else { 
             document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; 
             addEduRow(); 
@@ -327,7 +328,6 @@
 
     const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
 
-    // Standard Functions
     function renderTable() {
         const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
         const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage);
