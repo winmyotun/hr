@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Management System</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    
+    <!-- HTML2PDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         body { font-family: 'Poppins', 'Padauk', sans-serif; background-color: #f4f6f9; }
         .login-container { max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -34,8 +39,62 @@
         .pagination .page-item + .page-item .page-input-box { margin-left: -1px; }
         .pagination .page-item + .page-item .page-link { margin-left: -1px; }
 
-        /* Edu Row */
         .edu-row { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 5px; border: 1px solid #eee; }
+
+        /* --- PDF TEMPLATE STYLE --- */
+        #pdf-template {
+            width: 800px; /* A4 width approx */
+            background: white;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            display: none; /* Hidden by default */
+        }
+        .pdf-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            border-bottom: 5px solid #ffc107;
+        }
+        .pdf-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid white;
+            object-fit: cover;
+            margin-right: 25px;
+            background: #fff;
+        }
+        .pdf-title h1 { margin: 0; font-weight: 700; font-size: 28px; }
+        .pdf-title h4 { margin: 5px 0 0; font-weight: 300; font-size: 18px; opacity: 0.9; }
+        
+        .pdf-body { padding: 30px; display: flex; gap: 30px; }
+        .pdf-left { width: 35%; border-right: 1px solid #eee; padding-right: 20px; }
+        .pdf-right { width: 65%; }
+        
+        .pdf-section { margin-bottom: 25px; }
+        .pdf-section-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #0d6efd;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        .pdf-item { margin-bottom: 12px; }
+        .pdf-label { font-size: 12px; color: #777; display: block; margin-bottom: 2px; }
+        .pdf-value { font-size: 14px; font-weight: 500; color: #333; }
+        
+        .pdf-edu-item { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-left: 3px solid #0d6efd; 
+            margin-bottom: 10px; 
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -76,7 +135,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 2.6<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 2.7<br>HR Management System</div>
         </div>
     </div>
 
@@ -114,14 +173,11 @@
                 <form id="employeeForm">
                     <input type="hidden" id="editRowIndex">
                     <input type="hidden" id="currentImage">
-                    
                     <ul class="nav nav-tabs mb-3" id="empTabs" role="tablist">
                         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-basic" type="button">Basic Info</button></li>
                         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-edu" type="button">Education & Files</button></li>
                     </ul>
-
                     <div class="tab-content">
-                        <!-- BASIC INFO TAB -->
                         <div class="tab-pane fade show active" id="tab-basic">
                             <div class="row g-3">
                                 <div class="col-12 text-center mb-3">
@@ -142,8 +198,6 @@
                                 <div class="col-12"><label>Address</label><textarea class="form-control" id="empAddr" rows="2"></textarea></div>
                             </div>
                         </div>
-
-                        <!-- EDUCATION TAB -->
                         <div class="tab-pane fade" id="tab-edu">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label class="fw-bold">Degrees / Certificates</label>
@@ -159,10 +213,58 @@
     </div>
 </div>
 
-<!-- Settings & Report Modals -->
+<!-- Settings & Report Modals (Hidden) -->
 <div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Manage Dropdowns</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="fw-bold">Select Category:</label><select class="form-select" id="settingsCategory" onchange="renderSettingsList()"><option value="Department">Department</option><option value="Position">Position</option><option value="Blood Type">Blood Type</option></select></div><div class="input-group mb-3"><input type="text" class="form-control" id="newItemName" placeholder="New Item Name"><button class="btn btn-primary" onclick="addDropdownItem()">Add</button></div><h6 class="text-muted">Current Items:</h6><div class="list-group" id="settingsList" style="max-height: 250px; overflow-y: auto;"></div></div></div></div></div>
 <div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-info text-white"><h5 class="modal-title">Summary Dashboard</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row mb-4"><div class="col-md-12"><div class="card bg-light border-0 p-3 text-center"><h3 class="display-6 fw-bold text-primary" id="totalEmpCount">0</h3><span class="text-muted">Total Employees</span></div></div></div><div class="row"><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Department</h6><ul class="list-group list-group-flush" id="deptReportList"></ul></div><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Position</h6><ul class="list-group list-group-flush" id="posReportList"></ul></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div></div>
-<div class="modal fade" id="viewModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-body" id="viewDetailsBody"></div><div class="modal-footer p-1"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button></div></div></div></div>
+
+<!-- View Details Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-body" id="viewDetailsBody"></div><div class="modal-footer p-1">
+    <button type="button" class="btn btn-primary btn-sm me-auto" onclick="downloadProfilePDF()"><i class="fas fa-file-pdf"></i> Download PDF Profile</button>
+    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+</div></div></div></div>
+
+<!-- PDF TEMPLATE (HIDDEN) -->
+<div id="pdf-template">
+    <div class="pdf-header">
+        <img id="pdf-photo" class="pdf-photo" src="" crossorigin="anonymous">
+        <div class="pdf-title">
+            <h1 id="pdf-name">Employee Name</h1>
+            <h4 id="pdf-position">Position</h4>
+        </div>
+    </div>
+    <div class="pdf-body">
+        <div class="pdf-left">
+            <div class="pdf-section">
+                <div class="pdf-section-title">Contact Info</div>
+                <div class="pdf-item"><span class="pdf-label">Phone</span><span class="pdf-value" id="pdf-phone">-</span></div>
+                <div class="pdf-item"><span class="pdf-label">Email</span><span class="pdf-value" id="pdf-email">-</span></div>
+                <div class="pdf-item"><span class="pdf-label">Address</span><span class="pdf-value" id="pdf-address">-</span></div>
+            </div>
+            <div class="pdf-section">
+                <div class="pdf-section-title">Personal Details</div>
+                <div class="pdf-item"><span class="pdf-label">NRC No.</span><span class="pdf-value" id="pdf-nrc">-</span></div>
+                <div class="pdf-item"><span class="pdf-label">Blood Type</span><span class="pdf-value" id="pdf-blood">-</span></div>
+                <div class="pdf-item"><span class="pdf-label">Father Name</span><span class="pdf-value" id="pdf-father">-</span></div>
+                <div class="pdf-item"><span class="pdf-label">Mother Name</span><span class="pdf-value" id="pdf-mother">-</span></div>
+            </div>
+        </div>
+        <div class="pdf-right">
+            <div class="pdf-section">
+                <div class="pdf-section-title">Employment</div>
+                <div class="pdf-item"><span class="pdf-label">Department</span><span class="pdf-value" id="pdf-dept">-</span></div>
+                <div class="pdf-item"><span class="pdf-label">Employee ID (Sr)</span><span class="pdf-value" id="pdf-sr">-</span></div>
+                <div class="pdf-item"><span class="pdf-label">Start Date</span><span class="pdf-value" id="pdf-start">-</span></div>
+                <div class="pdf-item"><span class="pdf-label">Resign Date</span><span class="pdf-value" id="pdf-resign">-</span></div>
+            </div>
+            <div class="pdf-section">
+                <div class="pdf-section-title">Education & Certificates</div>
+                <div id="pdf-edu-list">
+                    <!-- Dynamic List -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -175,6 +277,7 @@
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [] }; 
     let compressedImageBase64 = null, deleteImageFlag = false;
     let eduFilesToDelete = []; 
+    let currentViewedEmp = null; // Store current viewed employee for PDF
 
     // Login
     document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -229,9 +332,11 @@
         row.remove();
     }
 
-    // --- VIEW DETAILS (UPDATED: SHOW ALL COLUMNS) ---
+    // --- VIEW DETAILS ---
     function viewDetails(rowIndex) { 
-        const emp = allData.find(r => r.row_index === rowIndex); 
+        const emp = allData.find(r => r.row_index === rowIndex);
+        currentViewedEmp = emp; // Store for PDF generation
+        
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; 
         
         let eduHtml = '<p class="text-muted small">No education info</p>';
@@ -281,6 +386,67 @@
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
+    // --- PDF GENERATION ---
+    function downloadProfilePDF() {
+        if(!currentViewedEmp) return;
+        const emp = currentViewedEmp;
+        
+        // Populate PDF Template
+        document.getElementById('pdf-name').innerText = emp.Name;
+        document.getElementById('pdf-position').innerText = emp.Position || 'Employee';
+        document.getElementById('pdf-photo').src = emp['Profile Pic'] || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; // Blank placeholder if empty
+        
+        document.getElementById('pdf-phone').innerText = emp.Phone || '-';
+        document.getElementById('pdf-email').innerText = emp.Email || '-';
+        document.getElementById('pdf-address').innerText = emp.Address || '-';
+        
+        document.getElementById('pdf-nrc').innerText = emp['NRC No.'] || '-';
+        document.getElementById('pdf-blood').innerText = emp['Blood Type'] || '-';
+        document.getElementById('pdf-father').innerText = emp['Father Name'] || '-';
+        document.getElementById('pdf-mother').innerText = emp['Mother Name'] || '-';
+        
+        document.getElementById('pdf-dept').innerText = emp.Department || '-';
+        document.getElementById('pdf-sr').innerText = emp['Sr No.'] || '-';
+        
+        const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
+        document.getElementById('pdf-start').innerText = formatDate(emp['Start Date']);
+        document.getElementById('pdf-resign').innerText = formatDate(emp['Resign Date']);
+
+        // Edu List
+        const eduContainer = document.getElementById('pdf-edu-list');
+        eduContainer.innerHTML = '';
+        try {
+            if(emp.Education && emp.Education.trim() !== "") {
+                const eduList = JSON.parse(emp.Education);
+                if(eduList.length > 0) {
+                    eduList.forEach(item => {
+                        eduContainer.innerHTML += `<div class="pdf-edu-item">${item.title}</div>`;
+                    });
+                } else {
+                    eduContainer.innerHTML = '<div class="pdf-item text-muted">- None -</div>';
+                }
+            } else {
+                eduContainer.innerHTML = '<div class="pdf-item text-muted">- None -</div>';
+            }
+        } catch(e) { eduContainer.innerHTML = '-'; }
+
+        // Generate PDF
+        const element = document.getElementById('pdf-template');
+        element.style.display = 'block'; // Make visible for capture
+        
+        const opt = {
+            margin:       0,
+            filename:     `${emp.Name}_Profile.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true }, // Higher scale for better quality
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(element).set(opt).save().then(() => {
+            element.style.display = 'none'; // Hide again
+        });
+    }
+
     // --- MAIN CRUD & UTILS ---
     function openModal(mode, rowIndex = null) { 
         const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
@@ -328,6 +494,7 @@
 
     const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
 
+    // Standard Functions
     function renderTable() {
         const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
         const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage);
