@@ -181,7 +181,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwQUig_oRGWEKbXa5MYwkN3UQJkOc75rrN2UATd0odfjH-UdA8IgcPrVbI_iKy-YSQx1Q/exec"; // *** URL ထည့်ပါ ***
+    const GAS_URL = "Yhttps://script.google.com/macros/s/AKfycbwQUig_oRGWEKbXa5MYwkN3UQJkOc75rrN2UATd0odfjH-UdA8IgcPrVbI_iKy-YSQx1Q/exec"; // *** URL ထည့်ပါ ***
     let currentUser = { role: null, username: null, department: null };
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [] }; 
@@ -191,15 +191,14 @@
     let fontsLoaded = false;
 
     // --- 1. LOAD NOTO SANS MYANMAR FONT ---
+    // Fetching TTF from Google Fonts GitHub (Reliable Raw Link)
     async function loadFonts() {
-        // Noto Sans Myanmar from GitHub Raw (Reliable CDN)
         const fontURL = "https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSansMyanmar/NotoSansMyanmar-Regular.ttf";
         const fontBoldURL = "https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSansMyanmar/NotoSansMyanmar-Bold.ttf";
-        
         try {
             const fetchFont = async (url) => {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error("Font load failed");
+                if (!response.ok) throw new Error("Font fetch failed");
                 const blob = await response.blob();
                 return new Promise((resolve) => {
                     const reader = new FileReader();
@@ -211,6 +210,7 @@
             const regular = await fetchFont(fontURL);
             const bold = await fetchFont(fontBoldURL);
             
+            // Map to VFS
             window.pdfMake.vfs["NotoSansMyanmar-Regular.ttf"] = regular;
             window.pdfMake.vfs["NotoSansMyanmar-Bold.ttf"] = bold;
             
@@ -229,9 +229,9 @@
                 }
             };
             fontsLoaded = true;
-            console.log("Myanmar Fonts Loaded");
+            console.log("Noto Sans Myanmar Loaded");
         } catch (e) { 
-            console.error("Font Error:", e); 
+            console.error("Font Load Error:", e); 
             fontsLoaded = false;
         }
     }
@@ -283,7 +283,7 @@
         container.appendChild(div);
     }
 
-    // Fixed Global Scope
+    // FIXED: Global Scope for Inline Onclick
     window.removeEduRow = function(btn) {
         const row = btn.closest('.edu-row');
         const url = row.querySelector('.edu-existing-url').value;
@@ -313,24 +313,33 @@
             }
         } catch(e) {}
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
+        
         document.getElementById('viewDetailsBody').innerHTML = `
             <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4>
             <div class="mb-3">
                 <span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span>
             </div></div>
             <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist"><li class="nav-item"><button class="nav-link active py-1" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Info</button></li><li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li></ul>
-            <div class="tab-content text-start"><div class="tab-pane fade show active" id="view-basic"><table class="table table-bordered table-sm mb-0"><tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr><tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr><tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr><tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr><tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr><tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr><tr><th>Email</th><td>${emp.Email || '-'}</td></tr><tr><th>Address</th><td>${emp.Address || '-'}</td></tr><tr><th>Start Date</th><td>${formatDate(emp['Start Date'])}</td></tr><tr><th>Resign Date</th><td>${formatDate(emp['Resign Date'])}</td></tr></table></div><div class="tab-pane fade" id="view-edu">${eduHtml}</div></div>
+            <div class="tab-content text-start">
+                <div class="tab-pane fade show active" id="view-basic">
+                    <table class="table table-bordered table-sm mb-0">
+                        <tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr>
+                        <tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr><tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr><tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr><tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr><tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr><tr><th>Email</th><td>${emp.Email || '-'}</td></tr><tr><th>Address</th><td>${emp.Address || '-'}</td></tr><tr><th>Start Date</th><td>${formatDate(emp['Start Date'])}</td></tr><tr><th>Resign Date</th><td>${formatDate(emp['Resign Date'])}</td></tr>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="view-edu">${eduHtml}</div>
+            </div>
         `; 
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    // --- PDF GENERATION (NOTO SANS MYANMAR EMBEDDED) ---
+    // --- PDF GENERATION (FIXED WITH NOTO SANS) ---
     window.downloadProfilePDF = async function() {
         if(!currentViewedEmp) return;
         const emp = currentViewedEmp;
         showLoading(true);
 
-        // 1. Fetch Image Base64
+        // Fetch Image Base64
         let profileImage = null;
         if (emp['Profile Pic']) {
             try {
@@ -352,7 +361,7 @@
 
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
 
-        // 2. PDF DEFINITION (Layout Fixed, Font Fixed)
+        // PDF Definition using NotoSansMyanmar Font
         const docDefinition = {
             content: [
                 {
@@ -438,7 +447,7 @@
                 value: { fontSize: 11, bold: true, color: '#333', margin: [0, 0, 0, 8] },
                 eduItem: { fontSize: 10, margin: [0, 2, 0, 2], background: '#f5f5f5', color: '#333' }
             },
-            defaultStyle: { font: fontsLoaded ? 'NotoSansMyanmar' : 'Roboto' } // Use Embedded Noto Sans
+            defaultStyle: { font: fontsLoaded ? 'NotoSansMyanmar' : 'Roboto' } 
         };
 
         pdfMake.createPdf(docDefinition).download(`${emp.Name}_Profile.pdf`);
