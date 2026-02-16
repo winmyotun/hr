@@ -8,9 +8,8 @@
     <!-- CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Fonts: Use Pyidaungsu for Website as well -->
-    <link href='https://mmwebfonts.comquas.com/fonts/?font=pyidaungsu' rel="stylesheet" />
+    <!-- Google Fonts: Padauk for Web Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
     <!-- JS Libraries (REQUIRED) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
@@ -18,9 +17,7 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        /* Apply Pyidaungsu to whole body */
-        body { font-family: 'Pyidaungsu', sans-serif; background-color: #f4f6f9; }
-        
+        body { font-family: 'Padauk', sans-serif; background-color: #f4f6f9; }
         .login-container { max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .main-content { display: none; padding: 20px; }
         .profile-img-small { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
@@ -87,7 +84,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 2.0 (Pyidaungsu)<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 2.0 (PDF Fixed)<br>HR Management System</div>
         </div>
     </div>
 
@@ -171,12 +168,9 @@
 
 <!-- View Details Modal -->
 <div class="modal fade" id="viewModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-body" id="viewDetailsBody"></div><div class="modal-footer p-1">
-    <button type="button" class="btn btn-primary btn-sm me-auto" onclick="downloadProfilePDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+    <button type="button" class="btn btn-primary btn-sm me-auto" onclick="downloadProfilePDF()"><i class="fas fa-file-pdf"></i> Download PDF Profile</button>
     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
 </div></div></div></div>
-
-<!-- PDF TEMPLATE (FOR STYLE REF ONLY, ACTUAL GEN IN JS) -->
-<div id="pdf-template" style="display:none;"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -190,13 +184,10 @@
     let eduFilesToDelete = []; 
     let currentViewedEmp = null;
 
-    // --- 1. LOAD PYIDAUNGSU FONT FOR PDFMAKE ---
+    // --- FONT LOADER (PADAUK) ---
     async function loadFonts() {
-        // Use Pyidaungsu Bold as Regular to ensure thickness in PDF, or load both.
-        // Using a reliable raw link for Pyidaungsu-2.5_Regular.ttf
-        const fontURL = "https://raw.githubusercontent.com/discosultan/Pyidaungsu-2.5/master/Pyidaungsu-2.5_Regular.ttf";
-        const fontBoldURL = "https://raw.githubusercontent.com/discosultan/Pyidaungsu-2.5/master/Pyidaungsu-2.5_Bold.ttf";
-        
+        const fontURL = "https://raw.githubusercontent.com/google/fonts/main/ofl/padauk/Padauk-Regular.ttf";
+        const fontBoldURL = "https://raw.githubusercontent.com/google/fonts/main/ofl/padauk/Padauk-Bold.ttf";
         try {
             const fetchFont = async (url) => {
                 const response = await fetch(url);
@@ -207,28 +198,16 @@
                     reader.readAsDataURL(blob);
                 });
             };
-            
             const regular = await fetchFont(fontURL);
             const bold = await fetchFont(fontBoldURL);
             
-            window.pdfMake.vfs["Pyidaungsu-Regular.ttf"] = regular;
-            window.pdfMake.vfs["Pyidaungsu-Bold.ttf"] = bold;
-            
+            window.pdfMake.vfs["Padauk-Regular.ttf"] = regular;
+            window.pdfMake.vfs["Padauk-Bold.ttf"] = bold;
             window.pdfMake.fonts = {
-                Pyidaungsu: {
-                    normal: "Pyidaungsu-Regular.ttf",
-                    bold: "Pyidaungsu-Bold.ttf",
-                    italics: "Pyidaungsu-Regular.ttf",
-                    bolditalics: "Pyidaungsu-Bold.ttf"
-                },
-                Roboto: {
-                    normal: 'Roboto-Regular.ttf',
-                    bold: 'Roboto-Medium.ttf',
-                    italics: 'Roboto-Italic.ttf',
-                    bolditalics: 'Roboto-MediumItalic.ttf'
-                }
+                Padauk: { normal: "Padauk-Regular.ttf", bold: "Padauk-Bold.ttf", italics: "Padauk-Regular.ttf", bolditalics: "Padauk-Bold.ttf" },
+                Roboto: { normal: 'Roboto-Regular.ttf', bold: 'Roboto-Medium.ttf', italics: 'Roboto-Italic.ttf', bolditalics: 'Roboto-MediumItalic.ttf' }
             };
-        } catch (e) { console.error("Font Load Error:", e); }
+        } catch (e) { console.error("Font Load Error", e); }
     }
     loadFonts();
 
@@ -278,7 +257,7 @@
         container.appendChild(div);
     }
 
-    // FIXED: Global Scope for Inline Onclick
+    // GLOBALS FOR BUTTONS
     window.removeEduRow = function(btn) {
         const row = btn.closest('.edu-row');
         const url = row.querySelector('.edu-existing-url').value;
@@ -286,7 +265,6 @@
         row.remove();
     }
 
-    // --- VIEW DETAILS ---
     window.viewDetails = function(rowIndex) { 
         const emp = allData.find(r => r.row_index === rowIndex);
         currentViewedEmp = emp; 
@@ -319,7 +297,7 @@
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    // --- PDF GENERATION (FIXED WITH PYIDAUNGSU FONT & PHOTO RIGHT) ---
+    // --- PDF GENERATION ---
     window.downloadProfilePDF = async function() {
         if(!currentViewedEmp) return;
         const emp = currentViewedEmp;
@@ -346,12 +324,12 @@
 
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
 
-        // PDF Definition using Pyidaungsu Font
+        // PDF STRUCTURE: Text on Left, Photo on Right
         const docDefinition = {
             content: [
                 {
                     table: {
-                        widths: ['*', 100], // Text Left, Photo Right
+                        widths: ['*', 100], 
                         body: [
                             [
                                 {
@@ -368,6 +346,7 @@
                                 {
                                     fillColor: '#0d6efd',
                                     margin: [0, 15, 20, 15],
+                                    // WHITE BORDER around IMAGE
                                     table: {
                                         body: [[{
                                             image: profileImage,
@@ -431,14 +410,14 @@
                 value: { fontSize: 11, bold: true, color: '#333', margin: [0, 0, 0, 8] },
                 eduItem: { fontSize: 10, margin: [0, 2, 0, 2], background: '#f5f5f5', color: '#333' }
             },
-            defaultStyle: { font: 'Pyidaungsu' } // Apply Pyidaungsu Globally
+            defaultStyle: { font: 'Padauk' }
         };
 
         pdfMake.createPdf(docDefinition).download(`${emp.Name}_Profile.pdf`);
         showLoading(false);
     }
 
-    // --- GLOBALS ---
+    // --- OTHER GLOBAL FUNCTIONS ---
     window.openModal = function(mode, rowIndex = null) { 
         const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
         document.getElementById('employeeForm').reset(); 
