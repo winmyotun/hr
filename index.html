@@ -4,16 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Management System</title>
-    <!-- Bootstrap 5 -->
+    
+    <!-- CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
-    <!-- PDFMAKE Library (For Selectable Text PDF) -->
+    <!-- JS Libraries (Required for PDF & Export) -->
+    <!-- 1. PDFMake (For Selectable Text PDF) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <!-- 2. SheetJS (For Excel Export) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <style>
         body { font-family: 'Poppins', 'Padauk', sans-serif; background-color: #f4f6f9; }
@@ -82,7 +84,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 3.2<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 3.3 (Fixed)<br>HR Management System</div>
         </div>
     </div>
 
@@ -170,6 +172,9 @@
     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
 </div></div></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxJmeJrN1l4wbSAXMLZ4WRecmwe-o8hhKUtBzvywd4yw26-NN3yserRrbuu3WdqQZN4kA/exec"; // *** URL ထည့်ပါ ***
     let currentUser = { role: null, username: null, department: null };
@@ -179,15 +184,26 @@
     let eduFilesToDelete = []; 
     let currentViewedEmp = null;
 
-    // Login & Init
+    // Login
     document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault(); showLoading(true);
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: document.getElementById('username').value, password: document.getElementById('password').value }) })
-        .then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { currentUser = { role: data.role, username: document.getElementById('username').value, department: data.department }; initDashboard(); } else Swal.fire('Error', data.message, 'error'); }).catch(e => { showLoading(false); alert('Error'); });
+        e.preventDefault();
+        showLoading(true);
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'login', username: document.getElementById('username').value, password: document.getElementById('password').value })
+        }).then(res => res.json()).then(data => {
+            showLoading(false);
+            if(data.status === 'success') {
+                currentUser = { role: data.role, username: document.getElementById('username').value, department: data.department };
+                initDashboard();
+            } else Swal.fire('Error', data.message, 'error');
+        }).catch(e => { showLoading(false); alert('Error: ' + e); });
     });
 
     function initDashboard() {
-        document.getElementById('loginSection').style.display = 'none'; document.getElementById('dashboardSection').style.display = 'block'; document.getElementById('userDisplay').innerText = `${currentUser.username} (${currentUser.role})`;
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('dashboardSection').style.display = 'block';
+        document.getElementById('userDisplay').innerText = `${currentUser.username} (${currentUser.role})`;
         const sidebarList = document.getElementById('sidebarList');
         let sidebarHTML = '';
         if(currentUser.role === 'Root') {
@@ -197,10 +213,29 @@
             document.getElementById('btnAdd').style.display = 'none';
             sidebarHTML = `<div class="sidebar-header-text mt-2">REPORTS</div><a class="list-group-item sidebar-item" onclick="openReportModal()"><i class="fas fa-chart-pie text-info"></i> Summary Dashboard</a>`;
         }
-        sidebarList.innerHTML = sidebarHTML; loadEmployees(); loadAllDropdowns();
+        sidebarList.innerHTML = sidebarHTML;
+        loadEmployees();
+        loadAllDropdowns();
     }
 
     function refreshData() { loadEmployees(); loadAllDropdowns(); }
+
+    function addEduRow(title = "", url = "") {
+        const container = document.getElementById('eduContainer');
+        const div = document.createElement('div');
+        div.className = 'edu-row row g-2 align-items-center';
+        let fileDisplay = "";
+        if(url) { fileDisplay = `<a href="${url}" target="_blank" class="ms-2 small text-success"><i class="fas fa-check-circle"></i> File Uploaded</a>`; }
+        div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png"><input type="hidden" class="edu-existing-url" value="${url}">${fileDisplay}</div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`;
+        container.appendChild(div);
+    }
+
+    function removeEduRow(btn) {
+        const row = btn.closest('.edu-row');
+        const url = row.querySelector('.edu-existing-url').value;
+        if (url) { eduFilesToDelete.push(url); }
+        row.remove();
+    }
 
     // --- VIEW DETAILS ---
     function viewDetails(rowIndex) { 
@@ -224,8 +259,12 @@
             }
         } catch(e) {}
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
+        
         document.getElementById('viewDetailsBody').innerHTML = `
-            <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4><div class="mb-3"><span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span></div></div>
+            <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4>
+            <div class="mb-3">
+                <span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span>
+            </div></div>
             <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist"><li class="nav-item"><button class="nav-link active py-1" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Info</button></li><li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li></ul>
             <div class="tab-content text-start"><div class="tab-pane fade show active" id="view-basic"><table class="table table-bordered table-sm mb-0"><tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr><tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr><tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr><tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr><tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr><tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr><tr><th>Email</th><td>${emp.Email || '-'}</td></tr><tr><th>Address</th><td>${emp.Address || '-'}</td></tr><tr><th>Start Date</th><td>${formatDate(emp['Start Date'])}</td></tr><tr><th>Resign Date</th><td>${formatDate(emp['Resign Date'])}</td></tr></table></div><div class="tab-pane fade" id="view-edu">${eduHtml}</div></div>
         `; 
@@ -238,34 +277,35 @@
         const emp = currentViewedEmp;
         showLoading(true);
 
-        // Fetch Image
+        // 1. Fetch Image Base64
         let profileImage = null;
         if (emp['Profile Pic']) {
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getImageBase64', fileUrl: emp['Profile Pic'] }) });
                 const result = await res.json();
                 if(result.status === 'success') profileImage = result.data;
-            } catch(e) {}
+            } catch(e) { console.error(e); }
         }
+        
+        // Fallback Image (Blank 1x1 pixel)
+        if(!profileImage) profileImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
-        // Education List
+        // 2. Edu Content
         let eduContent = [];
         try {
             if(emp.Education && emp.Education.trim() !== "") {
                 const eduList = JSON.parse(emp.Education);
-                eduList.forEach(item => {
-                    eduContent.push({ text: item.title, style: 'eduItem' });
-                });
+                eduList.forEach(item => { eduContent.push({ text: item.title, style: 'eduItem' }); });
             }
         } catch(e) {}
-        if(eduContent.length === 0) eduContent.push({ text: '- None -', color: '#777', fontSize: 10 });
+        if(eduContent.length === 0) eduContent.push({ text: '- None -', color: '#777', italics: true });
 
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
 
-        // Define PDF Structure
+        // 3. PDF Definition
         const docDefinition = {
             content: [
-                // Header (Blue Background Table)
+                // Header (Blue Table)
                 {
                     table: {
                         widths: ['*'],
@@ -277,13 +317,13 @@
                                     margin: [20, 20, 20, 20],
                                     columns: [
                                         {
-                                            image: profileImage || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', // Valid base64 placeholder
-                                            width: 80,
-                                            height: 80,
-                                            fit: [80, 80]
+                                            image: profileImage,
+                                            width: 80, height: 80,
+                                            fit: [80, 80], // Ensures standard size
+                                            alignment: 'center'
                                         },
                                         {
-                                            margin: [20, 10, 0, 0],
+                                            margin: [20, 15, 0, 0],
                                             stack: [
                                                 { text: emp.Name, style: 'headerName' },
                                                 { text: `${emp.Position || '-'}  |  ${emp.Department || '-'}`, style: 'headerPos' }
@@ -296,12 +336,11 @@
                     },
                     layout: 'noBorders'
                 },
-                { text: '', margin: [0, 0, 0, 20] }, // Spacer
+                { text: '', margin: [0, 0, 0, 20] },
                 
                 // Body Columns
                 {
                     columns: [
-                        // Left Column
                         {
                             width: '45%',
                             stack: [
@@ -317,7 +356,6 @@
                                 { text: 'Mother Name', style: 'label' }, { text: emp['Mother Name'] || '-', style: 'value' },
                             ]
                         },
-                        // Right Column
                         {
                             width: '55%',
                             stack: [
@@ -337,24 +375,78 @@
             styles: {
                 headerName: { fontSize: 22, bold: true, color: 'white' },
                 headerPos: { fontSize: 14, color: '#e0e0e0', margin: [0, 5, 0, 0] },
-                sectionTitle: { fontSize: 11, bold: true, color: '#0d6efd', margin: [0, 0, 0, 5] },
+                sectionTitle: { fontSize: 11, bold: true, color: '#0d6efd', margin: [0, 0, 0, 5], decoration: 'underline', decorationStyle: 'solid', decorationColor: '#eee' },
                 label: { fontSize: 9, color: '#666', margin: [0, 2, 0, 0] },
                 value: { fontSize: 11, bold: true, color: '#333', margin: [0, 0, 0, 8] },
-                eduItem: { fontSize: 10, margin: [0, 2, 0, 2], background: '#f0f0f0', color: '#333' }
+                eduItem: { fontSize: 10, margin: [0, 2, 0, 2], background: '#f5f5f5', color: '#333' }
             },
-            defaultStyle: {
-                font: 'Roboto'
-            }
+            defaultStyle: { font: 'Roboto' }
         };
 
         pdfMake.createPdf(docDefinition).download(`${emp.Name}_Profile.pdf`);
         showLoading(false);
     }
 
-    // --- OTHER FUNCTIONS (No Changes) ---
-    function addEduRow(title = "", url = "") { const container = document.getElementById('eduContainer'); const div = document.createElement('div'); div.className = 'edu-row row g-2 align-items-center'; let fileDisplay = ""; if(url) { fileDisplay = `<a href="${url}" target="_blank" class="ms-2 small text-success"><i class="fas fa-check-circle"></i> File Uploaded</a>`; } div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name (e.g. LLB)" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png"><input type="hidden" class="edu-existing-url" value="${url}">${fileDisplay}</div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`; container.appendChild(div); }
-    function removeEduRow(btn) { const row = btn.closest('.edu-row'); const url = row.querySelector('.edu-existing-url').value; if (url) { eduFilesToDelete.push(url); } row.remove(); }
-    function renderTable() { const tbody = document.getElementById('tableBody'); tbody.innerHTML = ''; const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage); pageData.forEach(row => { let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`; if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`; let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`; if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; } else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; } tbody.innerHTML += `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`; }); updatePaginationInfo(); }
+    // --- MAIN CRUD ---
+    function openModal(mode, rowIndex = null) { 
+        const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
+        document.getElementById('employeeForm').reset(); 
+        document.getElementById('eduContainer').innerHTML = ''; 
+        compressedImageBase64 = null; deleteImageFlag = false; eduFilesToDelete = []; 
+        document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none'; 
+        var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]'); var firstTab = new bootstrap.Tab(firstTabEl); firstTab.show();
+
+        if(mode === 'edit') { 
+            const emp = allData.find(r => r.row_index === rowIndex); 
+            document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic']; 
+            document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
+            if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0]; if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; 
+            if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
+            try { if(emp.Education && emp.Education.trim() !== "") { const eduList = JSON.parse(emp.Education); eduList.forEach(item => addEduRow(item.title, item.url)); } } catch(e) {}
+        } else { 
+            document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; 
+            addEduRow(); 
+        } 
+        modal.show(); 
+    }
+
+    async function saveEmployee() {
+        showLoading(true);
+        const rowIndex = document.getElementById('editRowIndex').value;
+        const eduRows = document.querySelectorAll('.edu-row');
+        const educationData = [];
+        for (const row of eduRows) {
+            const title = row.querySelector('.edu-title').value.trim();
+            if(!title) continue; 
+            const fileInput = row.querySelector('.edu-file');
+            const existingUrl = row.querySelector('.edu-existing-url').value;
+            let fileBase64 = null;
+            if (fileInput.files.length > 0) { fileBase64 = await toBase64(fileInput.files[0]); }
+            educationData.push({ title: title, file_base64: fileBase64, url: existingUrl });
+        }
+        const employeeData = { 
+            Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, ResignDate: document.getElementById('empResign').value, image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value,
+            Education: educationData 
+        };
+        const payload = { action: rowIndex ? 'editEmployee' : 'addEmployee', employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag, deleted_edu_files: eduFilesToDelete }; 
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); });
+    }
+
+    const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
+
+    // Standard Functions
+    function renderTable() {
+        const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
+        const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage);
+        pageData.forEach(row => {
+            let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`; if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`;
+            let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`;
+            if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; } 
+            else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; }
+            tbody.innerHTML += `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`;
+        });
+        updatePaginationInfo();
+    }
     function loadEmployees() { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { allData = resp.data; filterData(); }}); }
     function loadAllDropdowns() { fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) }).then(res => res.json()).then(resp => { if(resp.status === 'success') { dropdownData = resp.data; populateSelects(); }}); }
     function populateSelects() { populateSingleSelect('empDept', dropdownData['Department']); populateSingleSelect('empPos', dropdownData['Position']); populateSingleSelect('empBlood', dropdownData['Blood Type']); }
