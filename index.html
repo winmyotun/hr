@@ -26,6 +26,12 @@
         .sidebar-item { cursor: pointer; transition: 0.2s; border: none; padding: 12px 20px; font-size: 15px; color: #495057; background: transparent; display: block; text-decoration: none; }
         .sidebar-item:hover { background-color: #f1f3f5; color: #0d6efd; padding-left: 25px; }
         .sidebar-item i { width: 25px; text-align: center; margin-right: 10px; }
+        
+        /* Pagination Input Style */
+        .page-input { width: 60px; text-align: center; border: 1px solid #dee2e6; border-radius: 0; padding: 0.375rem 0.75rem; color: #0d6efd; font-weight: bold; }
+        .page-input:focus { outline: none; border-color: #86b7fe; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); }
+        /* Remove arrows from number input */
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body>
@@ -46,28 +52,15 @@
 
 <!-- Dashboard -->
 <div class="container-fluid main-content" id="dashboardSection">
-    
-    <!-- Navbar -->
     <nav class="navbar navbar-light bg-white rounded shadow-sm mb-4 p-3 d-flex justify-content-between">
         <div class="d-flex align-items-center">
-            <button class="btn btn-outline-primary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
-                <i class="fas fa-bars"></i> Manage
-            </button>
+            <button class="btn btn-outline-primary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu"><i class="fas fa-bars"></i> Manage</button>
             <span class="navbar-brand fw-bold text-primary m-0"><i class="fas fa-users-cog"></i> Employee System</span>
         </div>
-        
         <div class="d-flex align-items-center">
             <span class="me-3 fw-bold text-secondary d-none d-md-block" id="userDisplay"></span>
-            
-            <!-- REFRESH BUTTON (NEW) -->
-            <button class="btn btn-outline-success btn-sm me-2" onclick="refreshData()" title="Refresh Data">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-            
-            <!-- LOGOUT BUTTON -->
-            <button class="btn btn-outline-danger btn-sm" onclick="location.reload()" title="Logout">
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
+            <button class="btn btn-outline-success btn-sm me-2" onclick="refreshData()" title="Refresh Data"><i class="fas fa-sync-alt"></i></button>
+            <button class="btn btn-outline-danger btn-sm" onclick="location.reload()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
         </div>
     </nav>
 
@@ -79,7 +72,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 1.6<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 1.7<br>HR Management System</div>
         </div>
     </div>
 
@@ -112,57 +105,13 @@
     </div>
 </div>
 
-<!-- Employee Modal -->
+<!-- Modals (Employee, Settings, Report, View) - Same as previous version -->
 <div class="modal fade" id="employeeModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalTitle">Employee Form</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="employeeForm">
-                    <input type="hidden" id="editRowIndex">
-                    <input type="hidden" id="currentImage">
-                    <div class="row g-3">
-                        <div class="col-12 text-center mb-3">
-                            <img id="imgPreview" src="" class="details-img" style="display:none; margin: 0 auto 10px auto;">
-                            <div>
-                                <label class="btn btn-outline-primary btn-sm"><i class="fas fa-camera"></i> Select Photo<input type="file" id="empPic" accept="image/*" hidden onchange="previewAndCompress(this)"></label>
-                                <button type="button" class="btn btn-outline-danger btn-sm" id="btnDeleteImg" onclick="markImageForDeletion()" style="display:none;">Remove</button>
-                            </div>
-                        </div>
-                        <div class="col-md-6"><label>Name</label><input type="text" class="form-control" id="empName" required></div>
-                        <div class="col-md-6"><label>Position</label><select class="form-select" id="empPos"><option value="" disabled selected>Loading...</option></select></div>
-                        <div class="col-md-6"><label>Department</label><select class="form-select" id="empDept"><option value="" disabled selected>Loading...</option></select></div>
-                        <div class="col-md-6"><label>Blood Type</label><select class="form-select" id="empBlood"><option value="" disabled selected>Loading...</option></select></div>
-                        <div class="col-md-6"><label>Phone</label><input type="text" class="form-control" id="empPhone"></div>
-                        <div class="col-md-6"><label>Email</label><input type="email" class="form-control" id="empEmail"></div>
-                        <div class="col-md-6"><label>NRC No.</label><input type="text" class="form-control" id="empNrc"></div>
-                        <div class="col-md-6"><label>Education</label><input type="text" class="form-control" id="empEdu"></div>
-                        <div class="col-md-6"><label>Father Name</label><input type="text" class="form-control" id="empFather"></div>
-                        <div class="col-md-6"><label>Mother Name</label><input type="text" class="form-control" id="empMother"></div>
-                        <div class="col-md-6"><label>Start Date</label><input type="date" class="form-control" id="empStart"></div>
-                        <div class="col-md-6"><label>Resign Date</label><input type="date" class="form-control" id="empResign"></div>
-                        <div class="col-12"><label>Address</label><textarea class="form-control" id="empAddr" rows="2"></textarea></div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="saveEmployee()">Save Changes</button></div>
-        </div>
-    </div>
+    <div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-primary text-white"><h5 class="modal-title" id="modalTitle">Employee Form</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="employeeForm"><input type="hidden" id="editRowIndex"><input type="hidden" id="currentImage"><div class="row g-3"><div class="col-12 text-center mb-3"><img id="imgPreview" src="" class="details-img" style="display:none; margin: 0 auto 10px auto;"><div><label class="btn btn-outline-primary btn-sm"><i class="fas fa-camera"></i> Select Photo<input type="file" id="empPic" accept="image/*" hidden onchange="previewAndCompress(this)"></label><button type="button" class="btn btn-outline-danger btn-sm" id="btnDeleteImg" onclick="markImageForDeletion()" style="display:none;">Remove</button></div></div><div class="col-md-6"><label>Name</label><input type="text" class="form-control" id="empName" required></div><div class="col-md-6"><label>Position</label><select class="form-select" id="empPos"><option value="" disabled selected>Loading...</option></select></div><div class="col-md-6"><label>Department</label><select class="form-select" id="empDept"><option value="" disabled selected>Loading...</option></select></div><div class="col-md-6"><label>Blood Type</label><select class="form-select" id="empBlood"><option value="" disabled selected>Loading...</option></select></div><div class="col-md-6"><label>Phone</label><input type="text" class="form-control" id="empPhone"></div><div class="col-md-6"><label>Email</label><input type="email" class="form-control" id="empEmail"></div><div class="col-md-6"><label>NRC No.</label><input type="text" class="form-control" id="empNrc"></div><div class="col-md-6"><label>Education</label><input type="text" class="form-control" id="empEdu"></div><div class="col-md-6"><label>Father Name</label><input type="text" class="form-control" id="empFather"></div><div class="col-md-6"><label>Mother Name</label><input type="text" class="form-control" id="empMother"></div><div class="col-md-6"><label>Start Date</label><input type="date" class="form-control" id="empStart"></div><div class="col-md-6"><label>Resign Date</label><input type="date" class="form-control" id="empResign"></div><div class="col-12"><label>Address</label><textarea class="form-control" id="empAddr" rows="2"></textarea></div></div></form></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="saveEmployee()">Save Changes</button></div></div></div>
 </div>
-
-<!-- Settings & Report Modals -->
-<div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;">
-    <div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Manage Dropdowns</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="fw-bold">Select Category:</label><select class="form-select" id="settingsCategory" onchange="renderSettingsList()"><option value="Department">Department</option><option value="Position">Position</option><option value="Blood Type">Blood Type</option></select></div><div class="input-group mb-3"><input type="text" class="form-control" id="newItemName" placeholder="New Item Name"><button class="btn btn-primary" onclick="addDropdownItem()">Add</button></div><h6 class="text-muted">Current Items:</h6><div class="list-group" id="settingsList" style="max-height: 250px; overflow-y: auto;"></div></div></div></div>
-</div>
-<div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;">
-    <div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-info text-white"><h5 class="modal-title">Summary Dashboard</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row mb-4"><div class="col-md-12"><div class="card bg-light border-0 p-3 text-center"><h3 class="display-6 fw-bold text-primary" id="totalEmpCount">0</h3><span class="text-muted">Total Employees</span></div></div></div><div class="row"><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Department</h6><ul class="list-group list-group-flush" id="deptReportList"></ul></div><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Position</h6><ul class="list-group list-group-flush" id="posReportList"></ul></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div>
-</div>
-<div class="modal fade" id="viewModal" tabindex="-1">
-    <div class="modal-dialog"><div class="modal-content"><div class="modal-body text-center" id="viewDetailsBody"></div><div class="modal-footer p-1"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button></div></div></div>
-</div>
+<div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Manage Dropdowns</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="fw-bold">Select Category:</label><select class="form-select" id="settingsCategory" onchange="renderSettingsList()"><option value="Department">Department</option><option value="Position">Position</option><option value="Blood Type">Blood Type</option></select></div><div class="input-group mb-3"><input type="text" class="form-control" id="newItemName" placeholder="New Item Name"><button class="btn btn-primary" onclick="addDropdownItem()">Add</button></div><h6 class="text-muted">Current Items:</h6><div class="list-group" id="settingsList" style="max-height: 250px; overflow-y: auto;"></div></div></div></div></div>
+<div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-info text-white"><h5 class="modal-title">Summary Dashboard</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row mb-4"><div class="col-md-12"><div class="card bg-light border-0 p-3 text-center"><h3 class="display-6 fw-bold text-primary" id="totalEmpCount">0</h3><span class="text-muted">Total Employees</span></div></div></div><div class="row"><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Department</h6><ul class="list-group list-group-flush" id="deptReportList"></ul></div><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Position</h6><ul class="list-group list-group-flush" id="posReportList"></ul></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div></div>
+<div class="modal fade" id="viewModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-body text-center" id="viewDetailsBody"></div><div class="modal-footer p-1"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -211,13 +160,8 @@
         loadAllDropdowns();
     }
 
-    // --- REFRESH FUNCTION ---
-    function refreshData() {
-        loadEmployees();
-        loadAllDropdowns();
-    }
+    function refreshData() { loadEmployees(); loadAllDropdowns(); }
 
-    // Table Render
     function renderTable() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
@@ -244,12 +188,56 @@
         updatePaginationInfo();
     }
 
+    // --- UPDATED PAGINATION WITH INPUT ---
+    function updatePaginationInfo() {
+        const totalEntries = filteredData.length;
+        const totalPages = Math.ceil(totalEntries / rowsPerPage) || 1; // At least 1 page
+
+        document.getElementById('pageInfo').innerText = `Showing ${(currentPage-1)*rowsPerPage + 1} to ${Math.min(currentPage*rowsPerPage, totalEntries)} of ${totalEntries}`;
+        
+        const ul = document.getElementById('pagination');
+        
+        let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Prev</a></li>`;
+        
+        // Input Box for Page Number
+        html += `
+            <li class="page-item">
+                <input type="number" class="page-input" value="${currentPage}" min="1" max="${totalPages}" onchange="jumpToPage(this.value)">
+            </li>
+            <li class="page-item disabled"><span class="page-link border-0 bg-transparent text-muted">/ ${totalPages}</span></li>
+        `;
+        
+        html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a></li>`;
+        
+        ul.innerHTML = html;
+    }
+
+    function changePage(p) {
+        if (p < 1 || p > Math.ceil(filteredData.length / rowsPerPage)) return;
+        currentPage = p;
+        renderTable();
+    }
+
+    function jumpToPage(val) {
+        const pageNum = parseInt(val);
+        const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+        
+        if (pageNum >= 1 && pageNum <= totalPages) {
+            currentPage = pageNum;
+        } else {
+            // If invalid number, just reload the current page (resets the input)
+            // Or you could set currentPage = 1;
+        }
+        renderTable();
+    }
+
+    function changeRowsPerPage() { rowsPerPage = parseInt(document.getElementById('rowsPerPage').value); currentPage = 1; renderTable(); }
+
     // Standard Functions
     function loadEmployees() { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { allData = resp.data; filterData(); }}); }
     function loadAllDropdowns() { fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) }).then(res => res.json()).then(resp => { if(resp.status === 'success') { dropdownData = resp.data; populateSelects(); }}); }
     function populateSelects() { populateSingleSelect('empDept', dropdownData['Department']); populateSingleSelect('empPos', dropdownData['Position']); populateSingleSelect('empBlood', dropdownData['Blood Type']); }
     function populateSingleSelect(id, items) { const select = document.getElementById(id); select.innerHTML = `<option value="" selected disabled>Choose...</option>`; if(items) items.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`); }
-    
     function openReportModal() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); const total = allData.length; document.getElementById('totalEmpCount').innerText = total; const deptCounts = {}; allData.forEach(e => { const d = e.Department || 'Unassigned'; deptCounts[d] = (deptCounts[d] || 0) + 1; }); const posCounts = {}; allData.forEach(e => { const p = e.Position || 'Unassigned'; posCounts[p] = (posCounts[p] || 0) + 1; }); renderReportList('deptReportList', deptCounts); renderReportList('posReportList', posCounts); new bootstrap.Modal(document.getElementById('reportModal')).show(); }
     function renderReportList(elementId, countsObj) { const el = document.getElementById(elementId); el.innerHTML = ''; const sortedKeys = Object.keys(countsObj).sort(); sortedKeys.forEach(key => { el.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">${key}<span class="badge bg-primary rounded-pill">${countsObj[key]}</span></li>`; }); if(sortedKeys.length === 0) el.innerHTML = '<li class="list-group-item text-muted">No data available</li>'; }
     function exportToExcel() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); const wb = XLSX.utils.book_new(); const cleanData = filteredData.map(({row_index, image_base64, ...item}) => item); const ws = XLSX.utils.json_to_sheet(cleanData); XLSX.utils.book_append_sheet(wb, ws, "Employees"); XLSX.writeFile(wb, "Employees_Report.xlsx"); }
@@ -264,9 +252,6 @@
     function deleteEmployee(rowIndex) { Swal.fire({ title: 'Delete?', text: "Action cannot be undone!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((result) => { if (result.isConfirmed) { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteEmployee', rowIndex: rowIndex }) }).then(res => res.json()).then(data => { showLoading(false); loadEmployees(); }); } }); }
     function viewDetails(rowIndex) { const emp = allData.find(r => r.row_index === rowIndex); let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; document.getElementById('viewDetailsBody').innerHTML = `${pic} <h4 class="fw-bold">${emp.Name}</h4><div class="mb-3"><span class="badge bg-primary">${emp.Department || 'No Dept'}</span> <span class="badge bg-secondary">${emp.Position || 'No Pos'}</span></div><table class="table table-bordered table-sm text-start"><tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr><tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr><tr><th>Phone</th><td>${emp.Phone}</td></tr><tr><th>Email</th><td>${emp.Email}</td></tr><tr><th>NRC</th><td>${emp['NRC No.']}</td></tr><tr><th>Address</th><td>${emp.Address}</td></tr></table>`; new bootstrap.Modal(document.getElementById('viewModal')).show(); }
     function filterData() { const term = document.getElementById('searchInput').value.toLowerCase(); filteredData = allData.filter(i => i.Name.toLowerCase().includes(term) || (i.Department && i.Department.toLowerCase().includes(term)) || (i.Position && i.Position.toLowerCase().includes(term))); currentPage = 1; renderTable(); }
-    function updatePaginationInfo() { document.getElementById('pageInfo').innerText = `Showing ${(currentPage-1)*rowsPerPage + 1} to ${Math.min(currentPage*rowsPerPage, filteredData.length)} of ${filteredData.length}`; const totalPages = Math.ceil(filteredData.length / rowsPerPage); let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Prev</a></li><li class="page-item disabled"><span class="page-link">${currentPage}</span></li><li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a></li>`; document.getElementById('pagination').innerHTML = html; }
-    function changePage(p) { currentPage = p; renderTable(); }
-    function changeRowsPerPage() { rowsPerPage = parseInt(document.getElementById('rowsPerPage').value); currentPage = 1; renderTable(); }
     function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
 </script>
 
