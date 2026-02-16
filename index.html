@@ -31,12 +31,9 @@
         /* Sidebar Styling */
         .offcanvas { width: 280px !important; }
         .sidebar-header-text { font-size: 0.75rem; font-weight: 700; color: #adb5bd; letter-spacing: 1px; padding: 15px 15px 5px 15px; }
-        .sidebar-item { cursor: pointer; transition: 0.2s; border: none; padding: 12px 20px; font-size: 15px; color: #495057; background: transparent; }
+        .sidebar-item { cursor: pointer; transition: 0.2s; border: none; padding: 12px 20px; font-size: 15px; color: #495057; background: transparent; display: block; text-decoration: none; }
         .sidebar-item:hover { background-color: #f1f3f5; color: #0d6efd; padding-left: 25px; }
         .sidebar-item i { width: 25px; text-align: center; margin-right: 10px; }
-        
-        /* Report Modal Cards */
-        .stat-card { border-left: 4px solid #0d6efd; background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -83,27 +80,10 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList">
-                
-                <!-- Section: Admin -->
-                <div class="sidebar-header-text">ADMINISTRATION</div>
-                <a class="list-group-item sidebar-item" onclick="openSettingsModal()">
-                    <i class="fas fa-list-alt text-primary"></i> Manage Dropdowns
-                </a>
-                
-                <!-- Section: Reports -->
-                <div class="sidebar-header-text mt-2">REPORTS</div>
-                
-                <a class="list-group-item sidebar-item" onclick="openReportModal()">
-                    <i class="fas fa-chart-pie text-info"></i> Summary Dashboard
-                </a>
-                
-                <a class="list-group-item sidebar-item" onclick="exportToExcel()">
-                    <i class="fas fa-file-excel text-success"></i> Export to Excel
-                </a>
-
+                <!-- Items will be injected here by Javascript based on Role -->
             </div>
             <div class="p-3 mt-auto text-muted small border-top">
-                Version 1.3<br>HR Management System
+                Version 1.4<br>HR Management System
             </div>
         </div>
     </div>
@@ -112,7 +92,8 @@
     <div class="card p-4 border-0 shadow-sm">
         <div class="d-flex justify-content-between flex-wrap gap-3 mb-4">
             <div>
-                <button class="btn btn-success" id="btnAdd" onclick="openModal('add')"><i class="fas fa-plus"></i> Add Employee</button>
+                <!-- Add Button (Controlled by JS) -->
+                <button class="btn btn-success" id="btnAdd" onclick="openModal('add')" style="display:none;"><i class="fas fa-plus"></i> Add Employee</button>
             </div>
             
             <div class="d-flex gap-2">
@@ -221,7 +202,7 @@
     </div>
 </div>
 
-<!-- NEW: Report Dashboard Modal -->
+<!-- Report Dashboard Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -301,48 +282,63 @@
         document.getElementById('dashboardSection').style.display = 'block';
         document.getElementById('userDisplay').innerText = `${currentUser.username} (${currentUser.role})`;
         
-        // RBAC
-        if(currentUser.role !== 'Root') {
+        const sidebarList = document.getElementById('sidebarList');
+        let sidebarHTML = '';
+
+        // --- ROLE BASED ACCESS CONTROL ---
+        if(currentUser.role === 'Root') {
+            // ROOT: See Everything
+            document.getElementById('btnAdd').style.display = 'inline-block';
+            
+            sidebarHTML = `
+                <div class="sidebar-header-text">ADMINISTRATION</div>
+                <a class="list-group-item sidebar-item" onclick="openSettingsModal()">
+                    <i class="fas fa-list-alt text-primary"></i> Manage Dropdowns
+                </a>
+                
+                <div class="sidebar-header-text mt-2">REPORTS</div>
+                <a class="list-group-item sidebar-item" onclick="openReportModal()">
+                    <i class="fas fa-chart-pie text-info"></i> Summary Dashboard
+                </a>
+                <a class="list-group-item sidebar-item" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel text-success"></i> Export to Excel
+                </a>
+            `;
+        } else {
+            // ADMIN & USER: Restricted Access
             document.getElementById('btnAdd').style.display = 'none';
-            // Only show Export for non-root users in sidebar
-            const sidebarList = document.getElementById('sidebarList');
-            sidebarList.innerHTML = `
-                <div class="sidebar-header-text">REPORTS</div>
-                <a class="list-group-item sidebar-item" onclick="openReportModal()"><i class="fas fa-chart-pie text-info"></i> Summary Dashboard</a>
-                <a class="list-group-item sidebar-item" onclick="exportToExcel()"><i class="fas fa-file-excel text-success"></i> Export to Excel</a>
+            
+            // Only show Reports Header and Summary Dashboard
+            // Hide Manage Dropdowns & Export to Excel
+            sidebarHTML = `
+                <div class="sidebar-header-text mt-2">REPORTS</div>
+                <a class="list-group-item sidebar-item" onclick="openReportModal()">
+                    <i class="fas fa-chart-pie text-info"></i> Summary Dashboard
+                </a>
             `;
         }
         
+        sidebarList.innerHTML = sidebarHTML;
+
         loadEmployees();
         loadAllDropdowns();
     }
 
-    // --- REPORT LOGIC ---
+    // --- REPORT & EXPORT ---
     function openReportModal() {
-        // Hide sidebar
         const sidebarEl = document.getElementById('sidebarMenu');
         const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl);
         if(sidebarInstance) sidebarInstance.hide();
 
-        // Calculate Stats
         const total = allData.length;
         document.getElementById('totalEmpCount').innerText = total;
 
-        // Dept Counts
         const deptCounts = {};
-        allData.forEach(e => {
-            const d = e.Department || 'Unassigned';
-            deptCounts[d] = (deptCounts[d] || 0) + 1;
-        });
+        allData.forEach(e => { const d = e.Department || 'Unassigned'; deptCounts[d] = (deptCounts[d] || 0) + 1; });
 
-        // Position Counts
         const posCounts = {};
-        allData.forEach(e => {
-            const p = e.Position || 'Unassigned';
-            posCounts[p] = (posCounts[p] || 0) + 1;
-        });
+        allData.forEach(e => { const p = e.Position || 'Unassigned'; posCounts[p] = (posCounts[p] || 0) + 1; });
 
-        // Render Lists
         renderReportList('deptReportList', deptCounts);
         renderReportList('posReportList', posCounts);
 
@@ -355,17 +351,11 @@
         const sortedKeys = Object.keys(countsObj).sort();
         
         sortedKeys.forEach(key => {
-            el.innerHTML += `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    ${key}
-                    <span class="badge bg-primary rounded-pill">${countsObj[key]}</span>
-                </li>
-            `;
+            el.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">${key}<span class="badge bg-primary rounded-pill">${countsObj[key]}</span></li>`;
         });
         if(sortedKeys.length === 0) el.innerHTML = '<li class="list-group-item text-muted">No data available</li>';
     }
 
-    // --- EXPORT TO EXCEL ---
     function exportToExcel() {
         const sidebarEl = document.getElementById('sidebarMenu');
         const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl);
@@ -378,7 +368,7 @@
         XLSX.writeFile(wb, "Employees_Report.xlsx");
     }
 
-    // --- DROPDOWN LOGIC ---
+    // --- DROPDOWN & SETTINGS ---
     function loadAllDropdowns() {
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) })
         .then(res => res.json()).then(resp => {
@@ -401,7 +391,6 @@
         if(items) items.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`);
     }
 
-    // --- SETTINGS MODAL FROM SIDEBAR ---
     function openSettingsModal() {
         const sidebarEl = document.getElementById('sidebarMenu');
         const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl);
@@ -415,19 +404,10 @@
         const category = document.getElementById('settingsCategory').value;
         const listContainer = document.getElementById('settingsList');
         const items = dropdownData[category] || [];
-        
         listContainer.innerHTML = '';
-        if(items.length === 0) {
-            listContainer.innerHTML = '<div class="p-3 text-center text-muted">No items found.</div>';
-            return;
-        }
-
+        if(items.length === 0) { listContainer.innerHTML = '<div class="p-3 text-center text-muted">No items found.</div>'; return; }
         items.forEach(item => {
-            listContainer.innerHTML += `
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>${item}</span>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteDropdownItem('${category}', '${item}')"><i class="fas fa-trash"></i></button>
-                </div>`;
+            listContainer.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center"><span>${item}</span><button class="btn btn-sm btn-outline-danger" onclick="deleteDropdownItem('${category}', '${item}')"><i class="fas fa-trash"></i></button></div>`;
         });
     }
 
@@ -435,7 +415,6 @@
         const category = document.getElementById('settingsCategory').value;
         const value = document.getElementById('newItemName').value.trim();
         if(!value) return;
-
         showLoading(true);
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addDropdownItem', category: category, value: value }) })
         .then(res => res.json()).then(resp => {
@@ -443,11 +422,7 @@
             if(resp.status === 'success') {
                 document.getElementById('newItemName').value = '';
                 fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) })
-                .then(r => r.json()).then(d => {
-                    dropdownData = d.data;
-                    renderSettingsList();
-                    populateSelects();
-                });
+                .then(r => r.json()).then(d => { dropdownData = d.data; renderSettingsList(); populateSelects(); });
             }
         });
     }
@@ -459,24 +434,17 @@
         .then(res => res.json()).then(resp => {
             showLoading(false);
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) })
-            .then(r => r.json()).then(d => {
-                dropdownData = d.data;
-                renderSettingsList();
-                populateSelects();
-            });
+            .then(r => r.json()).then(d => { dropdownData = d.data; renderSettingsList(); populateSelects(); });
         });
     }
 
-    // --- EMPLOYEE LOGIC ---
+    // --- EMPLOYEE CRUD ---
     function loadEmployees() {
         showLoading(true);
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) })
         .then(res => res.json()).then(resp => {
             showLoading(false);
-            if(resp.status === 'success') {
-                allData = resp.data;
-                filterData();
-            }
+            if(resp.status === 'success') { allData = resp.data; filterData(); }
         });
     }
 
@@ -494,43 +462,23 @@
             if (currentUser.role === 'Root' || currentUser.role === 'Admin') actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`;
             if (currentUser.role === 'Root') actions += `<button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`;
 
-            tbody.innerHTML += `
-                <tr>
-                    <td>${picHtml}</td>
-                    <td>${row['Sr No.']}</td>
-                    <td class="fw-bold">${row.Name}</td>
-                    <td><span class="badge bg-secondary">${row.Position || '-'}</span></td>
-                    <td><span class="badge bg-primary">${row.Department || '-'}</span></td>
-                    <td>${row.Phone}</td>
-                    <td>${actions}</td>
-                </tr>
-            `;
+            tbody.innerHTML += `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`;
         });
         updatePaginationInfo();
     }
 
-    // Image, Modal, etc.
     function previewAndCompress(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
+                const img = new Image(); img.src = e.target.result;
                 img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const MAX_SIZE = 800; 
-                    let width = img.width, height = img.height;
-                    if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
-                    else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
-                    canvas.width = width; canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const MAX_SIZE = 800; let width = img.width, height = img.height;
+                    if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                    canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
                     compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                    
-                    document.getElementById('imgPreview').src = compressedImageBase64;
-                    document.getElementById('imgPreview').style.display = 'block';
-                    document.getElementById('btnDeleteImg').style.display = 'inline-block';
-                    deleteImageFlag = false;
+                    document.getElementById('imgPreview').src = compressedImageBase64; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; deleteImageFlag = false;
                 }
             }
             reader.readAsDataURL(input.files[0]);
@@ -538,51 +486,23 @@
     }
 
     function markImageForDeletion() {
-        document.getElementById('imgPreview').style.display = 'none';
-        document.getElementById('empPic').value = '';
-        document.getElementById('btnDeleteImg').style.display = 'none';
-        compressedImageBase64 = null;
-        deleteImageFlag = true;
+        document.getElementById('imgPreview').style.display = 'none'; document.getElementById('empPic').value = ''; document.getElementById('btnDeleteImg').style.display = 'none'; compressedImageBase64 = null; deleteImageFlag = true;
     }
 
     function openModal(mode, rowIndex = null) {
         const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
         document.getElementById('employeeForm').reset();
         compressedImageBase64 = null; deleteImageFlag = false;
-        document.getElementById('imgPreview').style.display = 'none';
-        document.getElementById('btnDeleteImg').style.display = 'none';
+        document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none';
 
         if(mode === 'edit') {
             const emp = allData.find(r => r.row_index === rowIndex);
-            document.getElementById('modalTitle').innerText = "Edit Employee";
-            document.getElementById('editRowIndex').value = rowIndex;
-            document.getElementById('currentImage').value = emp['Profile Pic'];
-
-            document.getElementById('empName').value = emp.Name;
-            document.getElementById('empDept').value = emp.Department || "";
-            document.getElementById('empPos').value = emp.Position || "";
-            document.getElementById('empBlood').value = emp['Blood Type'] || "";
-            document.getElementById('empPhone').value = emp.Phone;
-            document.getElementById('empEmail').value = emp.Email;
-            document.getElementById('empNrc').value = emp['NRC No.'];
-            document.getElementById('empEdu').value = emp.Education;
-            document.getElementById('empFather').value = emp['Father Name'];
-            document.getElementById('empMother').value = emp['Mother Name'];
-            document.getElementById('empAddr').value = emp.Address;
-            if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0];
-            if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0];
-
-            if (emp['Profile Pic']) {
-                document.getElementById('imgPreview').src = emp['Profile Pic'];
-                document.getElementById('imgPreview').style.display = 'block';
-                document.getElementById('btnDeleteImg').style.display = 'inline-block';
-            }
+            document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic'];
+            document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empEdu').value = emp.Education; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
+            if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0]; if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0];
+            if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
         } else {
-            document.getElementById('modalTitle').innerText = "Add New Employee";
-            document.getElementById('editRowIndex').value = "";
-            document.getElementById('empDept').value = "";
-            document.getElementById('empPos').value = "";
-            document.getElementById('empBlood').value = "";
+            document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; document.getElementById('empDept').value = ""; document.getElementById('empPos').value = ""; document.getElementById('empBlood').value = "";
         }
         modal.show();
     }
@@ -590,79 +510,35 @@
     function saveEmployee() {
         const rowIndex = document.getElementById('editRowIndex').value;
         const employeeData = {
-            Name: document.getElementById('empName').value,
-            Department: document.getElementById('empDept').value,
-            Position: document.getElementById('empPos').value,
-            BloodType: document.getElementById('empBlood').value,
-            Nrc: document.getElementById('empNrc').value,
-            Phone: document.getElementById('empPhone').value,
-            Email: document.getElementById('empEmail').value,
-            Education: document.getElementById('empEdu').value,
-            Address: document.getElementById('empAddr').value,
-            FatherName: document.getElementById('empFather').value,
-            MotherName: document.getElementById('empMother').value,
-            StartDate: document.getElementById('empStart').value,
-            ResignDate: document.getElementById('empResign').value,
-            image_base64: compressedImageBase64,
-            current_image: document.getElementById('currentImage').value
+            Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Education: document.getElementById('empEdu').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, ResignDate: document.getElementById('empResign').value, image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value
         };
         const payload = { action: rowIndex ? 'editEmployee' : 'addEmployee', employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag };
         showLoading(true);
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
-        .then(res => res.json()).then(data => {
-            showLoading(false);
-            bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide();
-            Swal.fire('Success', data.message, 'success');
-            loadEmployees();
-        });
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); });
     }
 
     function deleteEmployee(rowIndex) {
         Swal.fire({ title: 'Delete?', text: "Action cannot be undone!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((result) => {
-            if (result.isConfirmed) {
-                showLoading(true);
-                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteEmployee', rowIndex: rowIndex }) })
-                .then(res => res.json()).then(data => { showLoading(false); loadEmployees(); });
-            }
+            if (result.isConfirmed) { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteEmployee', rowIndex: rowIndex }) }).then(res => res.json()).then(data => { showLoading(false); loadEmployees(); }); }
         });
     }
 
     function viewDetails(rowIndex) {
         const emp = allData.find(r => r.row_index === rowIndex);
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`;
-        document.getElementById('viewDetailsBody').innerHTML = `
-            ${pic} <h4 class="fw-bold">${emp.Name}</h4>
-            <div class="mb-3">
-                <span class="badge bg-primary">${emp.Department || 'No Dept'}</span>
-                <span class="badge bg-secondary">${emp.Position || 'No Pos'}</span>
-            </div>
-            <table class="table table-bordered table-sm text-start">
-                <tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr>
-                <tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr>
-                <tr><th>Phone</th><td>${emp.Phone}</td></tr>
-                <tr><th>Email</th><td>${emp.Email}</td></tr>
-                <tr><th>NRC</th><td>${emp['NRC No.']}</td></tr>
-                <tr><th>Address</th><td>${emp.Address}</td></tr>
-            </table>
-        `;
+        document.getElementById('viewDetailsBody').innerHTML = `${pic} <h4 class="fw-bold">${emp.Name}</h4><div class="mb-3"><span class="badge bg-primary">${emp.Department || 'No Dept'}</span> <span class="badge bg-secondary">${emp.Position || 'No Pos'}</span></div><table class="table table-bordered table-sm text-start"><tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr><tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr><tr><th>Phone</th><td>${emp.Phone}</td></tr><tr><th>Email</th><td>${emp.Email}</td></tr><tr><th>NRC</th><td>${emp['NRC No.']}</td></tr><tr><th>Address</th><td>${emp.Address}</td></tr></table>`;
         new bootstrap.Modal(document.getElementById('viewModal')).show();
     }
 
     function filterData() {
         const term = document.getElementById('searchInput').value.toLowerCase();
-        filteredData = allData.filter(i => 
-            i.Name.toLowerCase().includes(term) || 
-            (i.Department && i.Department.toLowerCase().includes(term)) || 
-            (i.Position && i.Position.toLowerCase().includes(term))
-        );
+        filteredData = allData.filter(i => i.Name.toLowerCase().includes(term) || (i.Department && i.Department.toLowerCase().includes(term)) || (i.Position && i.Position.toLowerCase().includes(term)));
         currentPage = 1; renderTable();
     }
     function updatePaginationInfo() {
         document.getElementById('pageInfo').innerText = `Showing ${(currentPage-1)*rowsPerPage + 1} to ${Math.min(currentPage*rowsPerPage, filteredData.length)} of ${filteredData.length}`;
         const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-        let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Prev</a></li>`;
-        html += `<li class="page-item disabled"><span class="page-link">${currentPage}</span></li>`;
-        html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a></li>`;
+        let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Prev</a></li><li class="page-item disabled"><span class="page-link">${currentPage}</span></li><li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a></li>`;
         document.getElementById('pagination').innerHTML = html;
     }
     function changePage(p) { currentPage = p; renderTable(); }
