@@ -27,35 +27,42 @@
         .sidebar-item:hover { background-color: #f1f3f5; color: #0d6efd; padding-left: 25px; }
         .sidebar-item i { width: 25px; text-align: center; margin-right: 10px; }
         
-        /* --- COMPACT PAGINATION INPUT STYLING --- */
+        /* --- PERFECT PAGINATION STYLING --- */
+        /* Hide Arrows */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
         
+        /* This ensures the input box mimics the exact dimensions of Bootstrap's .page-link */
         .page-input-box {
-            width: 45px; /* Fixed small width */
+            width: 50px;
             text-align: center;
             border: 1px solid #dee2e6;
             color: #0d6efd;
-            font-weight: bold;
+            font-weight: 600;
+            padding: 0.375rem 0.75rem; /* Matches Bootstrap standard padding */
+            line-height: 1.5;         /* Matches Bootstrap line-height */
             outline: none;
-            padding: 0.375rem 0; /* Matches Bootstrap standard link padding */
+            background: #fff;
             border-radius: 0;
-            z-index: 2;
-            background-color: #fff;
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            display: block;
+            height: 100%; /* Force fill height */
         }
         
         .page-input-box:focus {
-            color: #0a58ca;
-            background-color: #e9ecef;
             border-color: #86b7fe;
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            z-index: 2;
+            position: relative;
         }
 
-        /* Merge Borders */
+        /* Seamless Joining */
         .pagination .page-item:first-child .page-link { border-top-right-radius: 0; border-bottom-right-radius: 0; }
         .pagination .page-item:last-child .page-link { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+        
+        /* Remove double borders when items are next to each other */
+        .pagination .page-item + .page-item .page-input-box { margin-left: -1px; }
+        .pagination .page-item + .page-item .page-link { margin-left: -1px; }
     </style>
 </head>
 <body>
@@ -96,7 +103,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 1.9<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 2.0<br>HR Management System</div>
         </div>
     </div>
 
@@ -214,7 +221,7 @@
         updatePaginationInfo();
     }
 
-    // --- CLEANER PAGINATION (Fixed Box Size) ---
+    // --- ALIGNED PAGINATION ---
     function updatePaginationInfo() {
         const totalEntries = filteredData.length;
         const totalPages = Math.ceil(totalEntries / rowsPerPage) || 1; 
@@ -225,12 +232,18 @@
         
         let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Prev</a></li>`;
         
-        // Compact Input Box with specific class 'page-input-box'
+        // Input Box Item
         html += `
             <li class="page-item">
                 <input type="number" class="page-input-box" value="${currentPage}" min="1" max="${totalPages}" onchange="jumpToPage(this.value)">
             </li>
-            <li class="page-item disabled"><span class="page-link bg-white text-muted border-start-0">/ ${totalPages}</span></li>
+        `;
+        
+        // Slash Total Pages Item
+        html += `
+            <li class="page-item disabled">
+                <span class="page-link bg-white text-muted border-start-0">/ ${totalPages}</span>
+            </li>
         `;
         
         html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a></li>`;
