@@ -24,32 +24,11 @@
         .sidebar-item:hover { background-color: #f1f3f5; color: #0d6efd; padding-left: 25px; }
         .sidebar-item i { width: 25px; text-align: center; margin-right: 10px; }
         
-        /* Pagination Styling - Requested Fixed Design */
+        /* Pagination */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
-        
-        .page-input-box {
-            width: 50px;
-            text-align: center;
-            border: 1px solid #dee2e6;
-            color: #0d6efd;
-            font-weight: 340;        /* Requested Font Weight */
-            padding: 0.14rem 0.4rem; /* Requested Padding */
-            line-height: 1;          /* Requested Line Height */
-            outline: none;
-            background: #fff;
-            border-radius: 0;
-            display: block;
-            height: 100%;
-        }
-        
-        .page-input-box:focus {
-            border-color: #86b7fe;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-            z-index: 2;
-            position: relative;
-        }
-
+        .page-input-box { width: 50px; text-align: center; border: 1px solid #dee2e6; color: #0d6efd; font-weight: 340; padding: 0.14rem 0.4rem; line-height: 1; outline: none; background: #fff; border-radius: 0; display: block; height: 100%; }
+        .page-input-box:focus { border-color: #86b7fe; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); z-index: 2; position: relative; }
         .pagination .page-item:first-child .page-link { border-top-right-radius: 0; border-bottom-right-radius: 0; }
         .pagination .page-item:last-child .page-link { border-top-left-radius: 0; border-bottom-left-radius: 0; }
         .pagination .page-item + .page-item .page-input-box { margin-left: -1px; }
@@ -97,7 +76,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 2.4<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 2.5<br>HR Management System</div>
         </div>
     </div>
 
@@ -237,29 +216,17 @@
 
     function refreshData() { loadEmployees(); loadAllDropdowns(); }
 
-    // --- EDUCATION FUNCTIONS (WITH DELETE LOGIC) ---
+    // --- EDUCATION FUNCTIONS ---
     function addEduRow(title = "", url = "") {
         const container = document.getElementById('eduContainer');
         const div = document.createElement('div');
         div.className = 'edu-row row g-2 align-items-center';
-        
         let fileDisplay = "";
-        if(url) {
-            fileDisplay = `<a href="${url}" target="_blank" class="ms-2 small text-success"><i class="fas fa-check-circle"></i> File Uploaded</a>`;
-        }
-
+        if(url) { fileDisplay = `<a href="${url}" target="_blank" class="ms-2 small text-success"><i class="fas fa-check-circle"></i> File Uploaded</a>`; }
         div.innerHTML = `
-            <div class="col-5">
-                <input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name (e.g. LLB)" value="${title}">
-            </div>
-            <div class="col-6">
-                <input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png">
-                <input type="hidden" class="edu-existing-url" value="${url}">
-                ${fileDisplay}
-            </div>
-            <div class="col-1 text-end">
-                <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button>
-            </div>
+            <div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name (e.g. LLB)" value="${title}"></div>
+            <div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png"><input type="hidden" class="edu-existing-url" value="${url}">${fileDisplay}</div>
+            <div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>
         `;
         container.appendChild(div);
     }
@@ -267,89 +234,11 @@
     function removeEduRow(btn) {
         const row = btn.closest('.edu-row');
         const url = row.querySelector('.edu-existing-url').value;
-        if (url) {
-            eduFilesToDelete.push(url); // Add to delete list for backend
-        }
+        if (url) { eduFilesToDelete.push(url); }
         row.remove();
     }
 
-    // --- MAIN CRUD ---
-    function openModal(mode, rowIndex = null) { 
-        const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
-        document.getElementById('employeeForm').reset(); 
-        document.getElementById('eduContainer').innerHTML = ''; 
-        compressedImageBase64 = null; deleteImageFlag = false;
-        eduFilesToDelete = []; // RESET
-        
-        document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none'; 
-        
-        var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]')
-        var firstTab = new bootstrap.Tab(firstTabEl)
-        firstTab.show()
-
-        if(mode === 'edit') { 
-            const emp = allData.find(r => r.row_index === rowIndex); 
-            document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic']; 
-            document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
-            if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0]; if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; 
-            if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
-            
-            try {
-                if(emp.Education && emp.Education.trim() !== "") {
-                    const eduList = JSON.parse(emp.Education);
-                    eduList.forEach(item => addEduRow(item.title, item.url));
-                }
-            } catch(e) { console.log("Edu Parse Error", e); }
-
-        } else { 
-            document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; 
-            addEduRow(); 
-        } 
-        modal.show(); 
-    }
-
-    async function saveEmployee() {
-        showLoading(true);
-        const rowIndex = document.getElementById('editRowIndex').value;
-        
-        const eduRows = document.querySelectorAll('.edu-row');
-        const educationData = [];
-        
-        for (const row of eduRows) {
-            const title = row.querySelector('.edu-title').value.trim();
-            if(!title) continue; 
-
-            const fileInput = row.querySelector('.edu-file');
-            const existingUrl = row.querySelector('.edu-existing-url').value;
-            let fileBase64 = null;
-
-            if (fileInput.files.length > 0) {
-                fileBase64 = await toBase64(fileInput.files[0]);
-            }
-
-            educationData.push({
-                title: title,
-                file_base64: fileBase64, 
-                url: existingUrl 
-            });
-        }
-
-        const employeeData = { 
-            Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, ResignDate: document.getElementById('empResign').value, image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value,
-            Education: educationData 
-        };
-        
-        const payload = { 
-            action: rowIndex ? 'editEmployee' : 'addEmployee', 
-            employee: employeeData, 
-            rowIndex: rowIndex ? parseInt(rowIndex) : null, 
-            deleteImageFlag: deleteImageFlag,
-            deleted_edu_files: eduFilesToDelete // Sending deleted files list to backend
-        }; 
-        
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); });
-    }
-
+    // --- VIEW DETAILS (WITH ROOT DOWNLOAD CHECK) ---
     function viewDetails(rowIndex) { 
         const emp = allData.find(r => r.row_index === rowIndex); 
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; 
@@ -361,7 +250,15 @@
                 if(eduList.length > 0) {
                     eduHtml = '<ul class="list-group list-group-flush text-start">';
                     eduList.forEach(item => {
-                        let link = item.url ? `<a href="${item.url}" target="_blank" class="float-end"><i class="fas fa-download"></i></a>` : '';
+                        // --- CHECK ROLE FOR DOWNLOAD LINK ---
+                        let link = '';
+                        if (item.url && currentUser.role === 'Root') {
+                            link = `<a href="${item.url}" target="_blank" class="float-end"><i class="fas fa-download"></i></a>`;
+                        } else if (item.url) {
+                            // Optional: Show lock icon or nothing for non-root
+                            link = `<span class="float-end text-muted small"><i class="fas fa-lock"></i></span>`;
+                        }
+                        
                         eduHtml += `<li class="list-group-item py-1 px-0">${item.title} ${link}</li>`;
                     });
                     eduHtml += '</ul>';
@@ -375,6 +272,57 @@
             <div class="tab-content text-start"><div class="tab-pane fade show active" id="view-basic"><table class="table table-bordered table-sm mb-0"><tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr><tr><th>Phone</th><td>${emp.Phone}</td></tr><tr><th>Email</th><td>${emp.Email}</td></tr><tr><th>NRC</th><td>${emp['NRC No.']}</td></tr><tr><th>Father</th><td>${emp['Father Name']}</td></tr><tr><th>Address</th><td>${emp.Address}</td></tr></table></div><div class="tab-pane fade" id="view-edu">${eduHtml}</div></div>
         `; 
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
+    }
+
+    // --- MAIN CRUD ---
+    function openModal(mode, rowIndex = null) { 
+        const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
+        document.getElementById('employeeForm').reset(); 
+        document.getElementById('eduContainer').innerHTML = ''; 
+        compressedImageBase64 = null; deleteImageFlag = false;
+        eduFilesToDelete = []; 
+        document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none'; 
+        var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]'); var firstTab = new bootstrap.Tab(firstTabEl); firstTab.show();
+
+        if(mode === 'edit') { 
+            const emp = allData.find(r => r.row_index === rowIndex); 
+            document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic']; 
+            document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
+            if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0]; if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; 
+            if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
+            try {
+                if(emp.Education && emp.Education.trim() !== "") {
+                    const eduList = JSON.parse(emp.Education);
+                    eduList.forEach(item => addEduRow(item.title, item.url));
+                }
+            } catch(e) { console.log("Edu Parse Error", e); }
+        } else { 
+            document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; 
+            addEduRow(); 
+        } 
+        modal.show(); 
+    }
+
+    async function saveEmployee() {
+        showLoading(true);
+        const rowIndex = document.getElementById('editRowIndex').value;
+        const eduRows = document.querySelectorAll('.edu-row');
+        const educationData = [];
+        for (const row of eduRows) {
+            const title = row.querySelector('.edu-title').value.trim();
+            if(!title) continue; 
+            const fileInput = row.querySelector('.edu-file');
+            const existingUrl = row.querySelector('.edu-existing-url').value;
+            let fileBase64 = null;
+            if (fileInput.files.length > 0) { fileBase64 = await toBase64(fileInput.files[0]); }
+            educationData.push({ title: title, file_base64: fileBase64, url: existingUrl });
+        }
+        const employeeData = { 
+            Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, ResignDate: document.getElementById('empResign').value, image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value,
+            Education: educationData 
+        };
+        const payload = { action: rowIndex ? 'editEmployee' : 'addEmployee', employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag, deleted_edu_files: eduFilesToDelete }; 
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); });
     }
 
     const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
