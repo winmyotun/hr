@@ -8,17 +8,16 @@
     <!-- CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Pyidaungsu & Padauk -->
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Pyidaungsu:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- JS Libraries (REQUIRED) -->
-    <!-- PDFMake for Selectable Text PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-    <!-- SheetJS for Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        body { font-family: 'Poppins', 'Padauk', sans-serif; background-color: #f4f6f9; }
+        body { font-family: 'Pyidaungsu', 'Padauk', sans-serif; background-color: #f4f6f9; }
         .login-container { max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .main-content { display: none; padding: 20px; }
         .profile-img-small { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
@@ -27,12 +26,11 @@
         .search-box input { border-radius: 20px; padding-left: 35px; }
         .search-box i { position: absolute; left: 15px; top: 10px; color: #aaa; }
         #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; display:none; justify-content:center; align-items:center; }
-        
-        /* Sidebar */
         .offcanvas { width: 280px !important; }
         .sidebar-header-text { font-size: 0.75rem; font-weight: 700; color: #adb5bd; letter-spacing: 1px; padding: 15px 15px 5px 15px; }
         .sidebar-item { cursor: pointer; transition: 0.2s; border: none; padding: 12px 20px; font-size: 15px; color: #495057; background: transparent; display: block; text-decoration: none; }
         .sidebar-item:hover { background-color: #f1f3f5; color: #0d6efd; padding-left: 25px; }
+        .sidebar-item i { width: 25px; text-align: center; margin-right: 10px; }
         
         /* Pagination */
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -85,7 +83,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 4.0 (Stable)<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 4.1 (Myanmar Font)<br>HR Management System</div>
         </div>
     </div>
 
@@ -163,10 +161,8 @@
     </div>
 </div>
 
-<!-- Settings Modal -->
+<!-- Settings & Report Modals -->
 <div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Manage Dropdowns</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="fw-bold">Select Category:</label><select class="form-select" id="settingsCategory" onchange="renderSettingsList()"><option value="Department">Department</option><option value="Position">Position</option><option value="Blood Type">Blood Type</option></select></div><div class="input-group mb-3"><input type="text" class="form-control" id="newItemName" placeholder="New Item Name"><button class="btn btn-primary" onclick="addDropdownItem()">Add</button></div><h6 class="text-muted">Current Items:</h6><div class="list-group" id="settingsList" style="max-height: 250px; overflow-y: auto;"></div></div></div></div></div>
-
-<!-- Report Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-info text-white"><h5 class="modal-title">Summary Dashboard</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row mb-4"><div class="col-md-12"><div class="card bg-light border-0 p-3 text-center"><h3 class="display-6 fw-bold text-primary" id="totalEmpCount">0</h3><span class="text-muted">Total Employees</span></div></div></div><div class="row"><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Department</h6><ul class="list-group list-group-flush" id="deptReportList"></ul></div><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Position</h6><ul class="list-group list-group-flush" id="posReportList"></ul></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
 <!-- View Details Modal -->
@@ -179,7 +175,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxJmeJrN1l4wbSAXMLZ4WRecmwe-o8hhKUtBzvywd4yw26-NN3yserRrbuu3WdqQZN4kA/exec"; // *** FOLDER ID ပြန်ထည့်ပါ ***
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxJmeJrN1l4wbSAXMLZ4WRecmwe-o8hhKUtBzvywd4yw26-NN3yserRrbuu3WdqQZN4kA/exec"; // *** URL ထည့်ပါ ***
     let currentUser = { role: null, username: null, department: null };
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [] }; 
@@ -187,6 +183,19 @@
     let eduFilesToDelete = []; 
     let currentViewedEmp = null;
 
+    // --- MYANMAR FONT SETUP FOR PDFMAKE ---
+    // Using Roboto as default, but we'll try to map it to handle unicode if possible.
+    // Note: PDFMake default fonts don't support Myanmar Unicode fully.
+    // To support Myanmar font properly in PDFMake client-side without custom vfs build is hard.
+    // Workaround: We will use a CDN hosted font if available, or fallback to standard font.
+    // Since custom font embedding in client-side pdfmake requires Base64 string of the font file,
+    // we will stick to standard font for now, BUT if you need Myanmar text, 
+    // we have to use `pdfmake` with custom font definition. 
+    
+    // For this example, to keep it simple and working, we will proceed with default.
+    // If Myanmar text shows as squares, it means client-side pdfmake lacks the font.
+    // Real fix: You need to generate `vfs_fonts.js` containing Pyidaungsu font and include it.
+    
     // Login
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -200,7 +209,7 @@
                 currentUser = { role: data.role, username: document.getElementById('username').value, department: data.department };
                 initDashboard();
             } else Swal.fire('Error', data.message, 'error');
-        }).catch(e => { showLoading(false); alert('Error: ' + e); });
+        }).catch(e => { showLoading(false); alert('Error'); });
     });
 
     function initDashboard() {
@@ -274,7 +283,7 @@
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    // --- PDF GENERATION (PDFMAKE) - FIXED ---
+    // --- PDF GENERATION (PDFMAKE) ---
     async function downloadProfilePDF() {
         if(!currentViewedEmp) return;
         const emp = currentViewedEmp;
@@ -302,12 +311,12 @@
 
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
 
-        // Define PDF with PHOTO ON RIGHT and WHITE BORDER
+        // Define PDF Structure
         const docDefinition = {
             content: [
                 {
                     table: {
-                        widths: ['*', 100], // Text Left (*), Image Right (100px)
+                        widths: ['*', 100], // Text Left, Photo Right
                         body: [
                             [
                                 {
@@ -324,7 +333,7 @@
                                 {
                                     fillColor: '#0d6efd',
                                     margin: [0, 15, 20, 15],
-                                    // Simulated White Border using nested table
+                                    // Image with White Border
                                     table: {
                                         body: [[{
                                             image: profileImage,
@@ -390,13 +399,14 @@
                 value: { fontSize: 11, bold: true, color: '#333', margin: [0, 0, 0, 8] },
                 eduItem: { fontSize: 10, margin: [0, 2, 0, 2], background: '#f5f5f5', color: '#333' }
             },
-            defaultStyle: { font: 'Roboto' }
+            defaultStyle: { font: 'Roboto' } // Falls back to Roboto (English). To support Myanmar, custom VFS needed.
         };
 
         pdfMake.createPdf(docDefinition).download(`${emp.Name}_Profile.pdf`);
         showLoading(false);
     }
 
+    // --- MAIN CRUD ---
     function openModal(mode, rowIndex = null) { 
         const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
         document.getElementById('employeeForm').reset(); 
