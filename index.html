@@ -8,11 +8,8 @@
     <!-- CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Google Fonts: Noto Sans Myanmar (For Web UI Display) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Padauk -->
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- JS Libraries (REQUIRED) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
@@ -20,8 +17,8 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        /* Apply Noto Sans Myanmar to the whole website */
-        body { font-family: 'Noto Sans Myanmar', sans-serif; background-color: #f4f6f9; }
+        /* Apply Padauk to whole website */
+        body { font-family: 'Padauk', sans-serif; background-color: #f4f6f9; }
         
         .login-container { max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .main-content { display: none; padding: 20px; }
@@ -89,7 +86,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 2.0 (Noto Sans Myanmar)<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 2.1<br>Padauk Font PDF</div>
         </div>
     </div>
 
@@ -173,7 +170,7 @@
 
 <!-- View Details Modal -->
 <div class="modal fade" id="viewModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-body" id="viewDetailsBody"></div><div class="modal-footer p-1">
-    <button type="button" class="btn btn-primary btn-sm me-auto" onclick="downloadProfilePDF()"><i class="fas fa-file-pdf"></i> Download PDF Profile</button>
+    <button type="button" class="btn btn-primary btn-sm me-auto" onclick="downloadProfilePDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
 </div></div></div></div>
 
@@ -190,50 +187,36 @@
     let currentViewedEmp = null;
     let fontsLoaded = false;
 
-    // --- 1. LOAD NOTO SANS MYANMAR FONT ---
-    // Fetching TTF from Google Fonts GitHub (Reliable Raw Link)
+    // --- 1. LOAD PADAUK FONT (Contains both EN & MM) ---
     async function loadFonts() {
-        const fontURL = "https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSansMyanmar/NotoSansMyanmar-Regular.ttf";
-        const fontBoldURL = "https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/hinted/ttf/NotoSansMyanmar/NotoSansMyanmar-Bold.ttf";
+        const fontURL = "https://raw.githubusercontent.com/google/fonts/main/ofl/padauk/Padauk-Regular.ttf";
+        const fontBoldURL = "https://raw.githubusercontent.com/google/fonts/main/ofl/padauk/Padauk-Bold.ttf";
         try {
             const fetchFont = async (url) => {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error("Font fetch failed");
                 const blob = await response.blob();
                 return new Promise((resolve) => {
                     const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result.split(',')[1]); // Base64
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
                     reader.readAsDataURL(blob);
                 });
             };
-            
             const regular = await fetchFont(fontURL);
             const bold = await fetchFont(fontBoldURL);
             
-            // Map to VFS
-            window.pdfMake.vfs["NotoSansMyanmar-Regular.ttf"] = regular;
-            window.pdfMake.vfs["NotoSansMyanmar-Bold.ttf"] = bold;
-            
+            window.pdfMake.vfs["Padauk-Regular.ttf"] = regular;
+            window.pdfMake.vfs["Padauk-Bold.ttf"] = bold;
             window.pdfMake.fonts = {
-                NotoSansMyanmar: {
-                    normal: "NotoSansMyanmar-Regular.ttf",
-                    bold: "NotoSansMyanmar-Bold.ttf",
-                    italics: "NotoSansMyanmar-Regular.ttf",
-                    bolditalics: "NotoSansMyanmar-Bold.ttf"
-                },
-                Roboto: {
-                    normal: 'Roboto-Regular.ttf',
-                    bold: 'Roboto-Medium.ttf',
-                    italics: 'Roboto-Italic.ttf',
-                    bolditalics: 'Roboto-MediumItalic.ttf'
+                Padauk: {
+                    normal: "Padauk-Regular.ttf",
+                    bold: "Padauk-Bold.ttf",
+                    italics: "Padauk-Regular.ttf",
+                    bolditalics: "Padauk-Bold.ttf"
                 }
             };
             fontsLoaded = true;
-            console.log("Noto Sans Myanmar Loaded");
-        } catch (e) { 
-            console.error("Font Load Error:", e); 
-            fontsLoaded = false;
-        }
+            console.log("Padauk Font Loaded");
+        } catch (e) { console.error("Font Load Error:", e); }
     }
     loadFonts();
 
@@ -283,7 +266,7 @@
         container.appendChild(div);
     }
 
-    // FIXED: Global Scope for Inline Onclick
+    // FIXED: Global Scope
     window.removeEduRow = function(btn) {
         const row = btn.closest('.edu-row');
         const url = row.querySelector('.edu-existing-url').value;
@@ -313,33 +296,24 @@
             }
         } catch(e) {}
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
-        
         document.getElementById('viewDetailsBody').innerHTML = `
             <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4>
             <div class="mb-3">
                 <span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span>
             </div></div>
             <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist"><li class="nav-item"><button class="nav-link active py-1" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Info</button></li><li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li></ul>
-            <div class="tab-content text-start">
-                <div class="tab-pane fade show active" id="view-basic">
-                    <table class="table table-bordered table-sm mb-0">
-                        <tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr>
-                        <tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr><tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr><tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr><tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr><tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr><tr><th>Email</th><td>${emp.Email || '-'}</td></tr><tr><th>Address</th><td>${emp.Address || '-'}</td></tr><tr><th>Start Date</th><td>${formatDate(emp['Start Date'])}</td></tr><tr><th>Resign Date</th><td>${formatDate(emp['Resign Date'])}</td></tr>
-                    </table>
-                </div>
-                <div class="tab-pane fade" id="view-edu">${eduHtml}</div>
-            </div>
+            <div class="tab-content text-start"><div class="tab-pane fade show active" id="view-basic"><table class="table table-bordered table-sm mb-0"><tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr><tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr><tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr><tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr><tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr><tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr><tr><th>Email</th><td>${emp.Email || '-'}</td></tr><tr><th>Address</th><td>${emp.Address || '-'}</td></tr><tr><th>Start Date</th><td>${formatDate(emp['Start Date'])}</td></tr><tr><th>Resign Date</th><td>${formatDate(emp['Resign Date'])}</td></tr></table></div><div class="tab-pane fade" id="view-edu">${eduHtml}</div></div>
         `; 
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    // --- PDF GENERATION (FIXED WITH NOTO SANS) ---
+    // --- PDF GENERATION (Using Padauk) ---
     window.downloadProfilePDF = async function() {
         if(!currentViewedEmp) return;
         const emp = currentViewedEmp;
         showLoading(true);
 
-        // Fetch Image Base64
+        // Fetch Image
         let profileImage = null;
         if (emp['Profile Pic']) {
             try {
@@ -361,7 +335,7 @@
 
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
 
-        // PDF Definition using NotoSansMyanmar Font
+        // PDF Definition
         const docDefinition = {
             content: [
                 {
@@ -447,7 +421,7 @@
                 value: { fontSize: 11, bold: true, color: '#333', margin: [0, 0, 0, 8] },
                 eduItem: { fontSize: 10, margin: [0, 2, 0, 2], background: '#f5f5f5', color: '#333' }
             },
-            defaultStyle: { font: fontsLoaded ? 'NotoSansMyanmar' : 'Roboto' } 
+            defaultStyle: { font: fontsLoaded ? 'Padauk' : 'Roboto' }
         };
 
         pdfMake.createPdf(docDefinition).download(`${emp.Name}_Profile.pdf`);
