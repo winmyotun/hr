@@ -8,16 +8,15 @@
     <!-- CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Google Fonts: Pyidaungsu & Padauk -->
-    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Pyidaungsu:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
-    <!-- JS Libraries (REQUIRED) -->
+    <!-- JS Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        body { font-family: 'Pyidaungsu', 'Padauk', sans-serif; background-color: #f4f6f9; }
+        body { font-family: 'Poppins', 'Padauk', sans-serif; background-color: #f4f6f9; }
         .login-container { max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .main-content { display: none; padding: 20px; }
         .profile-img-small { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
@@ -26,6 +25,7 @@
         .search-box input { border-radius: 20px; padding-left: 35px; }
         .search-box i { position: absolute; left: 15px; top: 10px; color: #aaa; }
         #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; display:none; justify-content:center; align-items:center; }
+        
         .offcanvas { width: 280px !important; }
         .sidebar-header-text { font-size: 0.75rem; font-weight: 700; color: #adb5bd; letter-spacing: 1px; padding: 15px 15px 5px 15px; }
         .sidebar-item { cursor: pointer; transition: 0.2s; border: none; padding: 12px 20px; font-size: 15px; color: #495057; background: transparent; display: block; text-decoration: none; }
@@ -83,7 +83,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 4.1 (Myanmar Font)<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 4.0<br>Myanmar Font Supported</div>
         </div>
     </div>
 
@@ -171,9 +171,6 @@
     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
 </div></div></div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxJmeJrN1l4wbSAXMLZ4WRecmwe-o8hhKUtBzvywd4yw26-NN3yserRrbuu3WdqQZN4kA/exec"; // *** URL ထည့်ပါ ***
     let currentUser = { role: null, username: null, department: null };
@@ -183,19 +180,6 @@
     let eduFilesToDelete = []; 
     let currentViewedEmp = null;
 
-    // --- MYANMAR FONT SETUP FOR PDFMAKE ---
-    // Using Roboto as default, but we'll try to map it to handle unicode if possible.
-    // Note: PDFMake default fonts don't support Myanmar Unicode fully.
-    // To support Myanmar font properly in PDFMake client-side without custom vfs build is hard.
-    // Workaround: We will use a CDN hosted font if available, or fallback to standard font.
-    // Since custom font embedding in client-side pdfmake requires Base64 string of the font file,
-    // we will stick to standard font for now, BUT if you need Myanmar text, 
-    // we have to use `pdfmake` with custom font definition. 
-    
-    // For this example, to keep it simple and working, we will proceed with default.
-    // If Myanmar text shows as squares, it means client-side pdfmake lacks the font.
-    // Real fix: You need to generate `vfs_fonts.js` containing Pyidaungsu font and include it.
-    
     // Login
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -209,7 +193,7 @@
                 currentUser = { role: data.role, username: document.getElementById('username').value, department: data.department };
                 initDashboard();
             } else Swal.fire('Error', data.message, 'error');
-        }).catch(e => { showLoading(false); alert('Error'); });
+        }).catch(e => { showLoading(false); alert('Connection Error: ' + e); });
     });
 
     function initDashboard() {
@@ -232,28 +216,12 @@
 
     function refreshData() { loadEmployees(); loadAllDropdowns(); }
 
-    function addEduRow(title = "", url = "") {
-        const container = document.getElementById('eduContainer');
-        const div = document.createElement('div');
-        div.className = 'edu-row row g-2 align-items-center';
-        let fileDisplay = "";
-        if(url) { fileDisplay = `<a href="${url}" target="_blank" class="ms-2 small text-success"><i class="fas fa-check-circle"></i> File Uploaded</a>`; }
-        div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name (e.g. LLB)" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png"><input type="hidden" class="edu-existing-url" value="${url}">${fileDisplay}</div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`;
-        container.appendChild(div);
-    }
-
-    function removeEduRow(btn) {
-        const row = btn.closest('.edu-row');
-        const url = row.querySelector('.edu-existing-url').value;
-        if (url) { eduFilesToDelete.push(url); }
-        row.remove();
-    }
-
     // --- VIEW DETAILS ---
     function viewDetails(rowIndex) { 
         const emp = allData.find(r => r.row_index === rowIndex);
         currentViewedEmp = emp; 
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; 
+        
         let eduHtml = '<p class="text-muted small">No education info</p>';
         try {
             if(emp.Education && emp.Education.trim() !== "") {
@@ -270,6 +238,7 @@
                 }
             }
         } catch(e) {}
+        
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
         
         document.getElementById('viewDetailsBody').innerHTML = `
@@ -278,18 +247,34 @@
                 <span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span>
             </div></div>
             <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist"><li class="nav-item"><button class="nav-link active py-1" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Info</button></li><li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li></ul>
-            <div class="tab-content text-start"><div class="tab-pane fade show active" id="view-basic"><table class="table table-bordered table-sm mb-0"><tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr><tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr><tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr><tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr><tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr><tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr><tr><th>Email</th><td>${emp.Email || '-'}</td></tr><tr><th>Address</th><td>${emp.Address || '-'}</td></tr><tr><th>Start Date</th><td>${formatDate(emp['Start Date'])}</td></tr><tr><th>Resign Date</th><td>${formatDate(emp['Resign Date'])}</td></tr></table></div><div class="tab-pane fade" id="view-edu">${eduHtml}</div></div>
+            <div class="tab-content text-start">
+                <div class="tab-pane fade show active" id="view-basic">
+                    <table class="table table-bordered table-sm mb-0">
+                        <tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr>
+                        <tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr>
+                        <tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr>
+                        <tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr>
+                        <tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr>
+                        <tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr>
+                        <tr><th>Email</th><td>${emp.Email || '-'}</td></tr>
+                        <tr><th>Address</th><td>${emp.Address || '-'}</td></tr>
+                        <tr><th>Start Date</th><td>${formatDate(emp['Start Date'])}</td></tr>
+                        <tr><th>Resign Date</th><td>${formatDate(emp['Resign Date'])}</td></tr>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="view-edu">${eduHtml}</div>
+            </div>
         `; 
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    // --- PDF GENERATION (PDFMAKE) ---
+    // --- PDF GENERATION WITH MYANMAR FONT & LAYOUT FIX ---
     async function downloadProfilePDF() {
         if(!currentViewedEmp) return;
         const emp = currentViewedEmp;
         showLoading(true);
 
-        // Fetch Image
+        // 1. Fetch Image Base64
         let profileImage = null;
         if (emp['Profile Pic']) {
             try {
@@ -299,6 +284,55 @@
             } catch(e) {}
         }
         if(!profileImage) profileImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+        // 2. Fetch Myanmar Font (Padauk) on the fly
+        // We use Padauk-Regular.ttf from Google Fonts raw source
+        const fontURL = "https://raw.githubusercontent.com/google/fonts/main/ofl/padauk/Padauk-Regular.ttf";
+        const fontBoldURL = "https://raw.githubusercontent.com/google/fonts/main/ofl/padauk/Padauk-Bold.ttf";
+        
+        let fontBase64 = null;
+        let fontBoldBase64 = null;
+
+        try {
+            // Helper to fetch and convert to Base64
+            const fetchFont = async (url) => {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]); // remove data: part
+                    reader.readAsDataURL(blob);
+                });
+            };
+
+            fontBase64 = await fetchFont(fontURL);
+            fontBoldBase64 = await fetchFont(fontBoldURL);
+
+        } catch (e) {
+            console.error("Font Load Error", e);
+            alert("Error loading fonts for PDF. Text might not render correctly.");
+        }
+
+        // 3. Register Font in PDFMake VFS
+        if(fontBase64 && fontBoldBase64) {
+            window.pdfMake.vfs["Padauk-Regular.ttf"] = fontBase64;
+            window.pdfMake.vfs["Padauk-Bold.ttf"] = fontBoldBase64;
+            
+            window.pdfMake.fonts = {
+                Padauk: {
+                    normal: "Padauk-Regular.ttf",
+                    bold: "Padauk-Bold.ttf",
+                    italics: "Padauk-Regular.ttf",
+                    bolditalics: "Padauk-Bold.ttf"
+                },
+                Roboto: { // Fallback
+                    normal: 'Roboto-Regular.ttf',
+                    bold: 'Roboto-Medium.ttf',
+                    italics: 'Roboto-Italic.ttf',
+                    bolditalics: 'Roboto-MediumItalic.ttf'
+                }
+            };
+        }
 
         let eduContent = [];
         try {
@@ -311,12 +345,12 @@
 
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
 
-        // Define PDF Structure
+        // 4. PDF Structure (Correct Layout: Photo Right + White Border + Myanmar Font)
         const docDefinition = {
             content: [
                 {
                     table: {
-                        widths: ['*', 100], // Text Left, Photo Right
+                        widths: ['*', 100], 
                         body: [
                             [
                                 {
@@ -333,7 +367,7 @@
                                 {
                                     fillColor: '#0d6efd',
                                     margin: [0, 15, 20, 15],
-                                    // Image with White Border
+                                    // Simulated White Border using nested table
                                     table: {
                                         body: [[{
                                             image: profileImage,
@@ -399,72 +433,17 @@
                 value: { fontSize: 11, bold: true, color: '#333', margin: [0, 0, 0, 8] },
                 eduItem: { fontSize: 10, margin: [0, 2, 0, 2], background: '#f5f5f5', color: '#333' }
             },
-            defaultStyle: { font: 'Roboto' } // Falls back to Roboto (English). To support Myanmar, custom VFS needed.
+            defaultStyle: { font: 'Padauk' } // USE MYANMAR FONT
         };
 
         pdfMake.createPdf(docDefinition).download(`${emp.Name}_Profile.pdf`);
         showLoading(false);
     }
 
-    // --- MAIN CRUD ---
-    function openModal(mode, rowIndex = null) { 
-        const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
-        document.getElementById('employeeForm').reset(); 
-        document.getElementById('eduContainer').innerHTML = ''; 
-        compressedImageBase64 = null; deleteImageFlag = false; eduFilesToDelete = []; 
-        document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none'; 
-        var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]'); var firstTab = new bootstrap.Tab(firstTabEl); firstTab.show();
-
-        if(mode === 'edit') { 
-            const emp = allData.find(r => r.row_index === rowIndex); 
-            document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic']; 
-            document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
-            if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0]; if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; 
-            if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
-            try { if(emp.Education && emp.Education.trim() !== "") { const eduList = JSON.parse(emp.Education); eduList.forEach(item => addEduRow(item.title, item.url)); } } catch(e) {}
-        } else { 
-            document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; 
-            addEduRow(); 
-        } 
-        modal.show(); 
-    }
-
-    async function saveEmployee() {
-        showLoading(true);
-        const rowIndex = document.getElementById('editRowIndex').value;
-        const eduRows = document.querySelectorAll('.edu-row');
-        const educationData = [];
-        for (const row of eduRows) {
-            const title = row.querySelector('.edu-title').value.trim();
-            if(!title) continue; 
-            const fileInput = row.querySelector('.edu-file');
-            const existingUrl = row.querySelector('.edu-existing-url').value;
-            let fileBase64 = null;
-            if (fileInput.files.length > 0) { fileBase64 = await toBase64(fileInput.files[0]); }
-            educationData.push({ title: title, file_base64: fileBase64, url: existingUrl });
-        }
-        const employeeData = { 
-            Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, ResignDate: document.getElementById('empResign').value, image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value,
-            Education: educationData 
-        };
-        const payload = { action: rowIndex ? 'editEmployee' : 'addEmployee', employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag, deleted_edu_files: eduFilesToDelete }; 
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); });
-    }
-
-    const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
-
-    function renderTable() {
-        const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
-        const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage);
-        pageData.forEach(row => {
-            let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`; if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`;
-            let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`;
-            if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; } 
-            else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; }
-            tbody.innerHTML += `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`;
-        });
-        updatePaginationInfo();
-    }
+    // --- OTHER FUNCTIONS ---
+    function addEduRow(title = "", url = "") { const container = document.getElementById('eduContainer'); const div = document.createElement('div'); div.className = 'edu-row row g-2 align-items-center'; let fileDisplay = ""; if(url) { fileDisplay = `<a href="${url}" target="_blank" class="ms-2 small text-success"><i class="fas fa-check-circle"></i> File Uploaded</a>`; } div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png"><input type="hidden" class="edu-existing-url" value="${url}">${fileDisplay}</div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`; container.appendChild(div); }
+    function removeEduRow(btn) { const row = btn.closest('.edu-row'); const url = row.querySelector('.edu-existing-url').value; if (url) { eduFilesToDelete.push(url); } row.remove(); }
+    function renderTable() { const tbody = document.getElementById('tableBody'); tbody.innerHTML = ''; const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage); pageData.forEach(row => { let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`; if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`; let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`; if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; } else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; } tbody.innerHTML += `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`; }); updatePaginationInfo(); }
     function loadEmployees() { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { allData = resp.data; filterData(); }}); }
     function loadAllDropdowns() { fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) }).then(res => res.json()).then(resp => { if(resp.status === 'success') { dropdownData = resp.data; populateSelects(); }}); }
     function populateSelects() { populateSingleSelect('empDept', dropdownData['Department']); populateSingleSelect('empPos', dropdownData['Position']); populateSingleSelect('empBlood', dropdownData['Blood Type']); }
