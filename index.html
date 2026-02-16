@@ -5,20 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Management System</title>
     
-    <!-- CSS Libraries -->
+    <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font for Web Display -->
+    <link href='https://mmwebfonts.comquas.com/fonts/?font=pyidaungsu' rel="stylesheet" />
     
-    <!-- JS Libraries (Word Export & Utils) -->
+    <!-- JS Libraries -->
+    <!-- pdfmake for generating final PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <!-- html2canvas for taking high-res screenshot of profile -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <!-- html-docx-js for converting HTML to Word -->
-    <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
-    <!-- FileSaver for saving the file -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
-        body { font-family: 'Padauk', sans-serif; background-color: #f4f6f9; }
+        body { font-family: 'Pyidaungsu', sans-serif; background-color: #f4f6f9; }
         .login-container { max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .main-content { display: none; padding: 20px; }
         .profile-img-small { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
@@ -32,24 +34,128 @@
         .sidebar-header-text { font-size: 0.75rem; font-weight: 700; color: #adb5bd; letter-spacing: 1px; padding: 15px 15px 5px 15px; }
         .sidebar-item { cursor: pointer; transition: 0.2s; border: none; padding: 12px 20px; font-size: 15px; color: #495057; background: transparent; display: block; text-decoration: none; }
         .sidebar-item:hover { background-color: #f1f3f5; color: #0d6efd; padding-left: 25px; }
-        .sidebar-item i { width: 25px; text-align: center; margin-right: 10px; }
         
         /* Pagination */
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
         .page-input-box { width: 50px; text-align: center; border: 1px solid #dee2e6; color: #0d6efd; font-weight: 340; padding: 0.14rem 0.4rem; line-height: 1; outline: none; background: #fff; border-radius: 0; display: block; height: 100%; }
-        .page-input-box:focus { border-color: #86b7fe; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); z-index: 2; position: relative; }
         .pagination .page-item:first-child .page-link { border-top-right-radius: 0; border-bottom-right-radius: 0; }
         .pagination .page-item:last-child .page-link { border-top-left-radius: 0; border-bottom-left-radius: 0; }
         .pagination .page-item + .page-item .page-input-box { margin-left: -1px; }
         .pagination .page-item + .page-item .page-link { margin-left: -1px; }
 
         .edu-row { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 5px; border: 1px solid #eee; }
+
+        /* --- PRINT AREA (Hidden from view, used for Canvas Generation) --- */
+        #print-area-container {
+            position: absolute;
+            top: 0;
+            left: -9999px; /* Move off-screen */
+            width: 800px; /* A4 width */
+        }
+        
+        /* The Design of the Profile Page */
+        .print-page {
+            width: 800px;
+            background: white;
+            font-family: 'Pyidaungsu', sans-serif;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .print-header {
+            background: #0d6efd;
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 5px solid #ffc107;
+        }
+        
+        .print-header-text h1 { margin: 0; font-weight: 700; font-size: 28px; }
+        .print-header-text h4 { margin: 5px 0 0; font-weight: 300; font-size: 18px; opacity: 0.9; }
+        
+        .print-photo-box {
+            width: 130px;
+            height: 130px;
+            background: white;
+            padding: 5px; /* White border effect */
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .print-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 3px;
+        }
+
+        .print-body { padding: 30px; display: flex; gap: 30px; }
+        .print-col-left { width: 40%; border-right: 2px solid #f0f0f0; padding-right: 20px; }
+        .print-col-right { width: 60%; }
+        
+        .print-section { margin-bottom: 30px; }
+        .print-label { font-size: 14px; font-weight: bold; color: #0d6efd; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .print-row { margin-bottom: 12px; }
+        .print-key { font-size: 12px; color: #666; display: block; }
+        .print-val { font-size: 14px; font-weight: 500; color: #222; }
+        
+        .print-edu-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #0d6efd;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
 <div id="loadingOverlay"><div class="spinner-border text-primary" role="status"></div></div>
+
+<!-- Hidden Print Area for HTML2CANVAS -->
+<div id="print-area-container">
+    <div id="print-view" class="print-page">
+        <div class="print-header">
+            <div class="print-header-text">
+                <h1 id="p-name">Maung Maung</h1>
+                <h4 id="p-pos-dept">Manager | IT</h4>
+            </div>
+            <div class="print-photo-box">
+                <img id="p-photo" class="print-photo" src="">
+            </div>
+        </div>
+        <div class="print-body">
+            <div class="print-col-left">
+                <div class="print-section">
+                    <div class="print-label">Contact Info</div>
+                    <div class="print-row"><span class="print-key">Phone</span><span class="print-val" id="p-phone">09123456</span></div>
+                    <div class="print-row"><span class="print-key">Email</span><span class="print-val" id="p-email">test@mail.com</span></div>
+                    <div class="print-row"><span class="print-key">Address</span><span class="print-val" id="p-addr">Yangon</span></div>
+                </div>
+                <div class="print-section">
+                    <div class="print-label">Personal Details</div>
+                    <div class="print-row"><span class="print-key">NRC No.</span><span class="print-val" id="p-nrc">12/YaKaNa(N)000000</span></div>
+                    <div class="print-row"><span class="print-key">Blood Type</span><span class="print-val" id="p-blood">O</span></div>
+                    <div class="print-row"><span class="print-key">Father Name</span><span class="print-val" id="p-father">U Ba</span></div>
+                    <div class="print-row"><span class="print-key">Mother Name</span><span class="print-val" id="p-mother">Daw Hla</span></div>
+                </div>
+            </div>
+            <div class="print-col-right">
+                <div class="print-section">
+                    <div class="print-label">Employment</div>
+                    <div class="print-row"><span class="print-key">Employee ID (Sr)</span><span class="print-val" id="p-sr">101</span></div>
+                    <div class="print-row"><span class="print-key">Start Date</span><span class="print-val" id="p-start">2020-01-01</span></div>
+                    <div class="print-row"><span class="print-key">Resign Date</span><span class="print-val" id="p-resign">-</span></div>
+                </div>
+                <div class="print-section">
+                    <div class="print-label">Education & Certificates</div>
+                    <div id="p-edu-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Login -->
 <div class="container" id="loginSection">
@@ -85,7 +191,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 5.0 (Word Export)<br>HR Management System</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 5.0 (High-Res PDF)<br>HR Management System</div>
         </div>
     </div>
 
@@ -169,8 +275,7 @@
 
 <!-- View Details Modal -->
 <div class="modal fade" id="viewModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-body" id="viewDetailsBody"></div><div class="modal-footer p-1">
-    <!-- CHANGED: Download Word Button -->
-    <button type="button" class="btn btn-primary btn-sm me-auto" onclick="downloadProfileWord()"><i class="fas fa-file-word"></i> Download Word Profile</button>
+    <button type="button" class="btn btn-primary btn-sm me-auto" onclick="downloadProfilePDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
 </div></div></div></div>
 
@@ -222,24 +327,6 @@
 
     function refreshData() { loadEmployees(); loadAllDropdowns(); }
 
-    function addEduRow(title = "", url = "") {
-        const container = document.getElementById('eduContainer');
-        const div = document.createElement('div');
-        div.className = 'edu-row row g-2 align-items-center';
-        let fileDisplay = "";
-        if(url) { fileDisplay = `<a href="${url}" target="_blank" class="ms-2 small text-success"><i class="fas fa-check-circle"></i> File Uploaded</a>`; }
-        div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name (e.g. LLB)" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png"><input type="hidden" class="edu-existing-url" value="${url}">${fileDisplay}</div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`;
-        container.appendChild(div);
-    }
-
-    // FIXED: Global Scope for Inline Onclick
-    window.removeEduRow = function(btn) {
-        const row = btn.closest('.edu-row');
-        const url = row.querySelector('.edu-existing-url').value;
-        if (url) { eduFilesToDelete.push(url); }
-        row.remove();
-    }
-
     // --- VIEW DETAILS ---
     window.viewDetails = function(rowIndex) { 
         const emp = allData.find(r => r.row_index === rowIndex);
@@ -262,173 +349,133 @@
             }
         } catch(e) {}
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
+        
         document.getElementById('viewDetailsBody').innerHTML = `
             <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4>
             <div class="mb-3">
                 <span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span>
             </div></div>
             <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist"><li class="nav-item"><button class="nav-link active py-1" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Info</button></li><li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li></ul>
-            <div class="tab-content text-start"><div class="tab-pane fade show active" id="view-basic"><table class="table table-bordered table-sm mb-0"><tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr><tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr><tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr><tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr><tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr><tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr><tr><th>Email</th><td>${emp.Email || '-'}</td></tr><tr><th>Address</th><td>${emp.Address || '-'}</td></tr><tr><th>Start Date</th><td>${formatDate(emp['Start Date'])}</td></tr><tr><th>Resign Date</th><td>${formatDate(emp['Resign Date'])}</td></tr></table></div><div class="tab-pane fade" id="view-edu">${eduHtml}</div></div>
+            <div class="tab-content text-start">
+                <div class="tab-pane fade show active" id="view-basic">
+                    <table class="table table-bordered table-sm mb-0">
+                        <tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr>
+                        <tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr>
+                        <tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr>
+                        <tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr>
+                        <tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr>
+                        <tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr>
+                        <tr><th>Email</th><td>${emp.Email || '-'}</td></tr>
+                        <tr><th>Address</th><td>${emp.Address || '-'}</td></tr>
+                        <tr><th>Start Date</th><td>${formatDate(emp['Start Date'])}</td></tr>
+                        <tr><th>Resign Date</th><td>${formatDate(emp['Resign Date'])}</td></tr>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="view-edu">${eduHtml}</div>
+            </div>
         `; 
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    // --- WORD GENERATION (Using HTML-DOCX-JS Logic) ---
-    async function downloadProfileWord() {
+    // --- HIGH-RES PDF GENERATION + APPENDED FILES ---
+    async function downloadProfilePDF() {
         if(!currentViewedEmp) return;
         const emp = currentViewedEmp;
         showLoading(true);
 
-        // Fetch Image Base64
-        let profileImage = "";
-        if (emp['Profile Pic']) {
+        try {
+            // 1. FILL DATA INTO HIDDEN PRINT AREA
+            document.getElementById('p-name').innerText = emp.Name;
+            document.getElementById('p-pos-dept').innerText = `${emp.Position || '-'} | ${emp.Department || '-'}`;
+            document.getElementById('p-phone').innerText = emp.Phone || '-';
+            document.getElementById('p-email').innerText = emp.Email || '-';
+            document.getElementById('p-addr').innerText = emp.Address || '-';
+            document.getElementById('p-nrc').innerText = emp['NRC No.'] || '-';
+            document.getElementById('p-blood').innerText = emp['Blood Type'] || '-';
+            document.getElementById('p-father').innerText = emp['Father Name'] || '-';
+            document.getElementById('p-mother').innerText = emp['Mother Name'] || '-';
+            document.getElementById('p-sr').innerText = emp['Sr No.'] || '-';
+            const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
+            document.getElementById('p-start').innerText = formatDate(emp['Start Date']);
+            document.getElementById('p-resign').innerText = formatDate(emp['Resign Date']);
+
+            // Education List in Print Area
+            const pEdu = document.getElementById('p-edu-list');
+            pEdu.innerHTML = '';
+            let eduListForPDF = []; // Store URLs for appending later
             try {
+                if(emp.Education && emp.Education.trim() !== "") {
+                    const eduList = JSON.parse(emp.Education);
+                    eduList.forEach(item => {
+                        pEdu.innerHTML += `<div class="print-edu-item">${item.title}</div>`;
+                        if(item.url) eduListForPDF.push(item.url); // Save URL
+                    });
+                } else { pEdu.innerHTML = '<div class="text-muted">- None -</div>'; }
+            } catch(e) { pEdu.innerHTML = '-'; }
+
+            // Profile Image (Fetch Base64 High Res)
+            const imgEl = document.getElementById('p-photo');
+            let profileBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+            if (emp['Profile Pic']) {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getImageBase64', fileUrl: emp['Profile Pic'] }) });
                 const result = await res.json();
-                if(result.status === 'success') profileImage = result.data;
-            } catch(e) {}
-        }
-        // Placeholder if no image
-        if(!profileImage) profileImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+                if(result.status === 'success') profileBase64 = result.data;
+            }
+            imgEl.src = profileBase64;
 
-        let eduListHtml = '<p style="color:#777">- None -</p>';
-        try {
-            if(emp.Education && emp.Education.trim() !== "") {
-                const eduList = JSON.parse(emp.Education);
-                if(eduList.length > 0) {
-                    eduListHtml = '';
-                    eduList.forEach(item => {
-                        eduListHtml += `<div style="padding:5px; background:#f5f5f5; margin-bottom:5px; border-left:3px solid #0d6efd; font-size:14px;">${item.title}</div>`;
-                    });
+            // 2. CAPTURE HTML TO CANVAS (High Scale)
+            const printElement = document.getElementById('print-view');
+            const canvas = await html2canvas(printElement, { scale: 2, useCORS: true });
+            const profilePageImage = canvas.toDataURL('image/jpeg', 0.9);
+
+            // 3. PREPARE CERTIFICATE IMAGES
+            let certificateImages = [];
+            if(currentUser.role === 'Root') { // Only Root can download certs
+                for (let url of eduListForPDF) {
+                    try {
+                        const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getImageBase64', fileUrl: url }) });
+                        const result = await res.json();
+                        if(result.status === 'success' && result.data.startsWith('data:image')) {
+                            certificateImages.push(result.data);
+                        }
+                    } catch(e) { console.log('Skipping non-image file or error'); }
                 }
             }
-        } catch(e) {}
 
-        const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
+            // 4. BUILD PDF (PDFMAKE)
+            const docContent = [
+                { image: profilePageImage, width: 550, margin: [0, 0, 0, 0] } // Profile Page as Image
+            ];
 
-        // Construct HTML String for Word
-        const content = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8">
-                <style>
-                    body { font-family: 'Padauk', 'Pyidaungsu', Arial, sans-serif; }
-                    table { width: 100%; border-collapse: collapse; }
-                    .header { background-color: #0d6efd; color: white; padding: 20px; }
-                    .photo-container { text-align: right; }
-                    .photo { width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; object-fit: cover; }
-                    .title h1 { margin: 0; font-size: 24px; }
-                    .title h3 { margin: 5px 0 0; font-size: 16px; opacity: 0.9; }
-                    .section { margin-top: 20px; }
-                    .section-title { color: #0d6efd; font-weight: bold; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; }
-                    .field { margin-bottom: 10px; }
-                    .label { color: #666; font-size: 12px; display: block; }
-                    .value { color: #333; font-size: 14px; font-weight: bold; }
-                </style>
-            </head>
-            <body>
-                <table class="header">
-                    <tr>
-                        <td class="title">
-                            <h1>${emp.Name}</h1>
-                            <h3>${emp.Position || '-'} | ${emp.Department || '-'}</h3>
-                        </td>
-                        <td class="photo-container">
-                            <img src="${profileImage}" class="photo" width="100" height="100">
-                        </td>
-                    </tr>
-                </table>
+            // Add Certificates as New Pages
+            certificateImages.forEach(img => {
+                docContent.push({ text: '', pageBreak: 'before' });
+                docContent.push({ image: img, width: 500, alignment: 'center', margin: [0, 20, 0, 0] });
+            });
 
-                <br>
+            const docDefinition = {
+                content: docContent,
+                pageSize: 'A4',
+                pageMargins: [20, 20, 20, 20]
+            };
 
-                <table>
-                    <tr>
-                        <td width="45%" valign="top">
-                            <div class="section">
-                                <div class="section-title">Contact Info</div>
-                                <div class="field"><span class="label">Phone</span><div class="value">${emp.Phone || '-'}</div></div>
-                                <div class="field"><span class="label">Email</span><div class="value">${emp.Email || '-'}</div></div>
-                                <div class="field"><span class="label">Address</span><div class="value">${emp.Address || '-'}</div></div>
-                            </div>
-                            <div class="section">
-                                <div class="section-title">Personal Details</div>
-                                <div class="field"><span class="label">NRC No.</span><div class="value">${emp['NRC No.'] || '-'}</div></div>
-                                <div class="field"><span class="label">Blood Type</span><div class="value">${emp['Blood Type'] || '-'}</div></div>
-                                <div class="field"><span class="label">Father Name</span><div class="value">${emp['Father Name'] || '-'}</div></div>
-                                <div class="field"><span class="label">Mother Name</span><div class="value">${emp['Mother Name'] || '-'}</div></div>
-                            </div>
-                        </td>
-                        <td width="5%"></td> <!-- Spacer -->
-                        <td width="50%" valign="top">
-                            <div class="section">
-                                <div class="section-title">Employment</div>
-                                <div class="field"><span class="label">Employee ID (Sr)</span><div class="value">${emp['Sr No.'] || '-'}</div></div>
-                                <div class="field"><span class="label">Start Date</span><div class="value">${formatDate(emp['Start Date'])}</div></div>
-                                <div class="field"><span class="label">Resign Date</span><div class="value">${formatDate(emp['Resign Date'])}</div></div>
-                            </div>
-                            <div class="section">
-                                <div class="section-title">Education & Certificates</div>
-                                ${eduListHtml}
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </body>
-            </html>
-        `;
+            pdfMake.createPdf(docDefinition).download(`${emp.Name}_Full_Profile.pdf`);
 
-        // Generate Blob using html-docx-js
-        const converted = htmlDocx.asBlob(content);
-        saveAs(converted, `${emp.Name}_Profile.docx`);
-        showLoading(false);
-    }
-
-    // --- GLOBALS ---
-    window.openModal = function(mode, rowIndex = null) { 
-        const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
-        document.getElementById('employeeForm').reset(); 
-        document.getElementById('eduContainer').innerHTML = ''; 
-        compressedImageBase64 = null; deleteImageFlag = false; eduFilesToDelete = []; 
-        document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none'; 
-        var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]'); var firstTab = new bootstrap.Tab(firstTabEl); firstTab.show();
-
-        if(mode === 'edit') { 
-            const emp = allData.find(r => r.row_index === rowIndex); 
-            document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic']; 
-            document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
-            if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0]; if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; 
-            if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
-            try { if(emp.Education && emp.Education.trim() !== "") { const eduList = JSON.parse(emp.Education); eduList.forEach(item => addEduRow(item.title, item.url)); } } catch(e) {}
-        } else { 
-            document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; 
-            addEduRow(); 
-        } 
-        modal.show(); 
-    }
-
-    window.saveEmployee = async function() {
-        showLoading(true);
-        const rowIndex = document.getElementById('editRowIndex').value;
-        const eduRows = document.querySelectorAll('.edu-row');
-        const educationData = [];
-        for (const row of eduRows) {
-            const title = row.querySelector('.edu-title').value.trim();
-            if(!title) continue; 
-            const fileInput = row.querySelector('.edu-file');
-            const existingUrl = row.querySelector('.edu-existing-url').value;
-            let fileBase64 = null;
-            if (fileInput.files.length > 0) { fileBase64 = await toBase64(fileInput.files[0]); }
-            educationData.push({ title: title, file_base64: fileBase64, url: existingUrl });
+        } catch (error) {
+            console.error(error);
+            alert("Error: " + error.message);
+        } finally {
+            showLoading(false);
         }
-        const employeeData = { 
-            Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, ResignDate: document.getElementById('empResign').value, image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value,
-            Education: educationData 
-        };
-        const payload = { action: rowIndex ? 'editEmployee' : 'addEmployee', employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag, deleted_edu_files: eduFilesToDelete }; 
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); });
     }
 
+    // --- STANDARD CRUD ---
+    window.addEduRow = function(title="", url="") { const container = document.getElementById('eduContainer'); const div = document.createElement('div'); div.className = 'edu-row row g-2 align-items-center'; let fileDisplay = ""; if(url) { fileDisplay = `<a href="${url}" target="_blank" class="ms-2 small text-success"><i class="fas fa-check-circle"></i> File Uploaded</a>`; } div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png"><input type="hidden" class="edu-existing-url" value="${url}">${fileDisplay}</div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`; container.appendChild(div); }
+    window.removeEduRow = function(btn) { const row = btn.closest('.edu-row'); const url = row.querySelector('.edu-existing-url').value; if (url) { eduFilesToDelete.push(url); } row.remove(); }
+    window.renderTable = function() { const tbody = document.getElementById('tableBody'); tbody.innerHTML = ''; const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage); pageData.forEach(row => { let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`; if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`; let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`; if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; } else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; } tbody.innerHTML += `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`; }); updatePaginationInfo(); }
+    window.openModal = function(mode, rowIndex = null) { const modal = new bootstrap.Modal(document.getElementById('employeeModal')); document.getElementById('employeeForm').reset(); document.getElementById('eduContainer').innerHTML = ''; compressedImageBase64 = null; deleteImageFlag = false; eduFilesToDelete = []; document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none'; var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]'); var firstTab = new bootstrap.Tab(firstTabEl); firstTab.show(); if(mode === 'edit') { const emp = allData.find(r => r.row_index === rowIndex); document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic']; document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address; if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0]; if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; } try { if(emp.Education && emp.Education.trim() !== "") { const eduList = JSON.parse(emp.Education); eduList.forEach(item => addEduRow(item.title, item.url)); } } catch(e) {} } else { document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; addEduRow(); } modal.show(); }
+    window.saveEmployee = async function() { showLoading(true); const rowIndex = document.getElementById('editRowIndex').value; const eduRows = document.querySelectorAll('.edu-row'); const educationData = []; for (const row of eduRows) { const title = row.querySelector('.edu-title').value.trim(); if(!title) continue; const fileInput = row.querySelector('.edu-file'); const existingUrl = row.querySelector('.edu-existing-url').value; let fileBase64 = null; if (fileInput.files.length > 0) { fileBase64 = await toBase64(fileInput.files[0]); } educationData.push({ title: title, file_base64: fileBase64, url: existingUrl }); } const employeeData = { Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, ResignDate: document.getElementById('empResign').value, image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value, Education: educationData }; const payload = { action: rowIndex ? 'editEmployee' : 'addEmployee', employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag, deleted_edu_files: eduFilesToDelete }; fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); }); }
+    // Helpers
     window.exportToExcel = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); const wb = XLSX.utils.book_new(); const cleanData = filteredData.map(({row_index, image_base64, ...item}) => item); const ws = XLSX.utils.json_to_sheet(cleanData); XLSX.utils.book_append_sheet(wb, ws, "Employees"); XLSX.writeFile(wb, "Employees_Report.xlsx"); }
     window.openSettingsModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); renderSettingsList(); new bootstrap.Modal(document.getElementById('settingsModal')).show(); }
     window.renderSettingsList = function() { const category = document.getElementById('settingsCategory').value; const listContainer = document.getElementById('settingsList'); const items = dropdownData[category] || []; listContainer.innerHTML = ''; if(items.length === 0) { listContainer.innerHTML = '<div class="p-3 text-center text-muted">No items found.</div>'; return; } items.forEach(item => { listContainer.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center"><span>${item}</span><button class="btn btn-sm btn-outline-danger" onclick="deleteDropdownItem('${category}', '${item}')"><i class="fas fa-trash"></i></button></div>`; }); }
@@ -439,21 +486,7 @@
     window.openReportModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); const total = allData.length; document.getElementById('totalEmpCount').innerText = total; const deptCounts = {}; allData.forEach(e => { const d = e.Department || 'Unassigned'; deptCounts[d] = (deptCounts[d] || 0) + 1; }); const posCounts = {}; allData.forEach(e => { const p = e.Position || 'Unassigned'; posCounts[p] = (posCounts[p] || 0) + 1; }); renderReportList('deptReportList', deptCounts); renderReportList('posReportList', posCounts); new bootstrap.Modal(document.getElementById('reportModal')).show(); }
     window.renderReportList = function(elementId, countsObj) { const el = document.getElementById(elementId); el.innerHTML = ''; const sortedKeys = Object.keys(countsObj).sort(); sortedKeys.forEach(key => { el.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">${key}<span class="badge bg-primary rounded-pill">${countsObj[key]}</span></li>`; }); if(sortedKeys.length === 0) el.innerHTML = '<li class="list-group-item text-muted">No data available</li>'; }
     window.deleteEmployee = deleteEmployee;
-    
     const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
-
-    function renderTable() {
-        const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
-        const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage);
-        pageData.forEach(row => {
-            let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`; if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`;
-            let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`;
-            if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; } 
-            else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; }
-            tbody.innerHTML += `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`;
-        });
-        updatePaginationInfo();
-    }
     function loadEmployees() { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { allData = resp.data; filterData(); }}); }
     function loadAllDropdowns() { fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) }).then(res => res.json()).then(resp => { if(resp.status === 'success') { dropdownData = resp.data; populateSelects(); }}); }
     function populateSelects() { populateSingleSelect('empDept', dropdownData['Department']); populateSingleSelect('empPos', dropdownData['Position']); populateSingleSelect('empBlood', dropdownData['Blood Type']); }
