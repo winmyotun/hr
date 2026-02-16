@@ -79,18 +79,20 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList">
-                <!-- Manage Dropdowns Item -->
+                
+                <!-- 1. Manage Dropdowns Item -->
                 <a class="list-group-item sidebar-item" onclick="openSettingsModal()">
-                    <i class="fas fa-list-alt text-success"></i> Manage Dropdowns
+                    <i class="fas fa-list-alt text-primary"></i> Manage Dropdowns
                 </a>
                 
-                <!-- Placeholder for future menu items -->
-                <!-- <a class="list-group-item sidebar-item" href="#">
-                    <i class="fas fa-chart-line text-info"></i> Reports (Coming Soon)
-                </a> -->
+                <!-- 2. Export to Excel Item (Moved Here) -->
+                <a class="list-group-item sidebar-item" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel text-success"></i> Export to Excel
+                </a>
+
             </div>
             <div class="p-3 mt-auto text-muted small">
-                Version 1.0<br>HR Management System
+                Version 1.2<br>HR Management System
             </div>
         </div>
     </div>
@@ -100,7 +102,7 @@
         <div class="d-flex justify-content-between flex-wrap gap-3 mb-4">
             <div>
                 <button class="btn btn-success" id="btnAdd" onclick="openModal('add')"><i class="fas fa-plus"></i> Add Employee</button>
-                <button class="btn btn-outline-success ms-1" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Export</button>
+                <!-- Export button removed from here -->
             </div>
             
             <div class="d-flex gap-2">
@@ -182,7 +184,7 @@
 </div>
 
 <!-- Settings Modal (Manage Dropdowns) -->
-<div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;"> <!-- Higher Z-Index to show above sidebar -->
+<div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-dark text-white">
@@ -254,17 +256,33 @@
         document.getElementById('dashboardSection').style.display = 'block';
         document.getElementById('userDisplay').innerText = `${currentUser.username} (${currentUser.role})`;
         
-        // RBAC: If not Root, hide "Add Employee" and Sidebar "Manage Dropdowns"
+        // RBAC: If not Root, hide "Add Employee" and Sidebar Items
         if(currentUser.role !== 'Root') {
             document.getElementById('btnAdd').style.display = 'none';
-            // Hide specific sidebar items if needed, or hide the whole sidebar button
-            // For now, let's hide the Manage Dropdowns item inside sidebar
-            const sidebarList = document.getElementById('sidebarList');
-            sidebarList.innerHTML = '<div class="p-3 text-muted">No actions available for your role.</div>';
+            // Hide manage dropdowns if not root
+            document.getElementById('sidebarList').innerHTML = `
+                 <a class="list-group-item sidebar-item" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel text-success"></i> Export to Excel
+                </a>`;
         }
         
         loadEmployees();
         loadAllDropdowns();
+    }
+
+    // --- EXPORT TO EXCEL ---
+    function exportToExcel() {
+        // Close sidebar for better UX
+        const sidebarEl = document.getElementById('sidebarMenu');
+        const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl);
+        if(sidebarInstance) sidebarInstance.hide();
+
+        const wb = XLSX.utils.book_new();
+        // Remove internal fields like row_index
+        const cleanData = filteredData.map(({row_index, image_base64, ...item}) => item);
+        const ws = XLSX.utils.json_to_sheet(cleanData);
+        XLSX.utils.book_append_sheet(wb, ws, "Employees");
+        XLSX.writeFile(wb, "Employees_Report.xlsx");
     }
 
     // --- DROPDOWN LOGIC ---
@@ -292,7 +310,6 @@
 
     // --- SETTINGS MODAL FROM SIDEBAR ---
     function openSettingsModal() {
-        // Close sidebar first (optional, but cleaner on mobile)
         const sidebarEl = document.getElementById('sidebarMenu');
         const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl);
         if(sidebarInstance) sidebarInstance.hide();
@@ -400,7 +417,7 @@
         updatePaginationInfo();
     }
 
-    // Image, Modal, Export, etc. (Same as previous)
+    // Image, Modal, etc.
     function previewAndCompress(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -558,7 +575,6 @@
     }
     function changePage(p) { currentPage = p; renderTable(); }
     function changeRowsPerPage() { rowsPerPage = parseInt(document.getElementById('rowsPerPage').value); currentPage = 1; renderTable(); }
-    function exportToExcel() { const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(filteredData.map(({row_index, ...i}) => i)); XLSX.utils.book_append_sheet(wb, ws, "Employees"); XLSX.writeFile(wb, "Employees.xlsx"); }
     function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
 </script>
 
