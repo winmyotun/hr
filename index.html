@@ -30,9 +30,13 @@
         
         /* Sidebar Styling */
         .offcanvas { width: 280px !important; }
-        .sidebar-item { cursor: pointer; transition: 0.2s; border: none; border-bottom: 1px solid #eee; padding: 15px; font-size: 16px; color: #333; }
-        .sidebar-item:hover { background-color: #f8f9fa; color: #0d6efd; padding-left: 20px; }
+        .sidebar-header-text { font-size: 0.75rem; font-weight: 700; color: #adb5bd; letter-spacing: 1px; padding: 15px 15px 5px 15px; }
+        .sidebar-item { cursor: pointer; transition: 0.2s; border: none; padding: 12px 20px; font-size: 15px; color: #495057; background: transparent; }
+        .sidebar-item:hover { background-color: #f1f3f5; color: #0d6efd; padding-left: 25px; }
         .sidebar-item i { width: 25px; text-align: center; margin-right: 10px; }
+        
+        /* Report Modal Cards */
+        .stat-card { border-left: 4px solid #0d6efd; background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -80,19 +84,26 @@
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList">
                 
-                <!-- 1. Manage Dropdowns Item -->
+                <!-- Section: Admin -->
+                <div class="sidebar-header-text">ADMINISTRATION</div>
                 <a class="list-group-item sidebar-item" onclick="openSettingsModal()">
                     <i class="fas fa-list-alt text-primary"></i> Manage Dropdowns
                 </a>
                 
-                <!-- 2. Export to Excel Item (Moved Here) -->
+                <!-- Section: Reports -->
+                <div class="sidebar-header-text mt-2">REPORTS</div>
+                
+                <a class="list-group-item sidebar-item" onclick="openReportModal()">
+                    <i class="fas fa-chart-pie text-info"></i> Summary Dashboard
+                </a>
+                
                 <a class="list-group-item sidebar-item" onclick="exportToExcel()">
                     <i class="fas fa-file-excel text-success"></i> Export to Excel
                 </a>
 
             </div>
-            <div class="p-3 mt-auto text-muted small">
-                Version 1.2<br>HR Management System
+            <div class="p-3 mt-auto text-muted small border-top">
+                Version 1.3<br>HR Management System
             </div>
         </div>
     </div>
@@ -102,7 +113,6 @@
         <div class="d-flex justify-content-between flex-wrap gap-3 mb-4">
             <div>
                 <button class="btn btn-success" id="btnAdd" onclick="openModal('add')"><i class="fas fa-plus"></i> Add Employee</button>
-                <!-- Export button removed from here -->
             </div>
             
             <div class="d-flex gap-2">
@@ -211,6 +221,41 @@
     </div>
 </div>
 
+<!-- NEW: Report Dashboard Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-chart-pie"></i> Summary Dashboard</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card bg-light border-0 p-3 text-center">
+                            <h3 class="display-6 fw-bold text-primary" id="totalEmpCount">0</h3>
+                            <span class="text-muted">Total Employees</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold border-bottom pb-2">Employees by Department</h6>
+                        <ul class="list-group list-group-flush" id="deptReportList"></ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold border-bottom pb-2">Employees by Position</h6>
+                        <ul class="list-group list-group-flush" id="posReportList"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- View Details Modal -->
 <div class="modal fade" id="viewModal" tabindex="-1">
     <div class="modal-dialog">
@@ -256,29 +301,77 @@
         document.getElementById('dashboardSection').style.display = 'block';
         document.getElementById('userDisplay').innerText = `${currentUser.username} (${currentUser.role})`;
         
-        // RBAC: If not Root, hide "Add Employee" and Sidebar Items
+        // RBAC
         if(currentUser.role !== 'Root') {
             document.getElementById('btnAdd').style.display = 'none';
-            // Hide manage dropdowns if not root
-            document.getElementById('sidebarList').innerHTML = `
-                 <a class="list-group-item sidebar-item" onclick="exportToExcel()">
-                    <i class="fas fa-file-excel text-success"></i> Export to Excel
-                </a>`;
+            // Only show Export for non-root users in sidebar
+            const sidebarList = document.getElementById('sidebarList');
+            sidebarList.innerHTML = `
+                <div class="sidebar-header-text">REPORTS</div>
+                <a class="list-group-item sidebar-item" onclick="openReportModal()"><i class="fas fa-chart-pie text-info"></i> Summary Dashboard</a>
+                <a class="list-group-item sidebar-item" onclick="exportToExcel()"><i class="fas fa-file-excel text-success"></i> Export to Excel</a>
+            `;
         }
         
         loadEmployees();
         loadAllDropdowns();
     }
 
+    // --- REPORT LOGIC ---
+    function openReportModal() {
+        // Hide sidebar
+        const sidebarEl = document.getElementById('sidebarMenu');
+        const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl);
+        if(sidebarInstance) sidebarInstance.hide();
+
+        // Calculate Stats
+        const total = allData.length;
+        document.getElementById('totalEmpCount').innerText = total;
+
+        // Dept Counts
+        const deptCounts = {};
+        allData.forEach(e => {
+            const d = e.Department || 'Unassigned';
+            deptCounts[d] = (deptCounts[d] || 0) + 1;
+        });
+
+        // Position Counts
+        const posCounts = {};
+        allData.forEach(e => {
+            const p = e.Position || 'Unassigned';
+            posCounts[p] = (posCounts[p] || 0) + 1;
+        });
+
+        // Render Lists
+        renderReportList('deptReportList', deptCounts);
+        renderReportList('posReportList', posCounts);
+
+        new bootstrap.Modal(document.getElementById('reportModal')).show();
+    }
+
+    function renderReportList(elementId, countsObj) {
+        const el = document.getElementById(elementId);
+        el.innerHTML = '';
+        const sortedKeys = Object.keys(countsObj).sort();
+        
+        sortedKeys.forEach(key => {
+            el.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${key}
+                    <span class="badge bg-primary rounded-pill">${countsObj[key]}</span>
+                </li>
+            `;
+        });
+        if(sortedKeys.length === 0) el.innerHTML = '<li class="list-group-item text-muted">No data available</li>';
+    }
+
     // --- EXPORT TO EXCEL ---
     function exportToExcel() {
-        // Close sidebar for better UX
         const sidebarEl = document.getElementById('sidebarMenu');
         const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl);
         if(sidebarInstance) sidebarInstance.hide();
 
         const wb = XLSX.utils.book_new();
-        // Remove internal fields like row_index
         const cleanData = filteredData.map(({row_index, image_base64, ...item}) => item);
         const ws = XLSX.utils.json_to_sheet(cleanData);
         XLSX.utils.book_append_sheet(wb, ws, "Employees");
@@ -349,7 +442,6 @@
             showLoading(false);
             if(resp.status === 'success') {
                 document.getElementById('newItemName').value = '';
-                // Refresh data
                 fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) })
                 .then(r => r.json()).then(d => {
                     dropdownData = d.data;
