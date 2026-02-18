@@ -255,8 +255,9 @@
         row.remove();
     }
 
-        window.viewDetails = function(rowIndex) { 
+    window.viewDetails = function(rowIndex) { 
         const emp = allData.find(r => r.row_index === rowIndex);
+        
         // Prepare Object for Server-side PDF
         currentViewedEmp = {
             Name: emp.Name, Position: emp.Position, Department: emp.Department, Phone: emp.Phone, Email: emp.Email,
@@ -265,15 +266,21 @@
             ProfilePic: emp['Profile Pic'], EducationObject: emp.EducationObject
         };
 
-        // --- NEW LOGIC: PDF Button Permission Check ---
+        // --- PDF Button Permission Logic ---
         const pdfBtn = document.querySelector('#viewModal .btn-dark'); // Export Button
         
-        // Default State: Enable Button
+        // 1. Reset Button State (Default: Enable for Root)
         pdfBtn.disabled = false;
         pdfBtn.innerHTML = '<i class="fas fa-file-pdf text-danger"></i> Export';
 
-        // Check Logic: If Admin AND Departments don't match -> Lock Button
-        if (currentUser.role === 'Admin') {
+        // 2. Check Permissions
+        if (currentUser.role === 'User') {
+            // CASE A: User Role -> ALWAYS LOCK
+            pdfBtn.disabled = true;
+            pdfBtn.innerHTML = '<i class="fas fa-lock"></i> Restricted';
+        } 
+        else if (currentUser.role === 'Admin') {
+            // CASE B: Admin Role -> LOCK if Department mismatch
             const userDept = (currentUser.department || "").trim();
             const empDept = (emp.Department || "").trim();
 
@@ -282,7 +289,8 @@
                 pdfBtn.innerHTML = '<i class="fas fa-lock"></i> Restricted';
             }
         }
-        // ----------------------------------------------
+        // CASE C: Root Role -> Remains Enabled (No change needed)
+        // -----------------------------------
 
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; 
         let eduHtml = '<p class="text-muted small">No education info</p>';
@@ -294,7 +302,7 @@
                 let urlArray = Array.isArray(item.urls) ? item.urls : [];
                 urlArray.forEach((link, idx) => {
                     if(link.trim()) {
-                        // Education File Permission Logic (Existing)
+                        // Education File Permission Logic
                         if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-primary text-decoration-none ms-1">File ${idx+1}</a>`; } 
                         else { linksHtml += `<span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span>`; } 
                     }
@@ -327,7 +335,6 @@
             </div>`; 
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
-
 
     // --- GENERATE PDF via BACKEND (DOC TEMPLATE) ---
     function generateAndDownloadPDF() {
