@@ -271,13 +271,15 @@
         
         // 1. Reset Button State (Default: Enable for Root)
         pdfBtn.disabled = false;
+        // Normal State (Red PDF Icon + Export)
         pdfBtn.innerHTML = '<i class="fas fa-file-pdf text-danger"></i> Export';
 
         // 2. Check Permissions
         if (currentUser.role === 'User') {
             // CASE A: User Role -> ALWAYS LOCK
             pdfBtn.disabled = true;
-            pdfBtn.innerHTML = '<i class="fas fa-lock"></i> Restricted';
+            // Changed Icon to PDF but kept text Restricted
+            pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted';
         } 
         else if (currentUser.role === 'Admin') {
             // CASE B: Admin Role -> LOCK if Department mismatch
@@ -286,10 +288,11 @@
 
             if (userDept !== empDept) {
                 pdfBtn.disabled = true;
-                pdfBtn.innerHTML = '<i class="fas fa-lock"></i> Restricted';
+                // Changed Icon to PDF but kept text Restricted
+                pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted';
             }
         }
-        // CASE C: Root Role -> Remains Enabled (No change needed)
+        // CASE C: Root Role -> Remains Enabled
         // -----------------------------------
 
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; 
@@ -335,6 +338,9 @@
             </div>`; 
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
+
+
+
 
     // --- GENERATE PDF via BACKEND (DOC TEMPLATE) ---
     function generateAndDownloadPDF() {
