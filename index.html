@@ -255,15 +255,34 @@
         row.remove();
     }
 
-    window.viewDetails = function(rowIndex) { 
+        window.viewDetails = function(rowIndex) { 
         const emp = allData.find(r => r.row_index === rowIndex);
-        // Prepare Object for Server-side PDF (Same object structure as before)
+        // Prepare Object for Server-side PDF
         currentViewedEmp = {
             Name: emp.Name, Position: emp.Position, Department: emp.Department, Phone: emp.Phone, Email: emp.Email,
             Address: emp.Address, Nrc: emp['NRC No.'], FatherName: emp['Father Name'], MotherName: emp['Mother Name'],
             BloodType: emp['Blood Type'], Race: emp.Race, Religion: emp.Religion, StartDate: emp['Start Date'], ResignDate: emp['Resign Date'],
             ProfilePic: emp['Profile Pic'], EducationObject: emp.EducationObject
         };
+
+        // --- NEW LOGIC: PDF Button Permission Check ---
+        const pdfBtn = document.querySelector('#viewModal .btn-dark'); // Export Button
+        
+        // Default State: Enable Button
+        pdfBtn.disabled = false;
+        pdfBtn.innerHTML = '<i class="fas fa-file-pdf text-danger"></i> Export';
+
+        // Check Logic: If Admin AND Departments don't match -> Lock Button
+        if (currentUser.role === 'Admin') {
+            const userDept = (currentUser.department || "").trim();
+            const empDept = (emp.Department || "").trim();
+
+            if (userDept !== empDept) {
+                pdfBtn.disabled = true;
+                pdfBtn.innerHTML = '<i class="fas fa-lock"></i> Restricted';
+            }
+        }
+        // ----------------------------------------------
 
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; 
         let eduHtml = '<p class="text-muted small">No education info</p>';
@@ -275,6 +294,7 @@
                 let urlArray = Array.isArray(item.urls) ? item.urls : [];
                 urlArray.forEach((link, idx) => {
                     if(link.trim()) {
+                        // Education File Permission Logic (Existing)
                         if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-primary text-decoration-none ms-1">File ${idx+1}</a>`; } 
                         else { linksHtml += `<span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span>`; } 
                     }
@@ -284,6 +304,7 @@
             eduHtml += '</ul>';
         }
         const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
+        
         document.getElementById('viewDetailsBody').innerHTML = `
             <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4><div class="mb-3"><span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span></div></div>
             <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist"><li class="nav-item"><button class="nav-link active py-1" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Info</button></li><li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li></ul>
@@ -306,6 +327,7 @@
             </div>`; 
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
+
 
     // --- GENERATE PDF via BACKEND (DOC TEMPLATE) ---
     function generateAndDownloadPDF() {
