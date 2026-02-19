@@ -177,25 +177,6 @@
                                 </div>
                                 <div class="col-md-6"><label>Name</label><input type="text" class="form-control" id="empName" required></div>
                                 
-                                <div class="col-md-6">
-                                    <label>Position</label>
-                                    <select class="form-select" id="empPos"><option value="">Loading...</option></select>
-                                    <div id="changePositionSection" class="mt-2 p-2 border rounded bg-light" style="display:none;">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="chkChangePosition">
-                                            <label class="form-check-label text-primary small" for="chkChangePosition">Promotion / Change Position?</label>
-                                        </div>
-                                        <div id="newPosDateContainer" class="mt-2" style="display:none;">
-                                            <label class="small text-muted">New Start Date</label>
-                                            <input type="date" class="form-control form-control-sm" id="newPosStartDate">
-                                        </div>
-                                    </div>
-                                    <div id="editPosHistoryContainer" class="mt-2 border-top pt-2" style="display:none;">
-                                        <label class="small text-muted fw-bold mb-1"><i class="fas fa-history"></i> Past Positions</label>
-                                        <ul class="list-group list-group-flush small" id="editPosHistoryList" style="font-size:0.85rem; max-height: 150px; overflow-y:auto;"></ul>
-                                    </div>
-                                </div>
-                                
                                 <div class="col-md-6"><label>Department</label><select class="form-select" id="empDept"><option value="">Loading...</option></select></div>
                                 <div class="col-md-6"><label>Blood Type</label><select class="form-select" id="empBlood"><option value="">Loading...</option></select></div>
                                 <div class="col-md-6"><label>Race</label><input type="text" class="form-control" id="empRace"></div>
@@ -206,18 +187,48 @@
                                 <div class="col-md-6"><label>Father Name</label><input type="text" class="form-control" id="empFather"></div>
                                 <div class="col-md-6"><label>Mother Name</label><input type="text" class="form-control" id="empMother"></div>
                                 <div class="col-md-6"><label>Start Date</label><input type="date" class="form-control" id="empStart"></div>
+                                
                                 <div class="col-md-6">
-                                    <label>Employment Status</label>
-                                    <div class="form-check form-switch pt-2">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="resignSwitch">
-                                        <label class="form-check-label" for="resignSwitch">Current</label>
-                                    </div>
-                                    <div id="resignDateContainer" style="display:none;" class="mt-1">
-                                        <label class="small text-muted">Resign Date</label>
-                                        <input type="date" class="form-control" id="empResign">
+                                    <label class="form-label">Employment Status</label>
+                                    <div class="d-flex align-items-center p-2 border rounded bg-light" style="height: 38px;">
+                                        <div class="form-check form-switch mb-0 me-3">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="resignSwitch">
+                                            <label class="form-check-label small" for="resignSwitch" style="margin-top: 2px;">Current</label>
+                                        </div>
+                                        <div id="resignDateContainer" style="display:none; flex-grow: 1;">
+                                            <input type="date" class="form-control form-control-sm" id="empResign">
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-12"><label>Address</label><textarea class="form-control" id="empAddr" rows="2"></textarea></div>
+                                
+                                <div class="col-12">
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Position</label>
+                                            <select class="form-select" id="empPos"><option value="">Loading...</option></select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div id="changePositionSection" style="display:none;">
+                                                <label class="form-label">Promotion / Change Position?</label>
+                                                <div class="d-flex align-items-center p-2 border rounded bg-light" style="height: 38px;">
+                                                    <div class="form-check mb-0 me-3">
+                                                        <input class="form-check-input" type="checkbox" id="chkChangePosition">
+                                                        <label class="form-check-label small" for="chkChangePosition" style="margin-top:2px;">Enable</label>
+                                                    </div>
+                                                    <div id="newPosDateContainer" style="display:none; flex-grow: 1;">
+                                                        <input type="date" class="form-control form-control-sm" id="newPosStartDate">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="editPosHistoryContainer" class="mt-2 border-top pt-2" style="display:none;">
+                                        <label class="small text-muted fw-bold mb-1"><i class="fas fa-history"></i> Past Positions</label>
+                                        <ul class="list-group list-group-flush small" id="editPosHistoryList" style="font-size:0.85rem; max-height: 150px; overflow-y:auto;"></ul>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                         <!-- EDUCATION TAB -->
@@ -306,7 +317,7 @@
     // *** IMPORTANT: REPLACE WITH YOUR DEPLOYED WEB APP URL ***
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxE_UG12Y-X1EoctYn00Buh_fl60kkO4w1ZZCwifsNlQyGp771u-3DkAlnOEVGS0sms8w/exec"; 
     
-    let currentUser = { role: null, username: null, department: null };
+    let currentUser = { role: null, username: null, department: null, token: null }; // Initialize token
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [], "Religion": [] }; 
     let compressedImageBase64 = null, deleteImageFlag = false;
@@ -314,7 +325,7 @@
     let currentViewedEmp = null;
     let deptChart = null, posChart = null; // Chart Instances
 
-    document.getElementById('loginForm').addEventListener('submit', function(e) { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: document.getElementById('username').value, password: document.getElementById('password').value }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { currentUser = { role: data.role, username: document.getElementById('username').value, department: data.department }; initDashboard(); } else Swal.fire('Error', data.message, 'error'); }).catch(e => { showLoading(false); Swal.fire('Connection Error', e.toString(), 'error'); }); });
+    document.getElementById('loginForm').addEventListener('submit', function(e) { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: document.getElementById('username').value, password: document.getElementById('password').value }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { currentUser = { token: data.token, role: data.role, username: document.getElementById('username').value, department: data.department }; initDashboard(); } else Swal.fire('Error', data.message, 'error'); }).catch(e => { showLoading(false); Swal.fire('Connection Error', e.toString(), 'error'); }); });
 
     function initDashboard() {
         document.getElementById('loginSection').style.display = 'none'; document.getElementById('dashboardSection').style.display = 'block'; document.getElementById('userDisplay').innerText = `${currentUser.username} (${currentUser.role})`;
@@ -525,13 +536,13 @@
             Education: educationData, CapacityBuilding: capacityData
         };
         const payload = { 
-            action: rowIndex ? 'editEmployee' : 'addEmployee', employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag, deleted_edu_files: eduFilesToDelete, user: currentUser,
+            action: rowIndex ? 'editEmployee' : 'addEmployee', token: currentUser.token, employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag, deleted_edu_files: eduFilesToDelete, user: currentUser,
             isChangePosition: document.getElementById('chkChangePosition').checked, newStartDate: document.getElementById('newPosStartDate').value
         }; 
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); } else { Swal.fire('Error', data.message, 'error'); } });
     }
 
-    window.deleteEmployee = function(rowIndex) { Swal.fire({ title: 'Delete?', text: "This action cannot be undone!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((result) => { if (result.isConfirmed) { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteEmployee', rowIndex: rowIndex, user: currentUser }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { Swal.fire('Deleted!', 'Employee has been deleted.', 'success'); loadEmployees(); } else { Swal.fire('Error', data.message, 'error'); } }); } }); }
+    window.deleteEmployee = function(rowIndex) { Swal.fire({ title: 'Delete?', text: "This action cannot be undone!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((result) => { if (result.isConfirmed) { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteEmployee', token: currentUser.token, rowIndex: rowIndex, user: currentUser }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { Swal.fire('Deleted!', 'Employee has been deleted.', 'success'); loadEmployees(); } else { Swal.fire('Error', data.message, 'error'); } }); } }); }
     window.exportToExcel = function() {
         const wb = XLSX.utils.book_new();
         const cleanData = allData.map(item => {
@@ -549,8 +560,8 @@
     }
     window.openSettingsModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); renderSettingsList(); new bootstrap.Modal(document.getElementById('settingsModal')).show(); }
     window.renderSettingsList = function() { const category = document.getElementById('settingsCategory').value; const listContainer = document.getElementById('settingsList'); const items = dropdownData[category] || []; listContainer.innerHTML = ''; if(items.length === 0) { listContainer.innerHTML = '<div class="p-3 text-center text-muted">No items found.</div>'; return; } items.forEach(item => { listContainer.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center"><span>${item}</span><button class="btn btn-sm btn-outline-danger" onclick="deleteDropdownItem('${category}', '${item}')"><i class="fas fa-trash"></i></button></div>`; }); }
-    window.addDropdownItem = function() { const category = document.getElementById('settingsCategory').value; const value = document.getElementById('newItemName').value.trim(); if(!value) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addDropdownItem', category: category, value: value, user: currentUser }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { document.getElementById('newItemName').value = ''; loadAllDropdowns().then(renderSettingsList); } else { Swal.fire('Error', resp.message, 'error'); } }); }
-    window.deleteDropdownItem = function(category, value) { if(!confirm(`Delete "${value}"?`)) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteDropdownItem', category: category, value: value, user: currentUser }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { loadAllDropdowns().then(renderSettingsList); } else { Swal.fire('Error', resp.message, 'error'); } }); }
+    window.addDropdownItem = function() { const category = document.getElementById('settingsCategory').value; const value = document.getElementById('newItemName').value.trim(); if(!value) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addDropdownItem', token: currentUser.token, category: category, value: value, user: currentUser }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { document.getElementById('newItemName').value = ''; loadAllDropdowns().then(renderSettingsList); } else { Swal.fire('Error', resp.message, 'error'); } }); }
+    window.deleteDropdownItem = function(category, value) { if(!confirm(`Delete "${value}"?`)) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteDropdownItem', token: currentUser.token, category: category, value: value, user: currentUser }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { loadAllDropdowns().then(renderSettingsList); } else { Swal.fire('Error', resp.message, 'error'); } }); }
     window.previewAndCompress = function(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { const img = new Image(); img.src = e.target.result; img.onload = function() { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 800; let width = img.width, height = img.height; if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } } canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height); compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7); document.getElementById('imgPreview').src = compressedImageBase64; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; deleteImageFlag = false; } }; reader.readAsDataURL(input.files[0]); } }
     window.markImageForDeletion = function() { document.getElementById('imgPreview').style.display = 'none'; document.getElementById('empPic').value = ''; document.getElementById('btnDeleteImg').style.display = 'none'; compressedImageBase64 = null; deleteImageFlag = true; }
     
