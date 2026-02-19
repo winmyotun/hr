@@ -39,86 +39,24 @@
         .file-link-badge { font-size: 0.8rem; margin-right: 5px; display: inline-block; margin-top: 2px; }
         .delete-file-btn { font-size: 0.7rem; margin-left: 5px; cursor: pointer; color: #dc3545; }
     
-    
     /* Dark Mode Styles */
-[data-bs-theme="dark"] body {
-    background-color: #212529 !important;
-    color: #f8f9fa;
-}
-[data-bs-theme="dark"] .bg-white {
-    background-color: #2b3035 !important; 
-    color: #fff;
-}
-[data-bs-theme="dark"] .text-secondary,
-[data-bs-theme="dark"] .text-muted {
-    color: #adb5bd !important;
-}
-[data-bs-theme="dark"] .table {
-    color: #e9ecef;
-    --bs-table-hover-color: #e9ecef;
-    --bs-table-hover-bg: #343a40;
-}
-[data-bs-theme="dark"] .login-container {
-    background-color: #2b3035;
-    color: #fff;
-}
-[data-bs-theme="dark"] .sidebar-item {
-    color: #ced4da;
-}
-[data-bs-theme="dark"] .sidebar-item:hover {
-    background-color: #343a40;
-    color: #6ea8fe;
-}
-[data-bs-theme="dark"] .modal-content {
-    background-color: #2b3035;
-    border-color: #495057;
-}
-[data-bs-theme="dark"] .form-control, 
-[data-bs-theme="dark"] .form-select,
-[data-bs-theme="dark"] .page-input-box,
-[data-bs-theme="dark"] .form-check-input {
-    background-color: #212529;
-    border-color: #495057;
-    color: #fff;
-}
-[data-bs-theme="dark"] .form-check-input:checked {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-}
-
-[data-bs-theme="dark"] .edu-row {
-    background-color: #343a40;
-    border-color: #495057;
-}
-
-[data-bs-theme="dark"] #loadingOverlay {
-    background: rgba(33, 37, 41, 0.95) !important; 
-}
-[data-bs-theme="dark"] .spinner-border {
-    border-color: #0d6efd; 
-    border-right-color: transparent;
-}
-
-[data-bs-theme="dark"] .bg-light {
-    background-color: #343a40 !important; 
-    color: #fff !important;
-}
-[data-bs-theme="dark"] .list-group-item {
-    background-color: #2b3035;
-    color: #e9ecef;
-    border-color: #495057;
-}
-
-[data-bs-theme="dark"] .swal2-popup {
-    background: #2b3035 !important;
-    color: #fff !important;
-    border: 1px solid #495057;
-}
-[data-bs-theme="dark"] .swal2-title,
-[data-bs-theme="dark"] .swal2-html-container {
-    color: #fff !important; 
-}
-
+    [data-bs-theme="dark"] body { background-color: #212529 !important; color: #f8f9fa; }
+    [data-bs-theme="dark"] .bg-white { background-color: #2b3035 !important; color: #fff; }
+    [data-bs-theme="dark"] .text-secondary, [data-bs-theme="dark"] .text-muted { color: #adb5bd !important; }
+    [data-bs-theme="dark"] .table { color: #e9ecef; --bs-table-hover-color: #e9ecef; --bs-table-hover-bg: #343a40; }
+    [data-bs-theme="dark"] .login-container { background-color: #2b3035; color: #fff; }
+    [data-bs-theme="dark"] .sidebar-item { color: #ced4da; }
+    [data-bs-theme="dark"] .sidebar-item:hover { background-color: #343a40; color: #6ea8fe; }
+    [data-bs-theme="dark"] .modal-content { background-color: #2b3035; border-color: #495057; }
+    [data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select, [data-bs-theme="dark"] .page-input-box, [data-bs-theme="dark"] .form-check-input { background-color: #212529; border-color: #495057; color: #fff; }
+    [data-bs-theme="dark"] .form-check-input:checked { background-color: #0d6efd; border-color: #0d6efd; }
+    [data-bs-theme="dark"] .edu-row { background-color: #343a40; border-color: #495057; }
+    [data-bs-theme="dark"] #loadingOverlay { background: rgba(33, 37, 41, 0.95) !important; }
+    [data-bs-theme="dark"] .spinner-border { border-color: #0d6efd; border-right-color: transparent; }
+    [data-bs-theme="dark"] .bg-light { background-color: #343a40 !important; color: #fff !important; }
+    [data-bs-theme="dark"] .list-group-item { background-color: #2b3035; color: #e9ecef; border-color: #495057; }
+    [data-bs-theme="dark"] .swal2-popup { background: #2b3035 !important; color: #fff !important; border: 1px solid #495057; }
+    [data-bs-theme="dark"] .swal2-title, [data-bs-theme="dark"] .swal2-html-container { color: #fff !important; }
     </style>
 </head>
 <body>
@@ -148,9 +86,7 @@
         
         <div class="d-flex align-items-center">
             <span class="me-3 fw-bold text-secondary d-none d-md-block" id="userDisplay"></span>
-            <button class="btn btn-outline-secondary btn-sm me-2" onclick="toggleTheme()" title="Toggle Theme">
-        <i class="fas fa-moon" id="themeIcon"></i>
-    </button>
+            <button class="btn btn-outline-secondary btn-sm me-2" onclick="toggleTheme()" title="Toggle Theme"><i class="fas fa-moon" id="themeIcon"></i></button>
             <button class="btn btn-outline-success btn-sm me-2" onclick="refreshData()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
             <button class="btn btn-outline-danger btn-sm" onclick="location.reload()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
         </div>
@@ -164,7 +100,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 3.1 (History Edit)</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 3.3 (Cap Building Details)</div>
         </div>
     </div>
 
@@ -205,6 +141,7 @@
                     <ul class="nav nav-tabs mb-3" id="empTabs" role="tablist">
                         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-basic" type="button">Basic Info</button></li>
                         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-edu" type="button">Education & Files</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-cap" type="button">Capacity Building</button></li>
                     </ul>
                     <div class="tab-content">
                         <!-- BASIC INFO TAB -->
@@ -216,48 +153,34 @@
                                 </div>
                                 <div class="col-md-6"><label>Name</label><input type="text" class="form-control" id="empName" required></div>
                                 
-                                <!-- ===== POSITION SECTION ===== -->
                                 <div class="col-md-6">
                                     <label>Position</label>
                                     <select class="form-select" id="empPos"><option value="">Loading...</option></select>
-                                    
-                                    <!-- Change Position Checkbox -->
                                     <div id="changePositionSection" class="mt-2 p-2 border rounded bg-light" style="display:none;">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="chkChangePosition">
-                                            <label class="form-check-label text-primary small" for="chkChangePosition">
-                                                Promotion / Change Position?
-                                            </label>
+                                            <label class="form-check-label text-primary small" for="chkChangePosition">Promotion / Change Position?</label>
                                         </div>
                                         <div id="newPosDateContainer" class="mt-2" style="display:none;">
-                                            <label class="small text-muted">New Start Date (Effective Date)</label>
+                                            <label class="small text-muted">New Start Date</label>
                                             <input type="date" class="form-control form-control-sm" id="newPosStartDate">
                                         </div>
                                     </div>
-
-                                    <!-- NEW: HISTORY LIST DISPLAY -->
                                     <div id="editPosHistoryContainer" class="mt-2 border-top pt-2" style="display:none;">
                                         <label class="small text-muted fw-bold mb-1"><i class="fas fa-history"></i> Past Positions</label>
-                                        <ul class="list-group list-group-flush small" id="editPosHistoryList" style="font-size:0.85rem; max-height: 150px; overflow-y:auto;">
-                                            <!-- Items will be injected here -->
-                                        </ul>
+                                        <ul class="list-group list-group-flush small" id="editPosHistoryList" style="font-size:0.85rem; max-height: 150px; overflow-y:auto;"></ul>
                                     </div>
-                                    <!-- ============================ -->
-
                                 </div>
                                 
                                 <div class="col-md-6"><label>Department</label><select class="form-select" id="empDept"><option value="">Loading...</option></select></div>
                                 <div class="col-md-6"><label>Blood Type</label><select class="form-select" id="empBlood"><option value="">Loading...</option></select></div>
-                                
                                 <div class="col-md-6"><label>Race</label><input type="text" class="form-control" id="empRace"></div>
                                 <div class="col-md-6"><label>Religion</label><select class="form-select" id="empReligion"><option value="">Loading...</option></select></div>
-                                
                                 <div class="col-md-6"><label>Phone</label><input type="text" class="form-control" id="empPhone"></div>
                                 <div class="col-md-6"><label>Email</label><input type="email" class="form-control" id="empEmail"></div>
                                 <div class="col-md-6"><label>NRC No.</label><input type="text" class="form-control" id="empNrc"></div>
                                 <div class="col-md-6"><label>Father Name</label><input type="text" class="form-control" id="empFather"></div>
                                 <div class="col-md-6"><label>Mother Name</label><input type="text" class="form-control" id="empMother"></div>
-                                
                                 <div class="col-md-6"><label>Start Date</label><input type="date" class="form-control" id="empStart"></div>
                                 <div class="col-md-6">
                                     <label>Employment Status</label>
@@ -270,7 +193,6 @@
                                         <input type="date" class="form-control" id="empResign">
                                     </div>
                                 </div>
-
                                 <div class="col-12"><label>Address</label><textarea class="form-control" id="empAddr" rows="2"></textarea></div>
                             </div>
                         </div>
@@ -280,9 +202,15 @@
                                 <label class="fw-bold">Degrees / Certificates</label>
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="addEduRow()"><i class="fas fa-plus"></i> Add Row</button>
                             </div>
-                            <div id="eduContainer">
-                                <!-- Dynamic Rows will appear here -->
+                            <div id="eduContainer"></div>
+                        </div>
+                        <!-- CAPACITY BUILDING TAB -->
+                        <div class="tab-pane fade" id="tab-cap">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="fw-bold">Trainings / Workshops</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCapRow()"><i class="fas fa-plus"></i> Add Row</button>
                             </div>
+                            <div id="capContainer"></div>
                         </div>
                     </div>
                 </form>
@@ -306,7 +234,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyD73UsK3zdIRe3k885z3uy8_BrRS0LosECIZdxEqjEu1UGREvJqeBASwyTwdXsVp_pww/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby2KZcquPZ6u6-KqkZC3CWcSHy3huIKWBu5ZKxrtxTcAB1LH6dcncJhZaZbgmbfUzTbOA/exec"; 
     let currentUser = { role: null, username: null, department: null };
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [], "Religion": [] }; 
@@ -332,27 +260,14 @@
         document.getElementById('resignSwitch').addEventListener('change', function() {
             const resignDateContainer = document.getElementById('resignDateContainer');
             const label = document.querySelector('label[for="resignSwitch"]');
-            if (this.checked) {
-                resignDateContainer.style.display = 'block';
-                label.textContent = 'Resigned';
-            } else {
-                resignDateContainer.style.display = 'none';
-                document.getElementById('empResign').value = '';
-                label.textContent = 'Current';
-            }
+            if (this.checked) { resignDateContainer.style.display = 'block'; label.textContent = 'Resigned'; } 
+            else { resignDateContainer.style.display = 'none'; document.getElementById('empResign').value = ''; label.textContent = 'Current'; }
         });
 
         document.getElementById('chkChangePosition').addEventListener('change', function() {
             const container = document.getElementById('newPosDateContainer');
-            if(this.checked) {
-                container.style.display = 'block';
-                if(!document.getElementById('newPosStartDate').value) {
-                     document.getElementById('newPosStartDate').value = new Date().toISOString().split('T')[0];
-                }
-            } else {
-                container.style.display = 'none';
-                document.getElementById('newPosStartDate').value = '';
-            }
+            if(this.checked) { container.style.display = 'block'; if(!document.getElementById('newPosStartDate').value) document.getElementById('newPosStartDate').value = new Date().toISOString().split('T')[0]; } 
+            else { container.style.display = 'none'; document.getElementById('newPosStartDate').value = ''; }
         });
 
         loadEmployees(); loadAllDropdowns();
@@ -360,31 +275,59 @@
 
     function refreshData() { loadEmployees(); loadAllDropdowns(); }
 
+    // --- Education Functions ---
     function addEduRow(title = "", urls = "") {
         const container = document.getElementById('eduContainer');
         const div = document.createElement('div');
         div.className = 'edu-row row g-2 align-items-center';
+        let fileDisplay = "";
+        let urlList = [];
+        if(Array.isArray(urls)) { urlList = urls; } 
+        else if (typeof urls === 'string' && urls.trim() !== "") { try { if (urls.startsWith('[')) urlList = JSON.parse(urls); else urlList = urls.split(" || "); } catch(e) { urlList = [urls]; } }
+        urlList.forEach((link, idx) => { if(link.trim()) fileDisplay += `<span class="badge bg-success text-decoration-none me-1 mb-1 file-link-badge">File ${idx+1} <a href="${link}" target="_blank" class="text-white"><i class="fas fa-download"></i></a><i class="fas fa-times-circle delete-file-btn" onclick="markFileForDelete(this, '${link}')"></i></span>`; });
+        div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png" multiple><div class="mt-1" id="fileList">${fileDisplay}</div><input type="hidden" class="edu-existing-urls" value='${JSON.stringify(urlList)}'></div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`;
+        container.appendChild(div);
+    }
+    window.removeEduRow = function(btn) { const row = btn.closest('.edu-row'); const hiddenInput = row.querySelector('.edu-existing-urls'); const urls = JSON.parse(hiddenInput.value || "[]"); if (urls.length > 0) { urls.forEach(url => eduFilesToDelete.push(url)); } row.remove(); }
+
+    // --- Capacity Building Functions (UPDATED) ---
+    function addCapRow(title = "", urls = "", start = "", end = "", hours = "", costType = "FOC", costAmount = "") {
+        const container = document.getElementById('capContainer');
+        const div = document.createElement('div');
+        div.className = 'edu-row p-3 mb-2 border rounded bg-light'; 
         
         let fileDisplay = "";
         let urlList = [];
         if(Array.isArray(urls)) { urlList = urls; } 
-        else if (typeof urls === 'string' && urls.trim() !== "") {
-            try { if (urls.startsWith('[')) urlList = JSON.parse(urls); else urlList = urls.split(" || "); } catch(e) { urlList = [urls]; }
-        }
+        else if (typeof urls === 'string' && urls.trim() !== "") { try { if (urls.startsWith('[')) urlList = JSON.parse(urls); else urlList = urls.split(" || "); } catch(e) { urlList = [urls]; } }
+        urlList.forEach((link, idx) => { if(link.trim()) fileDisplay += `<span class="badge bg-success text-decoration-none me-1 mb-1 file-link-badge">File ${idx+1} <a href="${link}" target="_blank" class="text-white"><i class="fas fa-download"></i></a><i class="fas fa-times-circle delete-file-btn" onclick="markFileForDelete(this, '${link}')"></i></span>`; });
 
-        urlList.forEach((link, idx) => {
-            if(link.trim()) {
-                fileDisplay += `
-                    <span class="badge bg-success text-decoration-none me-1 mb-1 file-link-badge">
-                        File ${idx+1} <a href="${link}" target="_blank" class="text-white"><i class="fas fa-download"></i></a>
-                        <i class="fas fa-times-circle delete-file-btn" onclick="markFileForDelete(this, '${link}')"></i>
-                    </span>`;
-            }
-        });
+        const isPaid = costType === 'Paid';
+        const displayStyle = isPaid ? 'block' : 'none';
+        const checkState = isPaid ? 'checked' : '';
 
-        div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png" multiple><div class="mt-1" id="fileList">${fileDisplay}</div><input type="hidden" class="edu-existing-urls" value='${JSON.stringify(urlList)}'></div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`;
+        div.innerHTML = `
+            <div class="row g-2">
+                <div class="col-12"><label class="small text-muted">Training / Workshop Title</label><input type="text" class="form-control fw-bold cap-title" placeholder="Enter Title..." value="${title}"></div>
+                <div class="col-md-4"><label class="small text-muted">Start Date</label><input type="date" class="form-control form-control-sm cap-start" value="${start}"></div>
+                <div class="col-md-4"><label class="small text-muted">End Date</label><input type="date" class="form-control form-control-sm cap-end" value="${end}"></div>
+                <div class="col-md-4"><label class="small text-muted">Total Hours</label><input type="number" class="form-control form-control-sm cap-hours" placeholder="e.g. 20" value="${hours}"></div>
+                <div class="col-md-6 d-flex align-items-center mt-3"><div class="form-check form-switch me-3"><input class="form-check-input cap-cost-toggle" type="checkbox" id="costSwitch${Date.now()}" onchange="toggleCostInput(this)" ${checkState}><label class="form-check-label fw-bold text-primary" for="costSwitch${Date.now()}">${isPaid ? 'Paid' : 'FOC'}</label></div><div class="cap-cost-box" style="display:${displayStyle}; flex-grow:1;"><input type="number" class="form-control form-control-sm cap-cost-amount" placeholder="Amount (MMK)" value="${costAmount}"></div></div>
+                <div class="col-md-6 mt-3"><input type="file" class="form-control form-control-sm cap-file" accept=".pdf,.jpg,.jpeg,.png" multiple><div class="mt-1" id="fileList">${fileDisplay}</div><input type="hidden" class="cap-existing-urls" value='${JSON.stringify(urlList)}'></div>
+                <div class="col-12 text-end mt-2 border-top pt-2"><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCapRow(this)"><i class="fas fa-trash"></i> Remove</button></div>
+            </div>`;
         container.appendChild(div);
     }
+    
+    window.toggleCostInput = function(checkbox) {
+        const row = checkbox.closest('.row');
+        const costBox = row.querySelector('.cap-cost-box');
+        const label = row.querySelector('.form-check-label');
+        if (checkbox.checked) { costBox.style.display = 'block'; label.innerText = "Paid"; } 
+        else { costBox.style.display = 'none'; label.innerText = "FOC"; row.querySelector('.cap-cost-amount').value = ""; }
+    }
+
+    window.removeCapRow = function(btn) { const row = btn.closest('.edu-row'); const hiddenInput = row.querySelector('.cap-existing-urls'); const urls = JSON.parse(hiddenInput.value || "[]"); if (urls.length > 0) { urls.forEach(url => eduFilesToDelete.push(url)); } row.remove(); }
 
     window.markFileForDelete = function(element, urlToRemove) {
         if(confirm("Remove this file?")) {
@@ -393,48 +336,31 @@
             const fileContainer = badgeSpan.parentElement; 
             badgeSpan.remove();
             
-            const row = fileContainer.closest('.col-6');
-            const hiddenInput = row.querySelector('.edu-existing-urls');
+            const row = fileContainer.closest('.col-6') || fileContainer.closest('.col-md-6');
+            let hiddenInput = row.querySelector('.edu-existing-urls');
+            if(!hiddenInput) hiddenInput = row.querySelector('.cap-existing-urls');
+            
             let currentUrls = JSON.parse(hiddenInput.value || "[]");
             currentUrls = currentUrls.filter(u => u !== urlToRemove);
             hiddenInput.value = JSON.stringify(currentUrls);
         }
     }
 
-    window.removeEduRow = function(btn) {
-        const row = btn.closest('.edu-row');
-        const hiddenInput = row.querySelector('.edu-existing-urls');
-        const urls = JSON.parse(hiddenInput.value || "[]");
-        if (urls.length > 0) { urls.forEach(url => eduFilesToDelete.push(url)); }
-        row.remove();
-    }
-
     window.viewDetails = function(rowIndex) { 
         const emp = allData.find(r => r.row_index === rowIndex);
-        
         currentViewedEmp = {
             Name: emp.Name, Position: emp.Position, Department: emp.Department, Phone: emp.Phone, Email: emp.Email,
             Address: emp.Address, Nrc: emp['NRC No.'], FatherName: emp['Father Name'], MotherName: emp['Mother Name'],
             BloodType: emp['Blood Type'], Race: emp.Race, Religion: emp.Religion, StartDate: emp['Start Date'], ResignDate: emp['Resign Date'],
-            ProfilePic: emp['Profile Pic'], EducationObject: emp.EducationObject, PositionHistory: emp.PositionHistory
+            ProfilePic: emp['Profile Pic'], EducationObject: emp.EducationObject, PositionHistory: emp.PositionHistory, CapacityBuildingObject: emp.CapacityBuildingObject
         };
 
         const pdfBtn = document.querySelector('#viewModal .btn-dark');
         pdfBtn.disabled = false;
         pdfBtn.innerHTML = '<i class="fas fa-file-pdf text-danger"></i> Export';
 
-        if (currentUser.role === 'User') {
-            pdfBtn.disabled = true;
-            pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted';
-        } 
-        else if (currentUser.role === 'Admin') {
-            const userDept = (currentUser.department || "").trim();
-            const empDept = (emp.Department || "").trim();
-            if (userDept !== empDept) {
-                pdfBtn.disabled = true;
-                pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted';
-            }
-        }
+        if (currentUser.role === 'User') { pdfBtn.disabled = true; pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted'; } 
+        else if (currentUser.role === 'Admin') { if ((currentUser.department || "").trim() !== (emp.Department || "").trim()) { pdfBtn.disabled = true; pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted'; } }
 
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; 
         
@@ -454,32 +380,59 @@
             });
             eduHtml += '</ul>';
         }
-        
-        const formatDate = (dateStr) => { 
-            if (!dateStr) return '-'; 
-            const d = new Date(dateStr); 
-            return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; 
-        };
 
-        // --- POSITION HISTORY RENDER ---
-        let posHistoryHtml = '';
-        // 1. Render Past Histories
-        if (emp.PositionHistory && emp.PositionHistory.length > 0) {
-            emp.PositionHistory.forEach(ph => {
-                posHistoryHtml += `<li class="text-muted small">${ph.position} (${ph.startDate} to ${ph.endDate})</li>`;
+        // Updated Capacity Building View
+        const formatDate = (dateStr) => { if (!dateStr) return ''; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
+        let capHtml = '<p class="text-muted small">No capacity building info</p>';
+        if(emp.CapacityBuildingObject && emp.CapacityBuildingObject.length > 0) {
+            capHtml = '<div class="list-group list-group-flush">';
+            emp.CapacityBuildingObject.forEach(item => {
+                let linksHtml = '';
+                let urlArray = Array.isArray(item.urls) ? item.urls : [];
+                urlArray.forEach((link, idx) => {
+                    if(link.trim()) {
+                        if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-success text-decoration-none me-1">File ${idx+1}</a>`; } 
+                        else { linksHtml += `<span class="badge bg-secondary me-1"><i class="fas fa-lock"></i></span>`; } 
+                    }
+                });
+
+                let durationStr = "";
+                if(item.startDate) durationStr += `<i class="far fa-calendar-alt text-muted"></i> ${formatDate(item.startDate)}`;
+                if(item.endDate) durationStr += ` to ${formatDate(item.endDate)}`;
+                if(item.totalHours) durationStr += ` <span class="badge bg-info text-dark ms-2"><i class="far fa-clock"></i> ${item.totalHours} Hrs</span>`;
+
+                let costBadge = "";
+                if(item.costType === 'Paid') { costBadge = `<span class="badge bg-warning text-dark border border-warning">Paid: ${item.costAmount} MMK</span>`; } 
+                else { costBadge = `<span class="badge bg-light text-dark border">FOC</span>`; }
+
+                capHtml += `
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1 fw-bold">${item.title}</h6>
+                                <div class="small text-muted mb-1">${durationStr}</div>
+                                <div>${costBadge}</div>
+                            </div>
+                            <div class="text-end">${linksHtml}</div>
+                        </div>
+                    </div>`;
             });
+            capHtml += '</div>';
         }
         
-        // 2. Render Current Position
+        let posHistoryHtml = '';
+        if (emp.PositionHistory && emp.PositionHistory.length > 0) { emp.PositionHistory.forEach(ph => { posHistoryHtml += `<li class="text-muted small">${ph.position} (${ph.startDate} to ${ph.endDate})</li>`; }); }
         let currentEnd = emp['Resign Date'] ? formatDate(emp['Resign Date']) : 'Current';
         let currentClass = emp['Resign Date'] ? 'text-danger' : 'text-success fw-bold';
-        
-        // ဒီနေရာမှာ StartDate ကိုသေချာပြသပေးပါတယ်
         posHistoryHtml += `<li class="${currentClass}">${emp.Position} (${formatDate(emp['Start Date'])} to ${currentEnd})</li>`;
 
         document.getElementById('viewDetailsBody').innerHTML = `
             <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4><div class="mb-3"><span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span></div></div>
-            <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist"><li class="nav-item"><button class="nav-link active py-1" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Info</button></li><li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li></ul>
+            <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist">
+                <li class="nav-item"><button class="nav-link active py-1" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Info</button></li>
+                <li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li>
+                <li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-cap" type="button">Capacity Building</button></li>
+            </ul>
             <div class="tab-content text-start">
                 <div class="tab-pane fade show active" id="view-basic">
                     <table class="table table-bordered table-sm mb-0">
@@ -490,16 +443,13 @@
                         <tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr>
                         <tr><th>Email</th><td>${emp.Email || '-'}</td></tr>
                         <tr><th>Address</th><td>${emp.Address || '-'}</td></tr>
-                        
-                        <!-- Employment Dates Summary -->
                         <tr><th>Current Status</th><td>${emp['Resign Date'] ? '<span class="badge bg-danger">Resigned</span>' : '<span class="badge bg-success">Active</span>'}</td></tr>
-                        
-                        <!-- Position History List -->
                         <tr><th colspan="2" class="bg-light">Position Timeline</th></tr>
                         <tr><td colspan="2"><ul class="list-unstyled mb-0 ps-2" style="line-height: 1.8;">${posHistoryHtml}</ul></td></tr>
                     </table>
                 </div>
                 <div class="tab-pane fade" id="view-edu">${eduHtml}</div>
+                <div class="tab-pane fade" id="view-cap">${capHtml}</div>
             </div>`; 
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
@@ -511,13 +461,7 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
         btn.disabled = true;
 
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({ 
-                action: 'generateProfilePDF', 
-                employeeData: currentViewedEmp 
-            })
-        })
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'generateProfilePDF', employeeData: currentViewedEmp }) })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
@@ -533,16 +477,14 @@
             } else { Swal.fire("PDF Error", data.message, "error"); }
         })
         .catch(err => Swal.fire("Connection Error", err.toString(), "error"))
-        .finally(() => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
+        .finally(() => { btn.innerHTML = originalText; btn.disabled = false; });
     }
 
     window.openModal = function(mode, rowIndex = null) { 
         const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
         document.getElementById('employeeForm').reset(); 
         document.getElementById('eduContainer').innerHTML = ''; 
+        document.getElementById('capContainer').innerHTML = ''; 
         compressedImageBase64 = null; deleteImageFlag = false; eduFilesToDelete = []; 
         document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none'; 
         var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]'); var firstTab = new bootstrap.Tab(firstTabEl); firstTab.show();
@@ -550,52 +492,34 @@
         const resignSwitch = document.getElementById('resignSwitch');
         const resignDateContainer = document.getElementById('resignDateContainer');
         const resignLabel = document.querySelector('label[for="resignSwitch"]');
-        resignSwitch.checked = false;
-        resignDateContainer.style.display = 'none';
-        resignLabel.textContent = 'Current';
+        resignSwitch.checked = false; resignDateContainer.style.display = 'none'; resignLabel.textContent = 'Current';
 
-        document.getElementById('chkChangePosition').checked = false;
-        document.getElementById('newPosDateContainer').style.display = 'none';
-        document.getElementById('newPosStartDate').value = '';
-
-        // --- NEW: HANDLE HISTORY VISIBILITY ---
-        const historyList = document.getElementById('editPosHistoryList');
-        const historyContainer = document.getElementById('editPosHistoryContainer');
-        historyList.innerHTML = '';
-        historyContainer.style.display = 'none';
+        document.getElementById('chkChangePosition').checked = false; document.getElementById('newPosDateContainer').style.display = 'none'; document.getElementById('newPosStartDate').value = '';
+        const historyList = document.getElementById('editPosHistoryList'); const historyContainer = document.getElementById('editPosHistoryContainer'); historyList.innerHTML = ''; historyContainer.style.display = 'none';
 
         if(mode === 'edit') { 
             const emp = allData.find(r => r.row_index === rowIndex); 
             document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic']; 
             document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empRace').value = emp.Race || ""; document.getElementById('empReligion').value = emp.Religion || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
             if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0];
-            
-            if(emp['Resign Date']) {
-                document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0];
-                resignSwitch.checked = true;
-                resignDateContainer.style.display = 'block';
-                resignLabel.textContent = 'Resigned';
-            }
+            if(emp['Resign Date']) { document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; resignSwitch.checked = true; resignDateContainer.style.display = 'block'; resignLabel.textContent = 'Resigned'; }
             
             document.getElementById('changePositionSection').style.display = 'block';
-
-            // --- POPULATE HISTORY IN EDIT MODAL ---
-            if (emp.PositionHistory && emp.PositionHistory.length > 0) {
-                historyContainer.style.display = 'block';
-                emp.PositionHistory.forEach(h => {
-                    historyList.innerHTML += `<li class="list-group-item p-1 bg-transparent border-0"><i class="fas fa-history text-secondary me-1"></i> <strong>${h.position}</strong> <br> <span class="text-muted ms-3" style="font-size:0.75rem;">${h.startDate} ~ ${h.endDate}</span></li>`;
-                });
-            }
+            if (emp.PositionHistory && emp.PositionHistory.length > 0) { historyContainer.style.display = 'block'; emp.PositionHistory.forEach(h => { historyList.innerHTML += `<li class="list-group-item p-1 bg-transparent border-0"><i class="fas fa-history text-secondary me-1"></i> <strong>${h.position}</strong> <br> <span class="text-muted ms-3" style="font-size:0.75rem;">${h.startDate} ~ ${h.endDate}</span></li>`; }); }
 
             if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
+            if(emp.EducationObject && emp.EducationObject.length > 0) { emp.EducationObject.forEach(item => addEduRow(item.title, item.urls)); }
             
-            if(emp.EducationObject && emp.EducationObject.length > 0) {
-                emp.EducationObject.forEach(item => addEduRow(item.title, item.urls));
+            // Populate Capacity Building with new fields
+            if(emp.CapacityBuildingObject && emp.CapacityBuildingObject.length > 0) { 
+                emp.CapacityBuildingObject.forEach(item => {
+                    addCapRow(item.title, item.urls, item.startDate, item.endDate, item.totalHours, item.costType, item.costAmount);
+                }); 
             }
         } else { 
             document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; 
             document.getElementById('changePositionSection').style.display = 'none';
-            addEduRow(); 
+            addEduRow(); addCapRow();
         } 
         modal.show(); 
     }
@@ -603,27 +527,49 @@
     window.saveEmployee = async function() {
         showLoading(true);
         const rowIndex = document.getElementById('editRowIndex').value;
-        const eduRows = document.querySelectorAll('.edu-row');
-        const educationData = [];
         
+        // Education Data
+        const eduRows = document.querySelectorAll('#eduContainer .edu-row');
+        const educationData = [];
         for (const row of eduRows) {
             const title = row.querySelector('.edu-title').value.trim();
             if(!title) continue; 
-            
             const fileInput = row.querySelector('.edu-file');
             const hiddenInput = row.querySelector('.edu-existing-urls');
             const existingUrls = JSON.parse(hiddenInput.value || "[]");
             let filesBase64 = [];
+            if (fileInput.files.length > 0) { for (let i = 0; i < fileInput.files.length; i++) { let b64 = await toBase64(fileInput.files[i]); filesBase64.push(b64); } }
+            educationData.push({ title: title, files_base64: filesBase64, existingUrls: existingUrls });
+        }
 
-            if (fileInput.files.length > 0) {
-                for (let i = 0; i < fileInput.files.length; i++) {
-                    let b64 = await toBase64(fileInput.files[i]);
-                    filesBase64.push(b64);
-                }
-            }
+        // Capacity Building Data (UPDATED)
+        const capRows = document.querySelectorAll('#capContainer .edu-row');
+        const capacityData = [];
+        for (const row of capRows) {
+            const title = row.querySelector('.cap-title').value.trim();
+            if(!title) continue; 
             
-            educationData.push({ 
+            // Get New Fields
+            const startDate = row.querySelector('.cap-start').value;
+            const endDate = row.querySelector('.cap-end').value;
+            const totalHours = row.querySelector('.cap-hours').value;
+            const isPaid = row.querySelector('.cap-cost-toggle').checked;
+            const costType = isPaid ? "Paid" : "FOC";
+            const costAmount = row.querySelector('.cap-cost-amount').value;
+
+            const fileInput = row.querySelector('.cap-file');
+            const hiddenInput = row.querySelector('.cap-existing-urls');
+            const existingUrls = JSON.parse(hiddenInput.value || "[]");
+            let filesBase64 = [];
+            if (fileInput.files.length > 0) { for (let i = 0; i < fileInput.files.length; i++) { let b64 = await toBase64(fileInput.files[i]); filesBase64.push(b64); } }
+            
+            capacityData.push({ 
                 title: title, 
+                startDate: startDate,
+                endDate: endDate,
+                totalHours: totalHours,
+                costType: costType,
+                costAmount: costAmount,
                 files_base64: filesBase64, 
                 existingUrls: existingUrls 
             });
@@ -633,7 +579,7 @@
             Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Race: document.getElementById('empRace').value, Religion: document.getElementById('empReligion').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, 
             ResignDate: document.getElementById('resignSwitch').checked ? document.getElementById('empResign').value : '', 
             image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value,
-            Education: educationData 
+            Education: educationData, CapacityBuilding: capacityData
         };
         
         const payload = { 
@@ -654,9 +600,7 @@
                 bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); 
                 Swal.fire('Success', data.message, 'success'); 
                 loadEmployees(); 
-            } else {
-                Swal.fire('Error', data.message, 'error');
-            }
+            } else { Swal.fire('Error', data.message, 'error'); }
         });
     }
 
@@ -665,78 +609,32 @@
         .then((result) => { 
             if (result.isConfirmed) { 
                 showLoading(true); 
-                fetch(GAS_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ 
-                        action: 'deleteEmployee', 
-                        rowIndex: rowIndex,
-                        user: currentUser 
-                    }) 
-                })
-                .then(res => res.json()).then(data => { 
-                    showLoading(false); 
-                    if(data.status === 'success') {
-                         Swal.fire('Deleted!', 'Employee has been deleted.', 'success');
-                         loadEmployees(); 
-                    } else {
-                         Swal.fire('Error', data.message, 'error');
-                    }
-                }); 
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteEmployee', rowIndex: rowIndex, user: currentUser }) })
+                .then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { Swal.fire('Deleted!', 'Employee has been deleted.', 'success'); loadEmployees(); } else { Swal.fire('Error', data.message, 'error'); } }); 
             } 
         }); 
     }
 
-    window.exportToExcel = function() { const wb = XLSX.utils.book_new(); const cleanData = allData.map(item => { const { row_index, EducationObject, "Edu Links": eduLinks, PositionHistory, ...rest } = item; return rest; }); const ws = XLSX.utils.json_to_sheet(cleanData); XLSX.utils.book_append_sheet(wb, ws, "Employees"); XLSX.writeFile(wb, "Employees_Report.xlsx"); }
+    window.exportToExcel = function() {
+        const wb = XLSX.utils.book_new();
+        const cleanData = allData.map(item => {
+            const { row_index, EducationObject, "Edu Links": eduLinks, CapacityBuildingObject, "CB Links": cbLinks, PositionHistory, ...rest } = item;
+            let timelineParts = [];
+            if (Array.isArray(PositionHistory) && PositionHistory.length > 0) { PositionHistory.forEach(h => { let s = h.startDate ? h.startDate.substring(0, 10) : "?"; let e = h.endDate ? h.endDate.substring(0, 10) : "?"; timelineParts.push(`${h.position} (${s} to ${e})`); }); }
+            let currentPos = rest.Position || ""; let currentStart = rest['Start Date'] ? rest['Start Date'].toString().substring(0, 10) : ""; let currentEnd = rest['Resign Date'] ? rest['Resign Date'].toString().substring(0, 10) : "Present";
+            if (currentPos) { timelineParts.push(`${currentPos} (${currentStart} to ${currentEnd})`); }
+            const fullString = timelineParts.join(" || ");
+            return { ...rest, "Position History": fullString };
+        });
+        const ws = XLSX.utils.json_to_sheet(cleanData);
+        XLSX.utils.book_append_sheet(wb, ws, "Employees");
+        XLSX.writeFile(wb, "Employees_Report.xlsx");
+    }
+    
     window.openSettingsModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); renderSettingsList(); new bootstrap.Modal(document.getElementById('settingsModal')).show(); }
     window.renderSettingsList = function() { const category = document.getElementById('settingsCategory').value; const listContainer = document.getElementById('settingsList'); const items = dropdownData[category] || []; listContainer.innerHTML = ''; if(items.length === 0) { listContainer.innerHTML = '<div class="p-3 text-center text-muted">No items found.</div>'; return; } items.forEach(item => { listContainer.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center"><span>${item}</span><button class="btn btn-sm btn-outline-danger" onclick="deleteDropdownItem('${category}', '${item}')"><i class="fas fa-trash"></i></button></div>`; }); }
-    
-    window.addDropdownItem = function() { 
-        const category = document.getElementById('settingsCategory').value; 
-        const value = document.getElementById('newItemName').value.trim(); 
-        if(!value) return; 
-        showLoading(true); 
-        fetch(GAS_URL, { 
-            method: 'POST', 
-            body: JSON.stringify({ 
-                action: 'addDropdownItem', 
-                category: category, 
-                value: value,
-                user: currentUser 
-            }) 
-        })
-        .then(res => res.json()).then(resp => { 
-            showLoading(false); 
-            if(resp.status === 'success') { 
-                document.getElementById('newItemName').value = ''; 
-                loadAllDropdowns().then(renderSettingsList);
-            } else {
-                Swal.fire('Error', resp.message, 'error');
-            }
-        }); 
-    }
-    
-    window.deleteDropdownItem = function(category, value) { 
-        if(!confirm(`Delete "${value}"?`)) return; 
-        showLoading(true); 
-        fetch(GAS_URL, { 
-            method: 'POST', 
-            body: JSON.stringify({ 
-                action: 'deleteDropdownItem', 
-                category: category, 
-                value: value,
-                user: currentUser 
-            }) 
-        })
-        .then(res => res.json()).then(resp => { 
-            showLoading(false); 
-            if(resp.status === 'success') {
-                loadAllDropdowns().then(renderSettingsList);
-            } else {
-                Swal.fire('Error', resp.message, 'error');
-            }
-        }); 
-    }
-
+    window.addDropdownItem = function() { const category = document.getElementById('settingsCategory').value; const value = document.getElementById('newItemName').value.trim(); if(!value) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addDropdownItem', category: category, value: value, user: currentUser }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { document.getElementById('newItemName').value = ''; loadAllDropdowns().then(renderSettingsList); } else { Swal.fire('Error', resp.message, 'error'); } }); }
+    window.deleteDropdownItem = function(category, value) { if(!confirm(`Delete "${value}"?`)) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteDropdownItem', category: category, value: value, user: currentUser }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { loadAllDropdowns().then(renderSettingsList); } else { Swal.fire('Error', resp.message, 'error'); } }); }
     window.previewAndCompress = function(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { const img = new Image(); img.src = e.target.result; img.onload = function() { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 800; let width = img.width, height = img.height; if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } } canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height); compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7); document.getElementById('imgPreview').src = compressedImageBase64; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; deleteImageFlag = false; } }; reader.readAsDataURL(input.files[0]); } }
     window.markImageForDeletion = function() { document.getElementById('imgPreview').style.display = 'none'; document.getElementById('empPic').value = ''; document.getElementById('btnDeleteImg').style.display = 'none'; compressedImageBase64 = null; deleteImageFlag = true; }
     window.openReportModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); const total = allData.length; document.getElementById('totalEmpCount').innerText = total; const deptCounts = {}; allData.forEach(e => { const d = e.Department || 'Unassigned'; deptCounts[d] = (deptCounts[d] || 0) + 1; }); const posCounts = {}; allData.forEach(e => { const p = e.Position || 'Unassigned'; posCounts[p] = (posCounts[p] || 0) + 1; }); renderReportList('deptReportList', deptCounts); renderReportList('posReportList', posCounts); new bootstrap.Modal(document.getElementById('reportModal')).show(); }
@@ -753,32 +651,9 @@
     window.jumpToPage = function(val) { const pageNum = parseInt(val); const totalPages = Math.ceil(filteredData.length / rowsPerPage); if (pageNum >= 1 && pageNum <= totalPages) { currentPage = pageNum; } renderTable(); }
     window.changeRowsPerPage = function() { rowsPerPage = parseInt(document.getElementById('rowsPerPage').value); currentPage = 1; renderTable(); }
     function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
-    
-document.addEventListener('DOMContentLoaded', (event) => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    applyTheme(savedTheme);
-});
-
-function toggleTheme() {
-    const html = document.documentElement;
-    const currentTheme = html.getAttribute('data-bs-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
-    applyTheme(newTheme);
-    localStorage.setItem('theme', newTheme); 
-}
-
-function applyTheme(theme) {
-    document.documentElement.setAttribute('data-bs-theme', theme);
-    const icon = document.getElementById('themeIcon');
-    if(theme === 'dark') {
-        icon.classList.remove('fa-moon');
-        icon.classList.add('fa-sun');
-    } else {
-        icon.classList.remove('fa-sun');
-        icon.classList.add('fa-moon');
-    }
-}
+    document.addEventListener('DOMContentLoaded', (event) => { const savedTheme = localStorage.getItem('theme') || 'light'; applyTheme(savedTheme); });
+    function toggleTheme() { const html = document.documentElement; const currentTheme = html.getAttribute('data-bs-theme'); const newTheme = currentTheme === 'dark' ? 'light' : 'dark'; applyTheme(newTheme); localStorage.setItem('theme', newTheme); }
+    function applyTheme(theme) { document.documentElement.setAttribute('data-bs-theme', theme); const icon = document.getElementById('themeIcon'); if(theme === 'dark') { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); } else { icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); } }
 </script>
 
 </body>
