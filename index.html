@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Management System</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Padauk Font -->
     <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <!-- SheetJS for Excel Export -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js for Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         body { font-family: 'Padauk', sans-serif; background-color: #f4f6f9; }
@@ -16,7 +22,7 @@
         .profile-img-small { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
         .details-img { width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
         .search-box { position: relative; }
-        .search-box input { border-radius: 20px; padding-left: 35px; }
+        .search-box input { border-radius: 20px; padding-left: 35px; min-width: 200px; }
         .search-box i { position: absolute; left: 15px; top: 10px; color: #aaa; }
         #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; display:none; justify-content:center; align-items:center; }
         
@@ -32,12 +38,13 @@
         .page-input-box:focus { border-color: #86b7fe; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); z-index: 2; position: relative; }
         .pagination .page-item:first-child .page-link { border-top-right-radius: 0; border-bottom-right-radius: 0; }
         .pagination .page-item:last-child .page-link { border-top-left-radius: 0; border-bottom-left-radius: 0; }
-        .pagination .page-item + .page-item .page-input-box { margin-left: -1px; }
-        .pagination .page-item + .page-item .page-link { margin-left: -1px; }
-
+        
         .edu-row { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 5px; border: 1px solid #eee; }
         .file-link-badge { font-size: 0.8rem; margin-right: 5px; display: inline-block; margin-top: 2px; }
         .delete-file-btn { font-size: 0.7rem; margin-left: 5px; cursor: pointer; color: #dc3545; }
+
+        /* Chart Canvas Size */
+        .chart-container { position: relative; height: 300px; width: 100%; }
     
     [data-bs-theme="dark"] body { background-color: #212529 !important; color: #f8f9fa; }
     [data-bs-theme="dark"] .bg-white { background-color: #2b3035 !important; color: #fff; }
@@ -51,7 +58,6 @@
     [data-bs-theme="dark"] .form-check-input:checked { background-color: #0d6efd; border-color: #0d6efd; }
     [data-bs-theme="dark"] .edu-row { background-color: #343a40; border-color: #495057; }
     [data-bs-theme="dark"] #loadingOverlay { background: rgba(33, 37, 41, 0.95) !important; }
-    [data-bs-theme="dark"] .spinner-border { border-color: #0d6efd; border-right-color: transparent; }
     [data-bs-theme="dark"] .bg-light { background-color: #343a40 !important; color: #fff !important; }
     [data-bs-theme="dark"] .list-group-item { background-color: #2b3035; color: #e9ecef; border-color: #495057; }
     [data-bs-theme="dark"] .swal2-popup { background: #2b3035 !important; color: #fff !important; border: 1px solid #495057; }
@@ -99,19 +105,38 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 3.5 (Optimized)</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 3.6 (Enhanced)</div>
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="card p-4 border-0 shadow-sm">
-        <div class="d-flex justify-content-between flex-wrap gap-3 mb-4">
-            <div><button class="btn btn-success" id="btnAdd" onclick="openModal('add')" style="display:none;"><i class="fas fa-plus"></i> Add Employee</button></div>
-            <div class="d-flex gap-2">
-                <select class="form-select w-auto" id="rowsPerPage" onchange="changeRowsPerPage()"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
-                <div class="search-box"><i class="fas fa-search"></i><input type="text" class="form-control" id="searchInput" placeholder="Search..." onkeyup="filterData()"></div>
+        <!-- New Feature: Filters Toolbar -->
+        <div class="d-flex justify-content-between flex-wrap gap-3 mb-4 align-items-end">
+            <div>
+                <button class="btn btn-success" id="btnAdd" onclick="openModal('add')" style="display:none;"><i class="fas fa-plus"></i> Add Employee</button>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <!-- Filters -->
+                <div>
+                    <select class="form-select form-select-sm" id="filterDept" onchange="filterData()" style="min-width: 150px;">
+                        <option value="">All Departments</option>
+                    </select>
+                </div>
+                <div>
+                    <select class="form-select form-select-sm" id="filterPos" onchange="filterData()" style="min-width: 150px;">
+                        <option value="">All Positions</option>
+                    </select>
+                </div>
+                <!-- Search & Pagination -->
+                <select class="form-select form-select-sm w-auto" id="rowsPerPage" onchange="changeRowsPerPage()"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Search Name..." onkeyup="filterData()">
+                </div>
             </div>
         </div>
+
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="bg-light"><tr><th>Photo</th><th>Sr</th><th>Name</th><th>Position</th><th>Department</th><th>Phone</th><th>Actions</th></tr></thead>
@@ -219,9 +244,54 @@
     </div>
 </div>
 
-<!-- Settings & Report Modals -->
+<!-- Settings Modal -->
 <div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Manage Dropdowns</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="fw-bold">Select Category:</label><select class="form-select" id="settingsCategory" onchange="renderSettingsList()"><option value="Department">Department</option><option value="Position">Position</option><option value="Blood Type">Blood Type</option><option value="Religion">Religion</option></select></div><div class="input-group mb-3"><input type="text" class="form-control" id="newItemName" placeholder="New Item Name"><button class="btn btn-primary" onclick="addDropdownItem()">Add</button></div><h6 class="text-muted">Current Items:</h6><div class="list-group" id="settingsList" style="max-height: 250px; overflow-y: auto;"></div></div></div></div></div>
-<div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-info text-white"><h5 class="modal-title">Summary Dashboard</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row mb-4"><div class="col-md-12"><div class="card bg-light border-0 p-3 text-center"><h3 class="display-6 fw-bold text-primary" id="totalEmpCount">0</h3><span class="text-muted">Total Employees</span></div></div></div><div class="row"><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Department</h6><ul class="list-group list-group-flush" id="deptReportList"></ul></div><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Position</h6><ul class="list-group list-group-flush" id="posReportList"></ul></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div></div>
+
+<!-- UPDATED Report Modal with Charts -->
+<div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-chart-pie"></i> Summary Dashboard</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card bg-light border-0 p-3 text-center">
+                            <h3 class="display-6 fw-bold text-primary" id="totalEmpCount">0</h3>
+                            <span class="text-muted">Total Employees</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Charts Area -->
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold">Department Distribution</div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="deptChartCanvas"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold">Position Distribution</div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="posChartCanvas"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
+        </div>
+    </div>
+</div>
 
 <!-- View Details Modal -->
 <div class="modal fade" id="viewModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-body" id="viewDetailsBody"></div><div class="modal-footer p-1">
@@ -233,13 +303,16 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz1KPRV6BuE2uiieQZolJMDMh0LsN83hkwfXJB-Zk2nk6LdwgCg-49f4EhR5GxGZhOxig/exec"; 
+    // *** IMPORTANT: REPLACE WITH YOUR DEPLOYED WEB APP URL ***
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxE_UG12Y-X1EoctYn00Buh_fl60kkO4w1ZZCwifsNlQyGp771u-3DkAlnOEVGS0sms8w/exec"; 
+    
     let currentUser = { role: null, username: null, department: null };
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [], "Religion": [] }; 
     let compressedImageBase64 = null, deleteImageFlag = false;
     let eduFilesToDelete = []; 
     let currentViewedEmp = null;
+    let deptChart = null, posChart = null; // Chart Instances
 
     document.getElementById('loginForm').addEventListener('submit', function(e) { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: document.getElementById('username').value, password: document.getElementById('password').value }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { currentUser = { role: data.role, username: document.getElementById('username').value, department: data.department }; initDashboard(); } else Swal.fire('Error', data.message, 'error'); }).catch(e => { showLoading(false); Swal.fire('Connection Error', e.toString(), 'error'); }); });
 
@@ -269,7 +342,6 @@
             else { container.style.display = 'none'; document.getElementById('newPosStartDate').value = ''; }
         });
 
-        // Use concurrent loading
         refreshData();
     }
 
@@ -280,7 +352,7 @@
         .catch(e => { showLoading(false); Swal.fire('Error', 'Failed to load data', 'error'); });
     }
 
-    // --- Education Functions ---
+    // --- Education & Capacity Building (Existing Functions) ---
     function addEduRow(title = "", urls = "") {
         const container = document.getElementById('eduContainer');
         const div = document.createElement('div');
@@ -295,22 +367,18 @@
     }
     window.removeEduRow = function(btn) { const row = btn.closest('.edu-row'); const hiddenInput = row.querySelector('.edu-existing-urls'); const urls = JSON.parse(hiddenInput.value || "[]"); if (urls.length > 0) { urls.forEach(url => eduFilesToDelete.push(url)); } row.remove(); }
 
-    // --- Capacity Building Functions ---
     function addCapRow(title = "", urls = "", start = "", end = "", hours = "", costType = "FOC", costAmount = "") {
         const container = document.getElementById('capContainer');
         const div = document.createElement('div');
         div.className = 'edu-row p-3 mb-2 border rounded bg-light'; 
-        
         let fileDisplay = "";
         let urlList = [];
         if(Array.isArray(urls)) { urlList = urls; } 
         else if (typeof urls === 'string' && urls.trim() !== "") { try { if (urls.startsWith('[')) urlList = JSON.parse(urls); else urlList = urls.split(" || "); } catch(e) { urlList = [urls]; } }
         urlList.forEach((link, idx) => { if(link.trim()) fileDisplay += `<span class="badge bg-success text-decoration-none me-1 mb-1 file-link-badge">File ${idx+1} <a href="${link}" target="_blank" class="text-white"><i class="fas fa-download"></i></a><i class="fas fa-times-circle delete-file-btn" onclick="markFileForDelete(this, '${link}')"></i></span>`; });
-
         const isPaid = costType === 'Paid';
         const displayStyle = isPaid ? 'block' : 'none';
         const checkState = isPaid ? 'checked' : '';
-
         div.innerHTML = `
             <div class="row g-2">
                 <div class="col-12"><label class="small text-muted">Training / Workshop Title</label><input type="text" class="form-control fw-bold cap-title" placeholder="Enter Title..." value="${title}"></div>
@@ -323,106 +391,26 @@
             </div>`;
         container.appendChild(div);
     }
-    
-    window.toggleCostInput = function(checkbox) {
-        const row = checkbox.closest('.row');
-        const costBox = row.querySelector('.cap-cost-box');
-        const label = row.querySelector('.form-check-label');
-        if (checkbox.checked) { costBox.style.display = 'block'; label.innerText = "Paid"; } 
-        else { costBox.style.display = 'none'; label.innerText = "FOC"; row.querySelector('.cap-cost-amount').value = ""; }
-    }
-
+    window.toggleCostInput = function(checkbox) { const row = checkbox.closest('.row'); const costBox = row.querySelector('.cap-cost-box'); const label = row.querySelector('.form-check-label'); if (checkbox.checked) { costBox.style.display = 'block'; label.innerText = "Paid"; } else { costBox.style.display = 'none'; label.innerText = "FOC"; row.querySelector('.cap-cost-amount').value = ""; } }
     window.removeCapRow = function(btn) { const row = btn.closest('.edu-row'); const hiddenInput = row.querySelector('.cap-existing-urls'); const urls = JSON.parse(hiddenInput.value || "[]"); if (urls.length > 0) { urls.forEach(url => eduFilesToDelete.push(url)); } row.remove(); }
+    window.markFileForDelete = function(element, urlToRemove) { if(confirm("Remove this file?")) { eduFilesToDelete.push(urlToRemove); const badgeSpan = element.closest('.file-link-badge'); const fileContainer = badgeSpan.parentElement; badgeSpan.remove(); const row = fileContainer.closest('.col-6') || fileContainer.closest('.col-md-6'); let hiddenInput = row.querySelector('.edu-existing-urls'); if(!hiddenInput) hiddenInput = row.querySelector('.cap-existing-urls'); let currentUrls = JSON.parse(hiddenInput.value || "[]"); currentUrls = currentUrls.filter(u => u !== urlToRemove); hiddenInput.value = JSON.stringify(currentUrls); } }
 
-    window.markFileForDelete = function(element, urlToRemove) {
-        if(confirm("Remove this file?")) {
-            eduFilesToDelete.push(urlToRemove);
-            const badgeSpan = element.closest('.file-link-badge');
-            const fileContainer = badgeSpan.parentElement; 
-            badgeSpan.remove();
-            
-            const row = fileContainer.closest('.col-6') || fileContainer.closest('.col-md-6');
-            let hiddenInput = row.querySelector('.edu-existing-urls');
-            if(!hiddenInput) hiddenInput = row.querySelector('.cap-existing-urls');
-            
-            let currentUrls = JSON.parse(hiddenInput.value || "[]");
-            currentUrls = currentUrls.filter(u => u !== urlToRemove);
-            hiddenInput.value = JSON.stringify(currentUrls);
-        }
-    }
-
+    // --- Detail View ---
     window.viewDetails = function(rowIndex) { 
         const emp = allData.find(r => r.row_index === rowIndex);
-        currentViewedEmp = {
-            Name: emp.Name, Position: emp.Position, Department: emp.Department, Phone: emp.Phone, Email: emp.Email,
-            Address: emp.Address, Nrc: emp['NRC No.'], FatherName: emp['Father Name'], MotherName: emp['Mother Name'],
-            BloodType: emp['Blood Type'], Race: emp.Race, Religion: emp.Religion, StartDate: emp['Start Date'], ResignDate: emp['Resign Date'],
-            ProfilePic: emp['Profile Pic'], EducationObject: emp.EducationObject, PositionHistory: emp.PositionHistory, CapacityBuildingObject: emp.CapacityBuildingObject
-        };
-
+        currentViewedEmp = { ...emp }; // Clone
         const pdfBtn = document.querySelector('#viewModal .btn-dark');
         pdfBtn.disabled = false;
         pdfBtn.innerHTML = '<i class="fas fa-file-pdf text-danger"></i> Export';
-
         if (currentUser.role === 'User') { pdfBtn.disabled = true; pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted'; } 
         else if (currentUser.role === 'Admin') { if ((currentUser.department || "").trim() !== (emp.Department || "").trim()) { pdfBtn.disabled = true; pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted'; } }
 
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; 
-        
         let eduHtml = '<p class="text-muted small">No education info</p>';
-        if(emp.EducationObject && emp.EducationObject.length > 0) {
-            eduHtml = '<ul class="list-group list-group-flush text-start">';
-            emp.EducationObject.forEach(item => {
-                let linksHtml = '';
-                let urlArray = Array.isArray(item.urls) ? item.urls : [];
-                urlArray.forEach((link, idx) => {
-                    if(link.trim()) {
-                        if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-primary text-decoration-none ms-1">File ${idx+1}</a>`; } 
-                        else { linksHtml += `<span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span>`; } 
-                    }
-                });
-                eduHtml += `<li class="list-group-item py-1 px-0 d-flex justify-content-between align-items-center"><span>${item.title}</span> <div>${linksHtml}</div></li>`;
-            });
-            eduHtml += '</ul>';
-        }
-
+        if(emp.EducationObject && emp.EducationObject.length > 0) { eduHtml = '<ul class="list-group list-group-flush text-start">'; emp.EducationObject.forEach(item => { let linksHtml = ''; let urlArray = Array.isArray(item.urls) ? item.urls : []; urlArray.forEach((link, idx) => { if(link.trim()) { if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-primary text-decoration-none ms-1">File ${idx+1}</a>`; } else { linksHtml += `<span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span>`; } } }); eduHtml += `<li class="list-group-item py-1 px-0 d-flex justify-content-between align-items-center"><span>${item.title}</span> <div>${linksHtml}</div></li>`; }); eduHtml += '</ul>'; }
         const formatDate = (dateStr) => { if (!dateStr) return ''; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
         let capHtml = '<p class="text-muted small">No capacity building info</p>';
-        if(emp.CapacityBuildingObject && emp.CapacityBuildingObject.length > 0) {
-            capHtml = '<div class="list-group list-group-flush">';
-            emp.CapacityBuildingObject.forEach(item => {
-                let linksHtml = '';
-                let urlArray = Array.isArray(item.urls) ? item.urls : [];
-                urlArray.forEach((link, idx) => {
-                    if(link.trim()) {
-                        if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-success text-decoration-none me-1">File ${idx+1}</a>`; } 
-                        else { linksHtml += `<span class="badge bg-secondary me-1"><i class="fas fa-lock"></i></span>`; } 
-                    }
-                });
-
-                let durationStr = "";
-                if(item.startDate) durationStr += `<i class="far fa-calendar-alt text-muted"></i> ${formatDate(item.startDate)}`;
-                if(item.endDate) durationStr += ` to ${formatDate(item.endDate)}`;
-                if(item.totalHours) durationStr += ` <span class="badge bg-info text-dark ms-2"><i class="far fa-clock"></i> ${item.totalHours} Hrs</span>`;
-
-                let costBadge = "";
-                if(item.costType === 'Paid') { costBadge = `<span class="badge bg-warning text-dark border border-warning">Paid: ${item.costAmount} MMK</span>`; } 
-                else { costBadge = `<span class="badge bg-light text-dark border">FOC</span>`; }
-
-                capHtml += `
-                    <div class="list-group-item px-0">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="mb-1 fw-bold">${item.title}</h6>
-                                <div class="small text-muted mb-1">${durationStr}</div>
-                                <div>${costBadge}</div>
-                            </div>
-                            <div class="text-end">${linksHtml}</div>
-                        </div>
-                    </div>`;
-            });
-            capHtml += '</div>';
-        }
+        if(emp.CapacityBuildingObject && emp.CapacityBuildingObject.length > 0) { capHtml = '<div class="list-group list-group-flush">'; emp.CapacityBuildingObject.forEach(item => { let linksHtml = ''; let urlArray = Array.isArray(item.urls) ? item.urls : []; urlArray.forEach((link, idx) => { if(link.trim()) { if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-success text-decoration-none me-1">File ${idx+1}</a>`; } else { linksHtml += `<span class="badge bg-secondary me-1"><i class="fas fa-lock"></i></span>`; } } }); let durationStr = ""; if(item.startDate) durationStr += `<i class="far fa-calendar-alt text-muted"></i> ${formatDate(item.startDate)}`; if(item.endDate) durationStr += ` to ${formatDate(item.endDate)}`; if(item.totalHours) durationStr += ` <span class="badge bg-info text-dark ms-2"><i class="far fa-clock"></i> ${item.totalHours} Hrs</span>`; let costBadge = ""; if(item.costType === 'Paid') { costBadge = `<span class="badge bg-warning text-dark border border-warning">Paid: ${item.costAmount} MMK</span>`; } else { costBadge = `<span class="badge bg-light text-dark border">FOC</span>`; } capHtml += `<div class="list-group-item px-0"><div class="d-flex justify-content-between align-items-start"><div><h6 class="mb-1 fw-bold">${item.title}</h6><div class="small text-muted mb-1">${durationStr}</div><div>${costBadge}</div></div><div class="text-end">${linksHtml}</div></div></div>`; }); capHtml += '</div>'; }
         
         let posHistoryHtml = '';
         if (emp.PositionHistory && emp.PositionHistory.length > 0) { emp.PositionHistory.forEach(ph => { posHistoryHtml += `<li class="text-muted small">${ph.position} (${ph.startDate} to ${ph.endDate})</li>`; }); }
@@ -458,6 +446,7 @@
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
+    // --- CRUD ---
     window.openModal = function(mode, rowIndex = null) { 
         const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
         document.getElementById('employeeForm').reset(); 
@@ -487,13 +476,7 @@
 
             if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
             if(emp.EducationObject && emp.EducationObject.length > 0) { emp.EducationObject.forEach(item => addEduRow(item.title, item.urls)); }
-            
-            // Populate Capacity Building with new fields
-            if(emp.CapacityBuildingObject && emp.CapacityBuildingObject.length > 0) { 
-                emp.CapacityBuildingObject.forEach(item => {
-                    addCapRow(item.title, item.urls, item.startDate, item.endDate, item.totalHours, item.costType, item.costAmount);
-                }); 
-            }
+            if(emp.CapacityBuildingObject && emp.CapacityBuildingObject.length > 0) { emp.CapacityBuildingObject.forEach(item => { addCapRow(item.title, item.urls, item.startDate, item.endDate, item.totalHours, item.costType, item.costAmount); }); }
         } else { 
             document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; 
             document.getElementById('changePositionSection').style.display = 'none';
@@ -505,8 +488,6 @@
     window.saveEmployee = async function() {
         showLoading(true);
         const rowIndex = document.getElementById('editRowIndex').value;
-        
-        // Education Data
         const eduRows = document.querySelectorAll('#eduContainer .edu-row');
         const educationData = [];
         for (const row of eduRows) {
@@ -519,199 +500,169 @@
             if (fileInput.files.length > 0) { for (let i = 0; i < fileInput.files.length; i++) { let b64 = await toBase64(fileInput.files[i]); filesBase64.push(b64); } }
             educationData.push({ title: title, files_base64: filesBase64, existingUrls: existingUrls });
         }
-
-        // Capacity Building Data
         const capRows = document.querySelectorAll('#capContainer .edu-row');
         const capacityData = [];
         for (const row of capRows) {
             const title = row.querySelector('.cap-title').value.trim();
             if(!title) continue; 
-            
-            // Get New Fields
             const startDate = row.querySelector('.cap-start').value;
             const endDate = row.querySelector('.cap-end').value;
             const totalHours = row.querySelector('.cap-hours').value;
             const isPaid = row.querySelector('.cap-cost-toggle').checked;
             const costType = isPaid ? "Paid" : "FOC";
             const costAmount = row.querySelector('.cap-cost-amount').value;
-
             const fileInput = row.querySelector('.cap-file');
             const hiddenInput = row.querySelector('.cap-existing-urls');
             const existingUrls = JSON.parse(hiddenInput.value || "[]");
             let filesBase64 = [];
             if (fileInput.files.length > 0) { for (let i = 0; i < fileInput.files.length; i++) { let b64 = await toBase64(fileInput.files[i]); filesBase64.push(b64); } }
-            
-            capacityData.push({ 
-                title: title, 
-                startDate: startDate,
-                endDate: endDate,
-                totalHours: totalHours,
-                costType: costType,
-                costAmount: costAmount,
-                files_base64: filesBase64, 
-                existingUrls: existingUrls 
-            });
+            capacityData.push({ title: title, startDate: startDate, endDate: endDate, totalHours: totalHours, costType: costType, costAmount: costAmount, files_base64: filesBase64, existingUrls: existingUrls });
         }
-
         const employeeData = { 
             Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Race: document.getElementById('empRace').value, Religion: document.getElementById('empReligion').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, 
             ResignDate: document.getElementById('resignSwitch').checked ? document.getElementById('empResign').value : '', 
             image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value,
             Education: educationData, CapacityBuilding: capacityData
         };
-        
         const payload = { 
-            action: rowIndex ? 'editEmployee' : 'addEmployee', 
-            employee: employeeData, 
-            rowIndex: rowIndex ? parseInt(rowIndex) : null, 
-            deleteImageFlag: deleteImageFlag, 
-            deleted_edu_files: eduFilesToDelete,
-            user: currentUser,
-            isChangePosition: document.getElementById('chkChangePosition').checked,
-            newStartDate: document.getElementById('newPosStartDate').value
+            action: rowIndex ? 'editEmployee' : 'addEmployee', employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag, deleted_edu_files: eduFilesToDelete, user: currentUser,
+            isChangePosition: document.getElementById('chkChangePosition').checked, newStartDate: document.getElementById('newPosStartDate').value
         }; 
-
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
-        .then(res => res.json()).then(data => { 
-            showLoading(false); 
-            if(data.status === 'success') {
-                bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); 
-                Swal.fire('Success', data.message, 'success'); 
-                loadEmployees(); 
-            } else { Swal.fire('Error', data.message, 'error'); }
-        });
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); } else { Swal.fire('Error', data.message, 'error'); } });
     }
 
-    window.deleteEmployee = function(rowIndex) { 
-        Swal.fire({ title: 'Delete?', text: "This action cannot be undone!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' })
-        .then((result) => { 
-            if (result.isConfirmed) { 
-                showLoading(true); 
-                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteEmployee', rowIndex: rowIndex, user: currentUser }) })
-                .then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { Swal.fire('Deleted!', 'Employee has been deleted.', 'success'); loadEmployees(); } else { Swal.fire('Error', data.message, 'error'); } }); 
-            } 
-        }); 
-    }
-
+    window.deleteEmployee = function(rowIndex) { Swal.fire({ title: 'Delete?', text: "This action cannot be undone!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((result) => { if (result.isConfirmed) { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteEmployee', rowIndex: rowIndex, user: currentUser }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { Swal.fire('Deleted!', 'Employee has been deleted.', 'success'); loadEmployees(); } else { Swal.fire('Error', data.message, 'error'); } }); } }); }
     window.exportToExcel = function() {
         const wb = XLSX.utils.book_new();
-
         const cleanData = allData.map(item => {
-            const {
-                row_index, EducationObject, "Edu Links": eduLinks, CapacityBuildingObject, "CB Links": cbLinks, "Capacity Building": rawCap, PositionHistory, ...rest
-            } = item;
-
-            // 1. Process Position History
+            const { row_index, EducationObject, "Edu Links": eduLinks, CapacityBuildingObject, "CB Links": cbLinks, "Capacity Building": rawCap, PositionHistory, ...rest } = item;
             let timelineParts = [];
-            if (Array.isArray(PositionHistory) && PositionHistory.length > 0) {
-                PositionHistory.forEach(h => {
-                    let s = h.startDate ? h.startDate.substring(0, 10) : "?";
-                    let e = h.endDate ? h.endDate.substring(0, 10) : "?";
-                    timelineParts.push(`${h.position} (${s} to ${e})`);
-                });
-            }
-            let currentPos = rest.Position || "";
-            let currentStart = rest['Start Date'] ? rest['Start Date'].toString().substring(0, 10) : "";
-            let currentEnd = rest['Resign Date'] ? rest['Resign Date'].toString().substring(0, 10) : "Present";
-            if (currentPos) {
-                timelineParts.push(`${currentPos} (${currentStart} to ${currentEnd})`);
-            }
+            if (Array.isArray(PositionHistory) && PositionHistory.length > 0) { PositionHistory.forEach(h => { timelineParts.push(`${h.position} (${h.startDate ? h.startDate.substring(0, 10) : "?"} to ${h.endDate ? h.endDate.substring(0, 10) : "?"})`); }); }
+            let currentPos = rest.Position || ""; let currentStart = rest['Start Date'] ? rest['Start Date'].toString().substring(0, 10) : ""; let currentEnd = rest['Resign Date'] ? rest['Resign Date'].toString().substring(0, 10) : "Present";
+            if (currentPos) { timelineParts.push(`${currentPos} (${currentStart} to ${currentEnd})`); }
             const fullHistoryString = timelineParts.join(" || ");
-
-            // 2. Process Capacity Building (Title + Date + Hours) AND Fee
-            let capString = "";
-            let feeString = "";
-            
-            if (Array.isArray(CapacityBuildingObject) && CapacityBuildingObject.length > 0) {
-                let caps = [];
-                let fees = [];
-                
-                CapacityBuildingObject.forEach(item => {
-                    let s = item.startDate ? item.startDate.substring(0, 10) : "";
-                    let e = item.endDate ? item.endDate.substring(0, 10) : "";
-                    let h = item.totalHours ? ` ${item.totalHours} Hrs` : "";
-                    
-                    let datePart = "";
-                    if(s || e) { datePart = ` (${s} to ${e}${h})`; } 
-                    else if (h) { datePart = ` (${h})`; }
-                    
-                    caps.push(`${item.title}${datePart}`);
-                    
-                    if(item.costType === 'Paid') { fees.push(item.costAmount || "0"); } 
-                    else { fees.push("FOC"); }
-                });
-                
-                capString = caps.join(" || ");
-                feeString = fees.join(" || ");
-            }
-
-            return {
-                ...rest,
-                "Position History": fullHistoryString,
-                "Capacity Building": capString, // Overwrite with new format
-                "Fee": feeString // New Column
-            };
+            let capString = "", feeString = "";
+            if (Array.isArray(CapacityBuildingObject) && CapacityBuildingObject.length > 0) { let caps = [], fees = []; CapacityBuildingObject.forEach(item => { let s = item.startDate ? item.startDate.substring(0, 10) : ""; let e = item.endDate ? item.endDate.substring(0, 10) : ""; let h = item.totalHours ? ` ${item.totalHours} Hrs` : ""; let datePart = ""; if(s || e) { datePart = ` (${s} to ${e}${h})`; } else if (h) { datePart = ` (${h})`; } caps.push(`${item.title}${datePart}`); if(item.costType === 'Paid') { fees.push(item.costAmount || "0"); } else { fees.push("FOC"); } }); capString = caps.join(" || "); feeString = fees.join(" || "); }
+            return { ...rest, "Position History": fullHistoryString, "Capacity Building": capString, "Fee": feeString };
         });
-
-        const ws = XLSX.utils.json_to_sheet(cleanData);
-        XLSX.utils.book_append_sheet(wb, ws, "Employees");
-        XLSX.writeFile(wb, "Employees_Report.xlsx");
+        const ws = XLSX.utils.json_to_sheet(cleanData); XLSX.utils.book_append_sheet(wb, ws, "Employees"); XLSX.writeFile(wb, "Employees_Report.xlsx");
     }
-    
     window.openSettingsModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); renderSettingsList(); new bootstrap.Modal(document.getElementById('settingsModal')).show(); }
     window.renderSettingsList = function() { const category = document.getElementById('settingsCategory').value; const listContainer = document.getElementById('settingsList'); const items = dropdownData[category] || []; listContainer.innerHTML = ''; if(items.length === 0) { listContainer.innerHTML = '<div class="p-3 text-center text-muted">No items found.</div>'; return; } items.forEach(item => { listContainer.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center"><span>${item}</span><button class="btn btn-sm btn-outline-danger" onclick="deleteDropdownItem('${category}', '${item}')"><i class="fas fa-trash"></i></button></div>`; }); }
     window.addDropdownItem = function() { const category = document.getElementById('settingsCategory').value; const value = document.getElementById('newItemName').value.trim(); if(!value) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addDropdownItem', category: category, value: value, user: currentUser }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { document.getElementById('newItemName').value = ''; loadAllDropdowns().then(renderSettingsList); } else { Swal.fire('Error', resp.message, 'error'); } }); }
     window.deleteDropdownItem = function(category, value) { if(!confirm(`Delete "${value}"?`)) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteDropdownItem', category: category, value: value, user: currentUser }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { loadAllDropdowns().then(renderSettingsList); } else { Swal.fire('Error', resp.message, 'error'); } }); }
     window.previewAndCompress = function(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { const img = new Image(); img.src = e.target.result; img.onload = function() { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 800; let width = img.width, height = img.height; if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } } canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height); compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7); document.getElementById('imgPreview').src = compressedImageBase64; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; deleteImageFlag = false; } }; reader.readAsDataURL(input.files[0]); } }
     window.markImageForDeletion = function() { document.getElementById('imgPreview').style.display = 'none'; document.getElementById('empPic').value = ''; document.getElementById('btnDeleteImg').style.display = 'none'; compressedImageBase64 = null; deleteImageFlag = true; }
-    window.openReportModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); const total = allData.length; document.getElementById('totalEmpCount').innerText = total; const deptCounts = {}; allData.forEach(e => { const d = e.Department || 'Unassigned'; deptCounts[d] = (deptCounts[d] || 0) + 1; }); const posCounts = {}; allData.forEach(e => { const p = e.Position || 'Unassigned'; posCounts[p] = (posCounts[p] || 0) + 1; }); renderReportList('deptReportList', deptCounts); renderReportList('posReportList', posCounts); new bootstrap.Modal(document.getElementById('reportModal')).show(); }
-    window.renderReportList = function(elementId, countsObj) { const el = document.getElementById(elementId); el.innerHTML = ''; const sortedKeys = Object.keys(countsObj).sort(); sortedKeys.forEach(key => { el.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">${key}<span class="badge bg-primary rounded-pill">${countsObj[key]}</span></li>`; }); if(sortedKeys.length === 0) el.innerHTML = '<li class="list-group-item text-muted">No data available</li>'; }
-    const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
     
-    // --- Optimized renderTable (Faster) ---
+    // --- UPDATED REPORT MODAL WITH CHARTS ---
+    window.openReportModal = function() { 
+        const sidebarEl = document.getElementById('sidebarMenu'); 
+        const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); 
+        if(sidebarInstance) sidebarInstance.hide(); 
+
+        const total = allData.length; 
+        document.getElementById('totalEmpCount').innerText = total; 
+
+        // Aggregate Data
+        const deptCounts = {}; allData.forEach(e => { const d = e.Department || 'Unassigned'; deptCounts[d] = (deptCounts[d] || 0) + 1; }); 
+        const posCounts = {}; allData.forEach(e => { const p = e.Position || 'Unassigned'; posCounts[p] = (posCounts[p] || 0) + 1; }); 
+        
+        new bootstrap.Modal(document.getElementById('reportModal')).show(); 
+        
+        // Render Charts after modal is shown (small delay)
+        setTimeout(() => {
+            renderChart('deptChartCanvas', 'Department', deptCounts, 'pie');
+            renderChart('posChartCanvas', 'Position', posCounts, 'bar');
+        }, 500);
+    }
+
+    function renderChart(canvasId, label, dataObj, type) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        const labels = Object.keys(dataObj);
+        const data = Object.values(dataObj);
+        const colors = [ '#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14', '#ffc107', '#198754', '#20c997', '#0dcaf0' ];
+        
+        // Destroy existing chart if any
+        if (canvasId === 'deptChartCanvas' && deptChart) { deptChart.destroy(); }
+        if (canvasId === 'posChartCanvas' && posChart) { posChart.destroy(); }
+
+        const config = {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label + ' Count',
+                    data: data,
+                    backgroundColor: colors.slice(0, labels.length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: type === 'pie', position: 'bottom' }
+                }
+            }
+        };
+
+        if (canvasId === 'deptChartCanvas') deptChart = new Chart(ctx, config);
+        else posChart = new Chart(ctx, config);
+    }
+    
+    const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
+
     function renderTable() { 
         const tbody = document.getElementById('tableBody'); 
         const start = (currentPage - 1) * rowsPerPage; 
         const pageData = filteredData.slice(start, start + rowsPerPage); 
-        
-        // Build string first
         const rowsHtml = pageData.map(row => {
             let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`; 
             if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`; 
-            
             let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`; 
             if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; } 
             else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; } 
-            
             return `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`;
         }).join('');
-        
         tbody.innerHTML = rowsHtml;
         updatePaginationInfo(); 
     }
 
-    // --- Optimized Load Employees ---
-    function loadEmployees() { 
-        // No showLoading here, handled by initDashboard
-        return fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) })
-        .then(res => res.json())
-        .then(resp => { 
-            if(resp.status === 'success') { allData = resp.data; filterData(); }
-        }); 
+    function loadEmployees() { return fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) }).then(res => res.json()).then(resp => { if(resp.status === 'success') { allData = resp.data; filterData(); }}); }
+    function loadAllDropdowns() { return new Promise((resolve) => { fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) }).then(res => res.json()).then(resp => { if(resp.status === 'success') { dropdownData = resp.data; populateSelects(); resolve(); }}); }); }
+    
+    function populateSelects() { 
+        populateSingleSelect('empDept', dropdownData['Department']); 
+        populateSingleSelect('empPos', dropdownData['Position']); 
+        populateSingleSelect('empBlood', dropdownData['Blood Type']); 
+        populateSingleSelect('empReligion', dropdownData['Religion']);
+        
+        // Populate Filter Dropdowns
+        populateSingleSelect('filterDept', dropdownData['Department'], "All Departments");
+        populateSingleSelect('filterPos', dropdownData['Position'], "All Positions");
     }
-
-    // --- Optimized Load Dropdowns ---
-    function loadAllDropdowns() { 
-        return new Promise((resolve) => { 
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) })
-            .then(res => res.json())
-            .then(resp => { if(resp.status === 'success') { dropdownData = resp.data; populateSelects(); resolve(); }}); 
+    
+    function populateSingleSelect(id, items, placeholder="Choose...") { 
+        const select = document.getElementById(id); 
+        select.innerHTML = `<option value="">${placeholder}</option>`; 
+        if(items) items.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`); 
+    }
+    
+    // --- UPDATED FILTER LOGIC ---
+    function filterData() { 
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        const dept = document.getElementById('filterDept').value;
+        const pos = document.getElementById('filterPos').value;
+        
+        filteredData = allData.filter(i => {
+            const matchesTerm = i.Name.toLowerCase().includes(term) || (i.Department && i.Department.toLowerCase().includes(term)) || (i.Position && i.Position.toLowerCase().includes(term));
+            const matchesDept = dept ? i.Department === dept : true;
+            const matchesPos = pos ? i.Position === pos : true;
+            return matchesTerm && matchesDept && matchesPos;
         });
+        currentPage = 1; renderTable(); 
     }
-
-    function populateSelects() { populateSingleSelect('empDept', dropdownData['Department']); populateSingleSelect('empPos', dropdownData['Position']); populateSingleSelect('empBlood', dropdownData['Blood Type']); populateSingleSelect('empReligion', dropdownData['Religion']); }
-    function populateSingleSelect(id, items) { const select = document.getElementById(id); select.innerHTML = `<option value="" selected disabled>Choose...</option>`; if(items) items.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`); }
-    function filterData() { const term = document.getElementById('searchInput').value.toLowerCase(); filteredData = allData.filter(i => i.Name.toLowerCase().includes(term) || (i.Department && i.Department.toLowerCase().includes(term)) || (i.Position && i.Position.toLowerCase().includes(term))); currentPage = 1; renderTable(); }
+    
     function updatePaginationInfo() { const totalEntries = filteredData.length; const totalPages = Math.ceil(totalEntries / rowsPerPage) || 1; document.getElementById('pageInfo').innerText = `Showing ${(currentPage-1)*rowsPerPage + 1} to ${Math.min(currentPage*rowsPerPage, totalEntries)} of ${totalEntries}`; const ul = document.getElementById('pagination'); let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Prev</a></li><li class="page-item"><input type="number" class="page-input-box" value="${currentPage}" min="1" max="${totalPages}" onchange="jumpToPage(this.value)"></li><li class="page-item disabled"><span class="page-link bg-white text-muted border-start-0">/ ${totalPages}</span></li><li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a></li>`; ul.innerHTML = html; }
     window.changePage = function(p) { if (p < 1 || p > Math.ceil(filteredData.length / rowsPerPage)) return; currentPage = p; renderTable(); }
     window.jumpToPage = function(val) { const pageNum = parseInt(val); const totalPages = Math.ceil(filteredData.length / rowsPerPage); if (pageNum >= 1 && pageNum <= totalPages) { currentPage = pageNum; } renderTable(); }
@@ -720,6 +671,23 @@
     document.addEventListener('DOMContentLoaded', (event) => { const savedTheme = localStorage.getItem('theme') || 'light'; applyTheme(savedTheme); });
     function toggleTheme() { const html = document.documentElement; const currentTheme = html.getAttribute('data-bs-theme'); const newTheme = currentTheme === 'dark' ? 'light' : 'dark'; applyTheme(newTheme); localStorage.setItem('theme', newTheme); }
     function applyTheme(theme) { document.documentElement.setAttribute('data-bs-theme', theme); const icon = document.getElementById('themeIcon'); if(theme === 'dark') { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); } else { icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); } }
+    window.generateAndDownloadPDF = function() {
+        if(!currentViewedEmp) return;
+        showLoading(true);
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'generateProfilePDF', employeeData: currentViewedEmp, user: currentUser }) })
+        .then(res => res.json())
+        .then(data => {
+            showLoading(false);
+            if(data.status === 'success') {
+                const link = document.createElement('a');
+                link.href = 'data:application/pdf;base64,' + data.pdfBase64;
+                link.download = data.fileName;
+                link.click();
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        });
+    }
 </script>
 
 </body>
