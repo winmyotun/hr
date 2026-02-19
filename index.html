@@ -39,14 +39,14 @@
         .file-link-badge { font-size: 0.8rem; margin-right: 5px; display: inline-block; margin-top: 2px; }
         .delete-file-btn { font-size: 0.7rem; margin-left: 5px; cursor: pointer; color: #dc3545; }
     
-	
-	/* Dark Mode Styles */
+    
+    /* Dark Mode Styles */
 [data-bs-theme="dark"] body {
     background-color: #212529 !important;
     color: #f8f9fa;
 }
 [data-bs-theme="dark"] .bg-white {
-    background-color: #2b3035 !important; /* Card & Navbar Background */
+    background-color: #2b3035 !important; 
     color: #fff;
 }
 [data-bs-theme="dark"] .text-secondary,
@@ -75,55 +75,51 @@
 }
 [data-bs-theme="dark"] .form-control, 
 [data-bs-theme="dark"] .form-select,
-[data-bs-theme="dark"] .page-input-box {
+[data-bs-theme="dark"] .page-input-box,
+[data-bs-theme="dark"] .form-check-input {
     background-color: #212529;
     border-color: #495057;
     color: #fff;
 }
+[data-bs-theme="dark"] .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
 [data-bs-theme="dark"] .edu-row {
     background-color: #343a40;
     border-color: #495057;
 }
 
-
-/* --- DARK MODE FIXES (3 POINTS) --- */
-
-/* ၁။ Loading Overlay (အမဲရောင် ပြောင်းခြင်း) */
 [data-bs-theme="dark"] #loadingOverlay {
-    background: rgba(33, 37, 41, 0.95) !important; /* အမဲရောင် နောက်ခံ */
+    background: rgba(33, 37, 41, 0.95) !important; 
 }
 [data-bs-theme="dark"] .spinner-border {
-    border-color: #0d6efd; /* Loading အဝိုင်းအရောင် */
+    border-color: #0d6efd; 
     border-right-color: transparent;
 }
 
-/* ၂။ Summary Dashboard (နောက်ခံ အဖြူဖြစ်နေတာ ပြင်ခြင်း) */
-/* .bg-light သုံးထားတဲ့ နေရာမှန်သမျှ အမဲရောင်ပြောင်းမယ် */
 [data-bs-theme="dark"] .bg-light {
-    background-color: #343a40 !important; /* မီးခိုးရောင် ရင့်ရင့် */
+    background-color: #343a40 !important; 
     color: #fff !important;
 }
-/* Report List တွေကိုပါ အမဲရောင် ပြောင်းမယ် */
 [data-bs-theme="dark"] .list-group-item {
     background-color: #2b3035;
     color: #e9ecef;
     border-color: #495057;
 }
 
-/* ၃။ Delete Confirm Box (SweetAlert2) ပြင်ခြင်း */
 [data-bs-theme="dark"] .swal2-popup {
-    background: #2b3035 !important; /* Confirm Box နောက်ခံ */
+    background: #2b3035 !important;
     color: #fff !important;
     border: 1px solid #495057;
 }
 [data-bs-theme="dark"] .swal2-title,
 [data-bs-theme="dark"] .swal2-html-container {
-    color: #fff !important; /* စာလုံးအရောင် */
+    color: #fff !important; 
 }
 
-	
-	
-	</style>
+    </style>
 </head>
 <body>
 
@@ -144,31 +140,20 @@
 <!-- Dashboard -->
 <div class="container-fluid main-content" id="dashboardSection">
     <nav class="navbar navbar-light bg-white rounded shadow-sm mb-4 p-3 d-flex justify-content-between">
-	
-	
-	
+    
         <div class="d-flex align-items-center">
             <button class="btn btn-outline-primary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu"><i class="fas fa-bars"></i> Manage</button>
             <span class="navbar-brand fw-bold text-primary m-0"><i class="fas fa-users-cog"></i> Employee System</span>
         </div>
-		
-		
-		
+        
         <div class="d-flex align-items-center">
             <span class="me-3 fw-bold text-secondary d-none d-md-block" id="userDisplay"></span>
-    <!-- ဒီနေရာမှာ အသစ်ထည့်ရမယ့် ကုဒ် -->        
-			<button class="btn btn-outline-secondary btn-sm me-2" onclick="toggleTheme()" title="Toggle Theme">
+            <button class="btn btn-outline-secondary btn-sm me-2" onclick="toggleTheme()" title="Toggle Theme">
         <i class="fas fa-moon" id="themeIcon"></i>
     </button>
-	 <!-- အသစ်ထည့်ရမယ့် ကုဒ် ပြီးဆုံး -->
-			<button class="btn btn-outline-success btn-sm me-2" onclick="refreshData()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+            <button class="btn btn-outline-success btn-sm me-2" onclick="refreshData()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
             <button class="btn btn-outline-danger btn-sm" onclick="location.reload()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
         </div>
-		
-		
-		
-		
-		
     </nav>
 
     <!-- Sidebar -->
@@ -179,7 +164,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 2.7 (Doc PDF)</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 3.1 (History Edit)</div>
         </div>
     </div>
 
@@ -230,7 +215,37 @@
                                     <div><label class="btn btn-outline-primary btn-sm"><i class="fas fa-camera"></i> Photo<input type="file" id="empPic" accept="image/*" hidden onchange="previewAndCompress(this)"></label><button type="button" class="btn btn-outline-danger btn-sm" id="btnDeleteImg" onclick="markImageForDeletion()" style="display:none;">Remove</button></div>
                                 </div>
                                 <div class="col-md-6"><label>Name</label><input type="text" class="form-control" id="empName" required></div>
-                                <div class="col-md-6"><label>Position</label><select class="form-select" id="empPos"><option value="">Loading...</option></select></div>
+                                
+                                <!-- ===== POSITION SECTION ===== -->
+                                <div class="col-md-6">
+                                    <label>Position</label>
+                                    <select class="form-select" id="empPos"><option value="">Loading...</option></select>
+                                    
+                                    <!-- Change Position Checkbox -->
+                                    <div id="changePositionSection" class="mt-2 p-2 border rounded bg-light" style="display:none;">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="chkChangePosition">
+                                            <label class="form-check-label text-primary small" for="chkChangePosition">
+                                                Promotion / Change Position?
+                                            </label>
+                                        </div>
+                                        <div id="newPosDateContainer" class="mt-2" style="display:none;">
+                                            <label class="small text-muted">New Start Date (Effective Date)</label>
+                                            <input type="date" class="form-control form-control-sm" id="newPosStartDate">
+                                        </div>
+                                    </div>
+
+                                    <!-- NEW: HISTORY LIST DISPLAY -->
+                                    <div id="editPosHistoryContainer" class="mt-2 border-top pt-2" style="display:none;">
+                                        <label class="small text-muted fw-bold mb-1"><i class="fas fa-history"></i> Past Positions</label>
+                                        <ul class="list-group list-group-flush small" id="editPosHistoryList" style="font-size:0.85rem; max-height: 150px; overflow-y:auto;">
+                                            <!-- Items will be injected here -->
+                                        </ul>
+                                    </div>
+                                    <!-- ============================ -->
+
+                                </div>
+                                
                                 <div class="col-md-6"><label>Department</label><select class="form-select" id="empDept"><option value="">Loading...</option></select></div>
                                 <div class="col-md-6"><label>Blood Type</label><select class="form-select" id="empBlood"><option value="">Loading...</option></select></div>
                                 
@@ -242,8 +257,20 @@
                                 <div class="col-md-6"><label>NRC No.</label><input type="text" class="form-control" id="empNrc"></div>
                                 <div class="col-md-6"><label>Father Name</label><input type="text" class="form-control" id="empFather"></div>
                                 <div class="col-md-6"><label>Mother Name</label><input type="text" class="form-control" id="empMother"></div>
+                                
                                 <div class="col-md-6"><label>Start Date</label><input type="date" class="form-control" id="empStart"></div>
-                                <div class="col-md-6"><label>Resign Date</label><input type="date" class="form-control" id="empResign"></div>
+                                <div class="col-md-6">
+                                    <label>Employment Status</label>
+                                    <div class="form-check form-switch pt-2">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="resignSwitch">
+                                        <label class="form-check-label" for="resignSwitch">Current</label>
+                                    </div>
+                                    <div id="resignDateContainer" style="display:none;" class="mt-1">
+                                        <label class="small text-muted">Resign Date</label>
+                                        <input type="date" class="form-control" id="empResign">
+                                    </div>
+                                </div>
+
                                 <div class="col-12"><label>Address</label><textarea class="form-control" id="empAddr" rows="2"></textarea></div>
                             </div>
                         </div>
@@ -269,9 +296,8 @@
 <div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Manage Dropdowns</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="fw-bold">Select Category:</label><select class="form-select" id="settingsCategory" onchange="renderSettingsList()"><option value="Department">Department</option><option value="Position">Position</option><option value="Blood Type">Blood Type</option><option value="Religion">Religion</option></select></div><div class="input-group mb-3"><input type="text" class="form-control" id="newItemName" placeholder="New Item Name"><button class="btn btn-primary" onclick="addDropdownItem()">Add</button></div><h6 class="text-muted">Current Items:</h6><div class="list-group" id="settingsList" style="max-height: 250px; overflow-y: auto;"></div></div></div></div></div>
 <div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-info text-white"><h5 class="modal-title">Summary Dashboard</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row mb-4"><div class="col-md-12"><div class="card bg-light border-0 p-3 text-center"><h3 class="display-6 fw-bold text-primary" id="totalEmpCount">0</h3><span class="text-muted">Total Employees</span></div></div></div><div class="row"><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Department</h6><ul class="list-group list-group-flush" id="deptReportList"></ul></div><div class="col-md-6"><h6 class="fw-bold border-bottom pb-2">By Position</h6><ul class="list-group list-group-flush" id="posReportList"></ul></div></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
-<!-- View Details Modal (UPDATED BUTTON) -->
+<!-- View Details Modal -->
 <div class="modal fade" id="viewModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-body" id="viewDetailsBody"></div><div class="modal-footer p-1">
-    <!-- Server Side PDF Button (Dark with Red Icon) -->
     <button type="button" class="btn btn-dark btn-sm me-auto" onclick="generateAndDownloadPDF()"><i class="fas fa-file-pdf text-danger"></i> Export</button>
     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
 </div></div></div></div>
@@ -280,7 +306,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxVLV_0BrV4RfsVi8IPW9U3KzVOuya61WJtFVgLZvEdjBkgTpjQRJy3P5qu7y7-wt8guQ/exec"; // *** URL ထည့်ပါ ***
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyD73UsK3zdIRe3k885z3uy8_BrRS0LosECIZdxEqjEu1UGREvJqeBASwyTwdXsVp_pww/exec"; 
     let currentUser = { role: null, username: null, department: null };
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [], "Religion": [] }; 
@@ -288,8 +314,7 @@
     let eduFilesToDelete = []; 
     let currentViewedEmp = null;
 
-    // Login
-    document.getElementById('loginForm').addEventListener('submit', function(e) { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: document.getElementById('username').value, password: document.getElementById('password').value }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { currentUser = { role: data.role, username: document.getElementById('username').value, department: data.department }; initDashboard(); } else Swal.fire('Error', data.message, 'error'); }).catch(e => { showLoading(false); alert('Error: ' + e); }); });
+    document.getElementById('loginForm').addEventListener('submit', function(e) { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: document.getElementById('username').value, password: document.getElementById('password').value }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { currentUser = { role: data.role, username: document.getElementById('username').value, department: data.department }; initDashboard(); } else Swal.fire('Error', data.message, 'error'); }).catch(e => { showLoading(false); Swal.fire('Connection Error', e.toString(), 'error'); }); });
 
     function initDashboard() {
         document.getElementById('loginSection').style.display = 'none'; document.getElementById('dashboardSection').style.display = 'block'; document.getElementById('userDisplay').innerText = `${currentUser.username} (${currentUser.role})`;
@@ -302,7 +327,35 @@
             document.getElementById('btnAdd').style.display = 'none';
             sidebarHTML = `<div class="sidebar-header-text mt-2">REPORTS</div><a class="list-group-item sidebar-item" onclick="openReportModal()"><i class="fas fa-chart-pie text-info"></i> Summary Dashboard</a>`;
         }
-        sidebarList.innerHTML = sidebarHTML; loadEmployees(); loadAllDropdowns();
+        sidebarList.innerHTML = sidebarHTML; 
+        
+        document.getElementById('resignSwitch').addEventListener('change', function() {
+            const resignDateContainer = document.getElementById('resignDateContainer');
+            const label = document.querySelector('label[for="resignSwitch"]');
+            if (this.checked) {
+                resignDateContainer.style.display = 'block';
+                label.textContent = 'Resigned';
+            } else {
+                resignDateContainer.style.display = 'none';
+                document.getElementById('empResign').value = '';
+                label.textContent = 'Current';
+            }
+        });
+
+        document.getElementById('chkChangePosition').addEventListener('change', function() {
+            const container = document.getElementById('newPosDateContainer');
+            if(this.checked) {
+                container.style.display = 'block';
+                if(!document.getElementById('newPosStartDate').value) {
+                     document.getElementById('newPosStartDate').value = new Date().toISOString().split('T')[0];
+                }
+            } else {
+                container.style.display = 'none';
+                document.getElementById('newPosStartDate').value = '';
+            }
+        });
+
+        loadEmployees(); loadAllDropdowns();
     }
 
     function refreshData() { loadEmployees(); loadAllDropdowns(); }
@@ -359,46 +412,33 @@
     window.viewDetails = function(rowIndex) { 
         const emp = allData.find(r => r.row_index === rowIndex);
         
-        // Prepare Object for Server-side PDF
         currentViewedEmp = {
             Name: emp.Name, Position: emp.Position, Department: emp.Department, Phone: emp.Phone, Email: emp.Email,
             Address: emp.Address, Nrc: emp['NRC No.'], FatherName: emp['Father Name'], MotherName: emp['Mother Name'],
             BloodType: emp['Blood Type'], Race: emp.Race, Religion: emp.Religion, StartDate: emp['Start Date'], ResignDate: emp['Resign Date'],
-            ProfilePic: emp['Profile Pic'], EducationObject: emp.EducationObject
+            ProfilePic: emp['Profile Pic'], EducationObject: emp.EducationObject, PositionHistory: emp.PositionHistory
         };
 
-        // --- PDF Button Permission Logic ---
-        const pdfBtn = document.querySelector('#viewModal .btn-dark'); // Export Button
-        
-        // 1. Reset Button State (Default: Enable for Root)
+        const pdfBtn = document.querySelector('#viewModal .btn-dark');
         pdfBtn.disabled = false;
-        // Normal State (Red PDF Icon + Export)
         pdfBtn.innerHTML = '<i class="fas fa-file-pdf text-danger"></i> Export';
 
-        // 2. Check Permissions
         if (currentUser.role === 'User') {
-            // CASE A: User Role -> ALWAYS LOCK
             pdfBtn.disabled = true;
-            // Changed Icon to PDF but kept text Restricted
             pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted';
         } 
         else if (currentUser.role === 'Admin') {
-            // CASE B: Admin Role -> LOCK if Department mismatch
             const userDept = (currentUser.department || "").trim();
             const empDept = (emp.Department || "").trim();
-
             if (userDept !== empDept) {
                 pdfBtn.disabled = true;
-                // Changed Icon to PDF but kept text Restricted
                 pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted';
             }
         }
-        // CASE C: Root Role -> Remains Enabled
-        // -----------------------------------
 
         let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; 
-        let eduHtml = '<p class="text-muted small">No education info</p>';
         
+        let eduHtml = '<p class="text-muted small">No education info</p>';
         if(emp.EducationObject && emp.EducationObject.length > 0) {
             eduHtml = '<ul class="list-group list-group-flush text-start">';
             emp.EducationObject.forEach(item => {
@@ -406,7 +446,6 @@
                 let urlArray = Array.isArray(item.urls) ? item.urls : [];
                 urlArray.forEach((link, idx) => {
                     if(link.trim()) {
-                        // Education File Permission Logic
                         if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-primary text-decoration-none ms-1">File ${idx+1}</a>`; } 
                         else { linksHtml += `<span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span>`; } 
                     }
@@ -415,8 +454,29 @@
             });
             eduHtml += '</ul>';
         }
-        const formatDate = (dateStr) => { if (!dateStr) return '-'; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
         
+        const formatDate = (dateStr) => { 
+            if (!dateStr) return '-'; 
+            const d = new Date(dateStr); 
+            return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; 
+        };
+
+        // --- POSITION HISTORY RENDER ---
+        let posHistoryHtml = '';
+        // 1. Render Past Histories
+        if (emp.PositionHistory && emp.PositionHistory.length > 0) {
+            emp.PositionHistory.forEach(ph => {
+                posHistoryHtml += `<li class="text-muted small">${ph.position} (${ph.startDate} to ${ph.endDate})</li>`;
+            });
+        }
+        
+        // 2. Render Current Position
+        let currentEnd = emp['Resign Date'] ? formatDate(emp['Resign Date']) : 'Current';
+        let currentClass = emp['Resign Date'] ? 'text-danger' : 'text-success fw-bold';
+        
+        // ဒီနေရာမှာ StartDate ကိုသေချာပြသပေးပါတယ်
+        posHistoryHtml += `<li class="${currentClass}">${emp.Position} (${formatDate(emp['Start Date'])} to ${currentEnd})</li>`;
+
         document.getElementById('viewDetailsBody').innerHTML = `
             <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4><div class="mb-3"><span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span></div></div>
             <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist"><li class="nav-item"><button class="nav-link active py-1" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Info</button></li><li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li></ul>
@@ -425,14 +485,18 @@
                     <table class="table table-bordered table-sm mb-0">
                         <tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr>
                         <tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr>
-                        <tr><th>Religion</th><td>${emp.Religion || '-'}</td></tr>
-                        <tr><th>Race</th><td>${emp.Race || '-'}</td></tr>
                         <tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr>
                         <tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr>
-                        <tr><th>Blood Type</th><td>${emp['Blood Type'] || '-'}</td></tr>
                         <tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr>
-                        <tr><th>Email</th><td>${emp.Email || '-'}</td></tr><tr><th>Address</th><td>${emp.Address || '-'}</td></tr>
-                        <tr><th>Start Date</th><td>${formatDate(emp['Start Date'])}</td></tr><tr><th>Resign Date</th><td>${formatDate(emp['Resign Date'])}</td></tr>
+                        <tr><th>Email</th><td>${emp.Email || '-'}</td></tr>
+                        <tr><th>Address</th><td>${emp.Address || '-'}</td></tr>
+                        
+                        <!-- Employment Dates Summary -->
+                        <tr><th>Current Status</th><td>${emp['Resign Date'] ? '<span class="badge bg-danger">Resigned</span>' : '<span class="badge bg-success">Active</span>'}</td></tr>
+                        
+                        <!-- Position History List -->
+                        <tr><th colspan="2" class="bg-light">Position Timeline</th></tr>
+                        <tr><td colspan="2"><ul class="list-unstyled mb-0 ps-2" style="line-height: 1.8;">${posHistoryHtml}</ul></td></tr>
                     </table>
                 </div>
                 <div class="tab-pane fade" id="view-edu">${eduHtml}</div>
@@ -440,10 +504,6 @@
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-
-
-
-    // --- GENERATE PDF via BACKEND (DOC TEMPLATE) ---
     function generateAndDownloadPDF() {
         if (!currentViewedEmp) return;
         const btn = document.querySelector('#viewModal .btn-dark'); 
@@ -463,27 +523,22 @@
             if (data.status === 'success') {
                 const byteCharacters = atob(data.pdfBase64);
                 const byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
+                for (let i = 0; i < byteCharacters.length; i++) { byteNumbers[i] = byteCharacters.charCodeAt(i); }
                 const byteArray = new Uint8Array(byteNumbers);
                 const blob = new Blob([byteArray], {type: "application/pdf"});
                 const link = document.createElement('a');
                 link.href = window.URL.createObjectURL(blob);
                 link.download = data.fileName;
                 link.click();
-            } else {
-                alert("PDF Error: " + data.message);
-            }
+            } else { Swal.fire("PDF Error", data.message, "error"); }
         })
-        .catch(err => alert("Connection Error: " + err))
+        .catch(err => Swal.fire("Connection Error", err.toString(), "error"))
         .finally(() => {
             btn.innerHTML = originalText;
             btn.disabled = false;
         });
     }
 
-    // --- MAIN CRUD ---
     window.openModal = function(mode, rowIndex = null) { 
         const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
         document.getElementById('employeeForm').reset(); 
@@ -492,11 +547,46 @@
         document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none'; 
         var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]'); var firstTab = new bootstrap.Tab(firstTabEl); firstTab.show();
 
+        const resignSwitch = document.getElementById('resignSwitch');
+        const resignDateContainer = document.getElementById('resignDateContainer');
+        const resignLabel = document.querySelector('label[for="resignSwitch"]');
+        resignSwitch.checked = false;
+        resignDateContainer.style.display = 'none';
+        resignLabel.textContent = 'Current';
+
+        document.getElementById('chkChangePosition').checked = false;
+        document.getElementById('newPosDateContainer').style.display = 'none';
+        document.getElementById('newPosStartDate').value = '';
+
+        // --- NEW: HANDLE HISTORY VISIBILITY ---
+        const historyList = document.getElementById('editPosHistoryList');
+        const historyContainer = document.getElementById('editPosHistoryContainer');
+        historyList.innerHTML = '';
+        historyContainer.style.display = 'none';
+
         if(mode === 'edit') { 
             const emp = allData.find(r => r.row_index === rowIndex); 
             document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic']; 
             document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empRace').value = emp.Race || ""; document.getElementById('empReligion').value = emp.Religion || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
-            if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0]; if(emp['Resign Date']) document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; 
+            if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0];
+            
+            if(emp['Resign Date']) {
+                document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0];
+                resignSwitch.checked = true;
+                resignDateContainer.style.display = 'block';
+                resignLabel.textContent = 'Resigned';
+            }
+            
+            document.getElementById('changePositionSection').style.display = 'block';
+
+            // --- POPULATE HISTORY IN EDIT MODAL ---
+            if (emp.PositionHistory && emp.PositionHistory.length > 0) {
+                historyContainer.style.display = 'block';
+                emp.PositionHistory.forEach(h => {
+                    historyList.innerHTML += `<li class="list-group-item p-1 bg-transparent border-0"><i class="fas fa-history text-secondary me-1"></i> <strong>${h.position}</strong> <br> <span class="text-muted ms-3" style="font-size:0.75rem;">${h.startDate} ~ ${h.endDate}</span></li>`;
+                });
+            }
+
             if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
             
             if(emp.EducationObject && emp.EducationObject.length > 0) {
@@ -504,6 +594,7 @@
             }
         } else { 
             document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; 
+            document.getElementById('changePositionSection').style.display = 'none';
             addEduRow(); 
         } 
         modal.show(); 
@@ -539,41 +630,131 @@
         }
 
         const employeeData = { 
-            Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Race: document.getElementById('empRace').value, Religion: document.getElementById('empReligion').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, ResignDate: document.getElementById('empResign').value, image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value,
+            Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Race: document.getElementById('empRace').value, Religion: document.getElementById('empReligion').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, 
+            ResignDate: document.getElementById('resignSwitch').checked ? document.getElementById('empResign').value : '', 
+            image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value,
             Education: educationData 
         };
-        const payload = { action: rowIndex ? 'editEmployee' : 'addEmployee', employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag, deleted_edu_files: eduFilesToDelete }; 
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); });
+        
+        const payload = { 
+            action: rowIndex ? 'editEmployee' : 'addEmployee', 
+            employee: employeeData, 
+            rowIndex: rowIndex ? parseInt(rowIndex) : null, 
+            deleteImageFlag: deleteImageFlag, 
+            deleted_edu_files: eduFilesToDelete,
+            user: currentUser,
+            isChangePosition: document.getElementById('chkChangePosition').checked,
+            newStartDate: document.getElementById('newPosStartDate').value
+        }; 
+
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(res => res.json()).then(data => { 
+            showLoading(false); 
+            if(data.status === 'success') {
+                bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); 
+                Swal.fire('Success', data.message, 'success'); 
+                loadEmployees(); 
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        });
     }
 
-    // --- GLOBALS ---
-    window.exportToExcel = function() { const wb = XLSX.utils.book_new(); const cleanData = allData.map(item => { const { row_index, EducationObject, "Edu Links": eduLinks, ...rest } = item; return rest; }); const ws = XLSX.utils.json_to_sheet(cleanData); XLSX.utils.book_append_sheet(wb, ws, "Employees"); XLSX.writeFile(wb, "Employees_Report.xlsx"); }
+    window.deleteEmployee = function(rowIndex) { 
+        Swal.fire({ title: 'Delete?', text: "This action cannot be undone!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' })
+        .then((result) => { 
+            if (result.isConfirmed) { 
+                showLoading(true); 
+                fetch(GAS_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        action: 'deleteEmployee', 
+                        rowIndex: rowIndex,
+                        user: currentUser 
+                    }) 
+                })
+                .then(res => res.json()).then(data => { 
+                    showLoading(false); 
+                    if(data.status === 'success') {
+                         Swal.fire('Deleted!', 'Employee has been deleted.', 'success');
+                         loadEmployees(); 
+                    } else {
+                         Swal.fire('Error', data.message, 'error');
+                    }
+                }); 
+            } 
+        }); 
+    }
+
+    window.exportToExcel = function() { const wb = XLSX.utils.book_new(); const cleanData = allData.map(item => { const { row_index, EducationObject, "Edu Links": eduLinks, PositionHistory, ...rest } = item; return rest; }); const ws = XLSX.utils.json_to_sheet(cleanData); XLSX.utils.book_append_sheet(wb, ws, "Employees"); XLSX.writeFile(wb, "Employees_Report.xlsx"); }
     window.openSettingsModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); renderSettingsList(); new bootstrap.Modal(document.getElementById('settingsModal')).show(); }
     window.renderSettingsList = function() { const category = document.getElementById('settingsCategory').value; const listContainer = document.getElementById('settingsList'); const items = dropdownData[category] || []; listContainer.innerHTML = ''; if(items.length === 0) { listContainer.innerHTML = '<div class="p-3 text-center text-muted">No items found.</div>'; return; } items.forEach(item => { listContainer.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center"><span>${item}</span><button class="btn btn-sm btn-outline-danger" onclick="deleteDropdownItem('${category}', '${item}')"><i class="fas fa-trash"></i></button></div>`; }); }
-    window.addDropdownItem = function() { const category = document.getElementById('settingsCategory').value; const value = document.getElementById('newItemName').value.trim(); if(!value) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addDropdownItem', category: category, value: value }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { document.getElementById('newItemName').value = ''; fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) }).then(r => r.json()).then(d => { dropdownData = d.data; renderSettingsList(); populateSelects(); }); } }); }
-    window.deleteDropdownItem = function(category, value) { if(!confirm(`Delete "${value}"?`)) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteDropdownItem', category: category, value: value }) }).then(res => res.json()).then(resp => { showLoading(false); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) }).then(r => r.json()).then(d => { dropdownData = d.data; renderSettingsList(); populateSelects(); }); }); }
+    
+    window.addDropdownItem = function() { 
+        const category = document.getElementById('settingsCategory').value; 
+        const value = document.getElementById('newItemName').value.trim(); 
+        if(!value) return; 
+        showLoading(true); 
+        fetch(GAS_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: 'addDropdownItem', 
+                category: category, 
+                value: value,
+                user: currentUser 
+            }) 
+        })
+        .then(res => res.json()).then(resp => { 
+            showLoading(false); 
+            if(resp.status === 'success') { 
+                document.getElementById('newItemName').value = ''; 
+                loadAllDropdowns().then(renderSettingsList);
+            } else {
+                Swal.fire('Error', resp.message, 'error');
+            }
+        }); 
+    }
+    
+    window.deleteDropdownItem = function(category, value) { 
+        if(!confirm(`Delete "${value}"?`)) return; 
+        showLoading(true); 
+        fetch(GAS_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: 'deleteDropdownItem', 
+                category: category, 
+                value: value,
+                user: currentUser 
+            }) 
+        })
+        .then(res => res.json()).then(resp => { 
+            showLoading(false); 
+            if(resp.status === 'success') {
+                loadAllDropdowns().then(renderSettingsList);
+            } else {
+                Swal.fire('Error', resp.message, 'error');
+            }
+        }); 
+    }
+
     window.previewAndCompress = function(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { const img = new Image(); img.src = e.target.result; img.onload = function() { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 800; let width = img.width, height = img.height; if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } } canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height); compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7); document.getElementById('imgPreview').src = compressedImageBase64; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; deleteImageFlag = false; } }; reader.readAsDataURL(input.files[0]); } }
     window.markImageForDeletion = function() { document.getElementById('imgPreview').style.display = 'none'; document.getElementById('empPic').value = ''; document.getElementById('btnDeleteImg').style.display = 'none'; compressedImageBase64 = null; deleteImageFlag = true; }
     window.openReportModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); const total = allData.length; document.getElementById('totalEmpCount').innerText = total; const deptCounts = {}; allData.forEach(e => { const d = e.Department || 'Unassigned'; deptCounts[d] = (deptCounts[d] || 0) + 1; }); const posCounts = {}; allData.forEach(e => { const p = e.Position || 'Unassigned'; posCounts[p] = (posCounts[p] || 0) + 1; }); renderReportList('deptReportList', deptCounts); renderReportList('posReportList', posCounts); new bootstrap.Modal(document.getElementById('reportModal')).show(); }
     window.renderReportList = function(elementId, countsObj) { const el = document.getElementById(elementId); el.innerHTML = ''; const sortedKeys = Object.keys(countsObj).sort(); sortedKeys.forEach(key => { el.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">${key}<span class="badge bg-primary rounded-pill">${countsObj[key]}</span></li>`; }); if(sortedKeys.length === 0) el.innerHTML = '<li class="list-group-item text-muted">No data available</li>'; }
-    window.deleteEmployee = deleteEmployee;
     const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
     function renderTable() { const tbody = document.getElementById('tableBody'); tbody.innerHTML = ''; const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage); pageData.forEach(row => { let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`; if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`; let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`; if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; } else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; } tbody.innerHTML += `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`; }); updatePaginationInfo(); }
     function loadEmployees() { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { allData = resp.data; filterData(); }}); }
-    function loadAllDropdowns() { fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) }).then(res => res.json()).then(resp => { if(resp.status === 'success') { dropdownData = resp.data; populateSelects(); }}); }
+    function loadAllDropdowns() { return new Promise((resolve) => { fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) }).then(res => res.json()).then(resp => { if(resp.status === 'success') { dropdownData = resp.data; populateSelects(); resolve(); }}); });}
     function populateSelects() { populateSingleSelect('empDept', dropdownData['Department']); populateSingleSelect('empPos', dropdownData['Position']); populateSingleSelect('empBlood', dropdownData['Blood Type']); populateSingleSelect('empReligion', dropdownData['Religion']); }
     function populateSingleSelect(id, items) { const select = document.getElementById(id); select.innerHTML = `<option value="" selected disabled>Choose...</option>`; if(items) items.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`); }
-    function deleteEmployee(rowIndex) { Swal.fire({ title: 'Delete?', text: "Action cannot be undone!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((result) => { if (result.isConfirmed) { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteEmployee', rowIndex: rowIndex }) }).then(res => res.json()).then(data => { showLoading(false); loadEmployees(); }); } }); }
     function filterData() { const term = document.getElementById('searchInput').value.toLowerCase(); filteredData = allData.filter(i => i.Name.toLowerCase().includes(term) || (i.Department && i.Department.toLowerCase().includes(term)) || (i.Position && i.Position.toLowerCase().includes(term))); currentPage = 1; renderTable(); }
     function updatePaginationInfo() { const totalEntries = filteredData.length; const totalPages = Math.ceil(totalEntries / rowsPerPage) || 1; document.getElementById('pageInfo').innerText = `Showing ${(currentPage-1)*rowsPerPage + 1} to ${Math.min(currentPage*rowsPerPage, totalEntries)} of ${totalEntries}`; const ul = document.getElementById('pagination'); let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Prev</a></li><li class="page-item"><input type="number" class="page-input-box" value="${currentPage}" min="1" max="${totalPages}" onchange="jumpToPage(this.value)"></li><li class="page-item disabled"><span class="page-link bg-white text-muted border-start-0">/ ${totalPages}</span></li><li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a></li>`; ul.innerHTML = html; }
     window.changePage = function(p) { if (p < 1 || p > Math.ceil(filteredData.length / rowsPerPage)) return; currentPage = p; renderTable(); }
     window.jumpToPage = function(val) { const pageNum = parseInt(val); const totalPages = Math.ceil(filteredData.length / rowsPerPage); if (pageNum >= 1 && pageNum <= totalPages) { currentPage = pageNum; } renderTable(); }
     window.changeRowsPerPage = function() { rowsPerPage = parseInt(document.getElementById('rowsPerPage').value); currentPage = 1; renderTable(); }
     function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
-	
-	// --- THEME TOGGLE LOGIC ---
+    
 document.addEventListener('DOMContentLoaded', (event) => {
-    // 1. Check LocalStorage on load
     const savedTheme = localStorage.getItem('theme') || 'light';
     applyTheme(savedTheme);
 });
@@ -584,7 +765,7 @@ function toggleTheme() {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     
     applyTheme(newTheme);
-    localStorage.setItem('theme', newTheme); // Save preference
+    localStorage.setItem('theme', newTheme); 
 }
 
 function applyTheme(theme) {
@@ -598,8 +779,6 @@ function applyTheme(theme) {
         icon.classList.add('fa-moon');
     }
 }
-
-	
 </script>
 
 </body>
