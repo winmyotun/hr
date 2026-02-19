@@ -39,7 +39,6 @@
         .file-link-badge { font-size: 0.8rem; margin-right: 5px; display: inline-block; margin-top: 2px; }
         .delete-file-btn { font-size: 0.7rem; margin-left: 5px; cursor: pointer; color: #dc3545; }
     
-    /* Dark Mode Styles */
     [data-bs-theme="dark"] body { background-color: #212529 !important; color: #f8f9fa; }
     [data-bs-theme="dark"] .bg-white { background-color: #2b3035 !important; color: #fff; }
     [data-bs-theme="dark"] .text-secondary, [data-bs-theme="dark"] .text-muted { color: #adb5bd !important; }
@@ -100,7 +99,7 @@
         </div>
         <div class="offcanvas-body p-0">
             <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 3.3 (Cap Building Details)</div>
+            <div class="p-3 mt-auto text-muted small border-top">Version 3.5 (Optimized)</div>
         </div>
     </div>
 
@@ -234,7 +233,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycby2KZcquPZ6u6-KqkZC3CWcSHy3huIKWBu5ZKxrtxTcAB1LH6dcncJhZaZbgmbfUzTbOA/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz1KPRV6BuE2uiieQZolJMDMh0LsN83hkwfXJB-Zk2nk6LdwgCg-49f4EhR5GxGZhOxig/exec"; 
     let currentUser = { role: null, username: null, department: null };
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [], "Religion": [] }; 
@@ -270,10 +269,16 @@
             else { container.style.display = 'none'; document.getElementById('newPosStartDate').value = ''; }
         });
 
-        loadEmployees(); loadAllDropdowns();
+        // Use concurrent loading
+        refreshData();
     }
 
-    function refreshData() { loadEmployees(); loadAllDropdowns(); }
+    function refreshData() { 
+        showLoading(true);
+        Promise.all([loadEmployees(), loadAllDropdowns()])
+        .then(() => { showLoading(false); })
+        .catch(e => { showLoading(false); Swal.fire('Error', 'Failed to load data', 'error'); });
+    }
 
     // --- Education Functions ---
     function addEduRow(title = "", urls = "") {
@@ -290,7 +295,7 @@
     }
     window.removeEduRow = function(btn) { const row = btn.closest('.edu-row'); const hiddenInput = row.querySelector('.edu-existing-urls'); const urls = JSON.parse(hiddenInput.value || "[]"); if (urls.length > 0) { urls.forEach(url => eduFilesToDelete.push(url)); } row.remove(); }
 
-    // --- Capacity Building Functions (UPDATED) ---
+    // --- Capacity Building Functions ---
     function addCapRow(title = "", urls = "", start = "", end = "", hours = "", costType = "FOC", costAmount = "") {
         const container = document.getElementById('capContainer');
         const div = document.createElement('div');
@@ -381,7 +386,6 @@
             eduHtml += '</ul>';
         }
 
-        // Updated Capacity Building View
         const formatDate = (dateStr) => { if (!dateStr) return ''; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
         let capHtml = '<p class="text-muted small">No capacity building info</p>';
         if(emp.CapacityBuildingObject && emp.CapacityBuildingObject.length > 0) {
@@ -454,32 +458,6 @@
         new bootstrap.Modal(document.getElementById('viewModal')).show(); 
     }
 
-    function generateAndDownloadPDF() {
-        if (!currentViewedEmp) return;
-        const btn = document.querySelector('#viewModal .btn-dark'); 
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-        btn.disabled = true;
-
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'generateProfilePDF', employeeData: currentViewedEmp }) })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                const byteCharacters = atob(data.pdfBase64);
-                const byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) { byteNumbers[i] = byteCharacters.charCodeAt(i); }
-                const byteArray = new Uint8Array(byteNumbers);
-                const blob = new Blob([byteArray], {type: "application/pdf"});
-                const link = document.createElement('a');
-                link.href = window.URL.createObjectURL(blob);
-                link.download = data.fileName;
-                link.click();
-            } else { Swal.fire("PDF Error", data.message, "error"); }
-        })
-        .catch(err => Swal.fire("Connection Error", err.toString(), "error"))
-        .finally(() => { btn.innerHTML = originalText; btn.disabled = false; });
-    }
-
     window.openModal = function(mode, rowIndex = null) { 
         const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
         document.getElementById('employeeForm').reset(); 
@@ -542,7 +520,7 @@
             educationData.push({ title: title, files_base64: filesBase64, existingUrls: existingUrls });
         }
 
-        // Capacity Building Data (UPDATED)
+        // Capacity Building Data
         const capRows = document.querySelectorAll('#capContainer .edu-row');
         const capacityData = [];
         for (const row of capRows) {
@@ -617,15 +595,64 @@
 
     window.exportToExcel = function() {
         const wb = XLSX.utils.book_new();
+
         const cleanData = allData.map(item => {
-            const { row_index, EducationObject, "Edu Links": eduLinks, CapacityBuildingObject, "CB Links": cbLinks, PositionHistory, ...rest } = item;
+            const {
+                row_index, EducationObject, "Edu Links": eduLinks, CapacityBuildingObject, "CB Links": cbLinks, "Capacity Building": rawCap, PositionHistory, ...rest
+            } = item;
+
+            // 1. Process Position History
             let timelineParts = [];
-            if (Array.isArray(PositionHistory) && PositionHistory.length > 0) { PositionHistory.forEach(h => { let s = h.startDate ? h.startDate.substring(0, 10) : "?"; let e = h.endDate ? h.endDate.substring(0, 10) : "?"; timelineParts.push(`${h.position} (${s} to ${e})`); }); }
-            let currentPos = rest.Position || ""; let currentStart = rest['Start Date'] ? rest['Start Date'].toString().substring(0, 10) : ""; let currentEnd = rest['Resign Date'] ? rest['Resign Date'].toString().substring(0, 10) : "Present";
-            if (currentPos) { timelineParts.push(`${currentPos} (${currentStart} to ${currentEnd})`); }
-            const fullString = timelineParts.join(" || ");
-            return { ...rest, "Position History": fullString };
+            if (Array.isArray(PositionHistory) && PositionHistory.length > 0) {
+                PositionHistory.forEach(h => {
+                    let s = h.startDate ? h.startDate.substring(0, 10) : "?";
+                    let e = h.endDate ? h.endDate.substring(0, 10) : "?";
+                    timelineParts.push(`${h.position} (${s} to ${e})`);
+                });
+            }
+            let currentPos = rest.Position || "";
+            let currentStart = rest['Start Date'] ? rest['Start Date'].toString().substring(0, 10) : "";
+            let currentEnd = rest['Resign Date'] ? rest['Resign Date'].toString().substring(0, 10) : "Present";
+            if (currentPos) {
+                timelineParts.push(`${currentPos} (${currentStart} to ${currentEnd})`);
+            }
+            const fullHistoryString = timelineParts.join(" || ");
+
+            // 2. Process Capacity Building (Title + Date + Hours) AND Fee
+            let capString = "";
+            let feeString = "";
+            
+            if (Array.isArray(CapacityBuildingObject) && CapacityBuildingObject.length > 0) {
+                let caps = [];
+                let fees = [];
+                
+                CapacityBuildingObject.forEach(item => {
+                    let s = item.startDate ? item.startDate.substring(0, 10) : "";
+                    let e = item.endDate ? item.endDate.substring(0, 10) : "";
+                    let h = item.totalHours ? ` ${item.totalHours} Hrs` : "";
+                    
+                    let datePart = "";
+                    if(s || e) { datePart = ` (${s} to ${e}${h})`; } 
+                    else if (h) { datePart = ` (${h})`; }
+                    
+                    caps.push(`${item.title}${datePart}`);
+                    
+                    if(item.costType === 'Paid') { fees.push(item.costAmount || "0"); } 
+                    else { fees.push("FOC"); }
+                });
+                
+                capString = caps.join(" || ");
+                feeString = fees.join(" || ");
+            }
+
+            return {
+                ...rest,
+                "Position History": fullHistoryString,
+                "Capacity Building": capString, // Overwrite with new format
+                "Fee": feeString // New Column
+            };
         });
+
         const ws = XLSX.utils.json_to_sheet(cleanData);
         XLSX.utils.book_append_sheet(wb, ws, "Employees");
         XLSX.writeFile(wb, "Employees_Report.xlsx");
@@ -640,9 +667,48 @@
     window.openReportModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); const total = allData.length; document.getElementById('totalEmpCount').innerText = total; const deptCounts = {}; allData.forEach(e => { const d = e.Department || 'Unassigned'; deptCounts[d] = (deptCounts[d] || 0) + 1; }); const posCounts = {}; allData.forEach(e => { const p = e.Position || 'Unassigned'; posCounts[p] = (posCounts[p] || 0) + 1; }); renderReportList('deptReportList', deptCounts); renderReportList('posReportList', posCounts); new bootstrap.Modal(document.getElementById('reportModal')).show(); }
     window.renderReportList = function(elementId, countsObj) { const el = document.getElementById(elementId); el.innerHTML = ''; const sortedKeys = Object.keys(countsObj).sort(); sortedKeys.forEach(key => { el.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">${key}<span class="badge bg-primary rounded-pill">${countsObj[key]}</span></li>`; }); if(sortedKeys.length === 0) el.innerHTML = '<li class="list-group-item text-muted">No data available</li>'; }
     const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
-    function renderTable() { const tbody = document.getElementById('tableBody'); tbody.innerHTML = ''; const start = (currentPage - 1) * rowsPerPage; const pageData = filteredData.slice(start, start + rowsPerPage); pageData.forEach(row => { let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`; if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`; let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`; if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; } else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; } tbody.innerHTML += `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`; }); updatePaginationInfo(); }
-    function loadEmployees() { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { allData = resp.data; filterData(); }}); }
-    function loadAllDropdowns() { return new Promise((resolve) => { fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) }).then(res => res.json()).then(resp => { if(resp.status === 'success') { dropdownData = resp.data; populateSelects(); resolve(); }}); });}
+    
+    // --- Optimized renderTable (Faster) ---
+    function renderTable() { 
+        const tbody = document.getElementById('tableBody'); 
+        const start = (currentPage - 1) * rowsPerPage; 
+        const pageData = filteredData.slice(start, start + rowsPerPage); 
+        
+        // Build string first
+        const rowsHtml = pageData.map(row => {
+            let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`; 
+            if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`; 
+            
+            let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`; 
+            if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; } 
+            else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; } 
+            
+            return `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`;
+        }).join('');
+        
+        tbody.innerHTML = rowsHtml;
+        updatePaginationInfo(); 
+    }
+
+    // --- Optimized Load Employees ---
+    function loadEmployees() { 
+        // No showLoading here, handled by initDashboard
+        return fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) })
+        .then(res => res.json())
+        .then(resp => { 
+            if(resp.status === 'success') { allData = resp.data; filterData(); }
+        }); 
+    }
+
+    // --- Optimized Load Dropdowns ---
+    function loadAllDropdowns() { 
+        return new Promise((resolve) => { 
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) })
+            .then(res => res.json())
+            .then(resp => { if(resp.status === 'success') { dropdownData = resp.data; populateSelects(); resolve(); }}); 
+        });
+    }
+
     function populateSelects() { populateSingleSelect('empDept', dropdownData['Department']); populateSingleSelect('empPos', dropdownData['Position']); populateSingleSelect('empBlood', dropdownData['Blood Type']); populateSingleSelect('empReligion', dropdownData['Religion']); }
     function populateSingleSelect(id, items) { const select = document.getElementById(id); select.innerHTML = `<option value="" selected disabled>Choose...</option>`; if(items) items.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`); }
     function filterData() { const term = document.getElementById('searchInput').value.toLowerCase(); filteredData = allData.filter(i => i.Name.toLowerCase().includes(term) || (i.Department && i.Department.toLowerCase().includes(term)) || (i.Position && i.Position.toLowerCase().includes(term))); currentPage = 1; renderTable(); }
