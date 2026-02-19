@@ -180,6 +180,11 @@
                                 <div class="col-md-6"><label>Department</label><select class="form-select" id="empDept"><option value="">Loading...</option></select></div>
                                 <div class="col-md-6"><label>Blood Type</label><select class="form-select" id="empBlood"><option value="">Loading...</option></select></div>
                                 <div class="col-md-6"><label>Race</label><input type="text" class="form-control" id="empRace"></div>
+                                
+                                <!-- MODIFIED: Added Sex and Marital Status -->
+                                <div class="col-md-6"><label>Sex</label><select class="form-select" id="empSex"><option value="">Choose...</option></select></div>
+                                <div class="col-md-6"><label>Marital Status</label><select class="form-select" id="empMaritalStatus"><option value="">Choose...</option></select></div>
+
                                 <div class="col-md-6"><label>Religion</label><select class="form-select" id="empReligion"><option value="">Loading...</option></select></div>
                                 <div class="col-md-6"><label>Phone</label><input type="text" class="form-control" id="empPhone"></div>
                                 <div class="col-md-6"><label>Email</label><input type="email" class="form-control" id="empEmail"></div>
@@ -256,7 +261,7 @@
 </div>
 
 <!-- Settings Modal -->
-<div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Manage Dropdowns</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="fw-bold">Select Category:</label><select class="form-select" id="settingsCategory" onchange="renderSettingsList()"><option value="Department">Department</option><option value="Position">Position</option><option value="Blood Type">Blood Type</option><option value="Religion">Religion</option></select></div><div class="input-group mb-3"><input type="text" class="form-control" id="newItemName" placeholder="New Item Name"><button class="btn btn-primary" onclick="addDropdownItem()">Add</button></div><h6 class="text-muted">Current Items:</h6><div class="list-group" id="settingsList" style="max-height: 250px; overflow-y: auto;"></div></div></div></div></div>
+<div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Manage Dropdowns</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="fw-bold">Select Category:</label><select class="form-select" id="settingsCategory" onchange="renderSettingsList()"><option value="Department">Department</option><option value="Position">Position</option><option value="Blood Type">Blood Type</option><option value="Religion">Religion</option><option value="Sex">Sex</option><option value="Marital Status">Marital Status</option></select></div><div class="input-group mb-3"><input type="text" class="form-control" id="newItemName" placeholder="New Item Name"><button class="btn btn-primary" onclick="addDropdownItem()">Add</button></div><h6 class="text-muted">Current Items:</h6><div class="list-group" id="settingsList" style="max-height: 250px; overflow-y: auto;"></div></div></div></div></div>
 
 <!-- UPDATED Report Modal with Charts -->
 <div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;">
@@ -315,13 +320,14 @@
 
 <script>
     // *** IMPORTANT: REPLACE WITH YOUR DEPLOYED WEB APP URL ***
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxE_UG12Y-X1EoctYn00Buh_fl60kkO4w1ZZCwifsNlQyGp771u-3DkAlnOEVGS0sms8w/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyBrNwPvjiz8YUb5o7iFiLd4lSZ1jjdQMWXwpdfxfAA11GxZWvg7niz8gYfuqGoVQ8v5Q/exec";
     
     let currentUser = { role: null, username: null, department: null, token: null }; // Initialize token
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
-    let dropdownData = { "Department": [], "Position": [], "Blood Type": [], "Religion": [] }; 
+    // MODIFIED: Added Sex and Marital Status to dropdown data
+    let dropdownData = { "Department": [], "Position": [], "Blood Type": [], "Religion": [], "Sex": [], "Marital Status": [] };
     let compressedImageBase64 = null, deleteImageFlag = false;
-    let eduFilesToDelete = []; 
+    let eduFilesToDelete = [];
     let currentViewedEmp = null;
     let deptChart = null, posChart = null; // Chart Instances
 
@@ -338,25 +344,25 @@
             document.getElementById('btnAdd').style.display = 'none';
             sidebarHTML = `<div class="sidebar-header-text mt-2">REPORTS</div><a class="list-group-item sidebar-item" onclick="openReportModal()"><i class="fas fa-chart-pie text-info"></i> Summary Dashboard</a>`;
         }
-        sidebarList.innerHTML = sidebarHTML; 
+        sidebarList.innerHTML = sidebarHTML;
         
         document.getElementById('resignSwitch').addEventListener('change', function() {
             const resignDateContainer = document.getElementById('resignDateContainer');
             const label = document.querySelector('label[for="resignSwitch"]');
-            if (this.checked) { resignDateContainer.style.display = 'block'; label.textContent = 'Resigned'; } 
+            if (this.checked) { resignDateContainer.style.display = 'block'; label.textContent = 'Resigned'; }
             else { resignDateContainer.style.display = 'none'; document.getElementById('empResign').value = ''; label.textContent = 'Current'; }
         });
 
         document.getElementById('chkChangePosition').addEventListener('change', function() {
             const container = document.getElementById('newPosDateContainer');
-            if(this.checked) { container.style.display = 'block'; if(!document.getElementById('newPosStartDate').value) document.getElementById('newPosStartDate').value = new Date().toISOString().split('T')[0]; } 
+            if(this.checked) { container.style.display = 'block'; if(!document.getElementById('newPosStartDate').value) document.getElementById('newPosStartDate').value = new Date().toISOString().split('T')[0]; }
             else { container.style.display = 'none'; document.getElementById('newPosStartDate').value = ''; }
         });
 
         refreshData();
     }
 
-    function refreshData() { 
+    function refreshData() {
         showLoading(true);
         Promise.all([loadEmployees(), loadAllDropdowns()])
         .then(() => { showLoading(false); })
@@ -370,7 +376,7 @@
         div.className = 'edu-row row g-2 align-items-center';
         let fileDisplay = "";
         let urlList = [];
-        if(Array.isArray(urls)) { urlList = urls; } 
+        if(Array.isArray(urls)) { urlList = urls; }
         else if (typeof urls === 'string' && urls.trim() !== "") { try { if (urls.startsWith('[')) urlList = JSON.parse(urls); else urlList = urls.split(" || "); } catch(e) { urlList = [urls]; } }
         urlList.forEach((link, idx) => { if(link.trim()) fileDisplay += `<span class="badge bg-success text-decoration-none me-1 mb-1 file-link-badge">File ${idx+1} <a href="${link}" target="_blank" class="text-white"><i class="fas fa-download"></i></a><i class="fas fa-times-circle delete-file-btn" onclick="markFileForDelete(this, '${link}')"></i></span>`; });
         div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png" multiple><div class="mt-1" id="fileList">${fileDisplay}</div><input type="hidden" class="edu-existing-urls" value='${JSON.stringify(urlList)}'></div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`;
@@ -381,10 +387,10 @@
     function addCapRow(title = "", urls = "", start = "", end = "", hours = "", costType = "FOC", costAmount = "") {
         const container = document.getElementById('capContainer');
         const div = document.createElement('div');
-        div.className = 'edu-row p-3 mb-2 border rounded bg-light'; 
+        div.className = 'edu-row p-3 mb-2 border rounded bg-light';
         let fileDisplay = "";
         let urlList = [];
-        if(Array.isArray(urls)) { urlList = urls; } 
+        if(Array.isArray(urls)) { urlList = urls; }
         else if (typeof urls === 'string' && urls.trim() !== "") { try { if (urls.startsWith('[')) urlList = JSON.parse(urls); else urlList = urls.split(" || "); } catch(e) { urlList = [urls]; } }
         urlList.forEach((link, idx) => { if(link.trim()) fileDisplay += `<span class="badge bg-success text-decoration-none me-1 mb-1 file-link-badge">File ${idx+1} <a href="${link}" target="_blank" class="text-white"><i class="fas fa-download"></i></a><i class="fas fa-times-circle delete-file-btn" onclick="markFileForDelete(this, '${link}')"></i></span>`; });
         const isPaid = costType === 'Paid';
@@ -407,16 +413,16 @@
     window.markFileForDelete = function(element, urlToRemove) { if(confirm("Remove this file?")) { eduFilesToDelete.push(urlToRemove); const badgeSpan = element.closest('.file-link-badge'); const fileContainer = badgeSpan.parentElement; badgeSpan.remove(); const row = fileContainer.closest('.col-6') || fileContainer.closest('.col-md-6'); let hiddenInput = row.querySelector('.edu-existing-urls'); if(!hiddenInput) hiddenInput = row.querySelector('.cap-existing-urls'); let currentUrls = JSON.parse(hiddenInput.value || "[]"); currentUrls = currentUrls.filter(u => u !== urlToRemove); hiddenInput.value = JSON.stringify(currentUrls); } }
 
     // --- Detail View ---
-    window.viewDetails = function(rowIndex) { 
+    window.viewDetails = function(rowIndex) {
         const emp = allData.find(r => r.row_index === rowIndex);
         currentViewedEmp = { ...emp }; // Clone
         const pdfBtn = document.querySelector('#viewModal .btn-dark');
         pdfBtn.disabled = false;
         pdfBtn.innerHTML = '<i class="fas fa-file-pdf text-danger"></i> Export';
-        if (currentUser.role === 'User') { pdfBtn.disabled = true; pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted'; } 
+        if (currentUser.role === 'User') { pdfBtn.disabled = true; pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted'; }
         else if (currentUser.role === 'Admin') { if ((currentUser.department || "").trim() !== (emp.Department || "").trim()) { pdfBtn.disabled = true; pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted'; } }
 
-        let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`; 
+        let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`;
         let eduHtml = '<p class="text-muted small">No education info</p>';
         if(emp.EducationObject && emp.EducationObject.length > 0) { eduHtml = '<ul class="list-group list-group-flush text-start">'; emp.EducationObject.forEach(item => { let linksHtml = ''; let urlArray = Array.isArray(item.urls) ? item.urls : []; urlArray.forEach((link, idx) => { if(link.trim()) { if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-primary text-decoration-none ms-1">File ${idx+1}</a>`; } else { linksHtml += `<span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span>`; } } }); eduHtml += `<li class="list-group-item py-1 px-0 d-flex justify-content-between align-items-center"><span>${item.title}</span> <div>${linksHtml}</div></li>`; }); eduHtml += '</ul>'; }
         const formatDate = (dateStr) => { if (!dateStr) return ''; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
@@ -429,6 +435,7 @@
         let currentClass = emp['Resign Date'] ? 'text-danger' : 'text-success fw-bold';
         posHistoryHtml += `<li class="${currentClass}">${emp.Position} (${formatDate(emp['Start Date'])} to ${currentEnd})</li>`;
 
+        // MODIFIED: Added Sex and Marital Status to view table
         document.getElementById('viewDetailsBody').innerHTML = `
             <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4><div class="mb-3"><span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span></div></div>
             <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist">
@@ -441,6 +448,8 @@
                     <table class="table table-bordered table-sm mb-0">
                         <tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr>
                         <tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr>
+                        <tr><th>Sex</th><td>${emp.Sex || '-'}</td></tr>
+                        <tr><th>Marital Status</th><td>${emp['Marital Status'] || '-'}</td></tr>
                         <tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr>
                         <tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr>
                         <tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr>
@@ -453,18 +462,18 @@
                 </div>
                 <div class="tab-pane fade" id="view-edu">${eduHtml}</div>
                 <div class="tab-pane fade" id="view-cap">${capHtml}</div>
-            </div>`; 
-        new bootstrap.Modal(document.getElementById('viewModal')).show(); 
+            </div>`;
+        new bootstrap.Modal(document.getElementById('viewModal')).show();
     }
 
     // --- CRUD ---
-    window.openModal = function(mode, rowIndex = null) { 
-        const modal = new bootstrap.Modal(document.getElementById('employeeModal')); 
-        document.getElementById('employeeForm').reset(); 
-        document.getElementById('eduContainer').innerHTML = ''; 
-        document.getElementById('capContainer').innerHTML = ''; 
-        compressedImageBase64 = null; deleteImageFlag = false; eduFilesToDelete = []; 
-        document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none'; 
+    window.openModal = function(mode, rowIndex = null) {
+        const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
+        document.getElementById('employeeForm').reset();
+        document.getElementById('eduContainer').innerHTML = '';
+        document.getElementById('capContainer').innerHTML = '';
+        compressedImageBase64 = null; deleteImageFlag = false; eduFilesToDelete = [];
+        document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none';
         var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]'); var firstTab = new bootstrap.Tab(firstTabEl); firstTab.show();
 
         const resignSwitch = document.getElementById('resignSwitch');
@@ -475,10 +484,15 @@
         document.getElementById('chkChangePosition').checked = false; document.getElementById('newPosDateContainer').style.display = 'none'; document.getElementById('newPosStartDate').value = '';
         const historyList = document.getElementById('editPosHistoryList'); const historyContainer = document.getElementById('editPosHistoryContainer'); historyList.innerHTML = ''; historyContainer.style.display = 'none';
 
-        if(mode === 'edit') { 
-            const emp = allData.find(r => r.row_index === rowIndex); 
-            document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic']; 
+        if(mode === 'edit') {
+            const emp = allData.find(r => r.row_index === rowIndex);
+            document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic'];
             document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empRace').value = emp.Race || ""; document.getElementById('empReligion').value = emp.Religion || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
+            
+            // MODIFIED: Populate new fields
+            document.getElementById('empSex').value = emp.Sex || "";
+            document.getElementById('empMaritalStatus').value = emp['Marital Status'] || "";
+            
             if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0];
             if(emp['Resign Date']) { document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; resignSwitch.checked = true; resignDateContainer.style.display = 'block'; resignLabel.textContent = 'Resigned'; }
             
@@ -488,12 +502,12 @@
             if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
             if(emp.EducationObject && emp.EducationObject.length > 0) { emp.EducationObject.forEach(item => addEduRow(item.title, item.urls)); }
             if(emp.CapacityBuildingObject && emp.CapacityBuildingObject.length > 0) { emp.CapacityBuildingObject.forEach(item => { addCapRow(item.title, item.urls, item.startDate, item.endDate, item.totalHours, item.costType, item.costAmount); }); }
-        } else { 
-            document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = ""; 
+        } else {
+            document.getElementById('modalTitle').innerText = "Add New Employee"; document.getElementById('editRowIndex').value = "";
             document.getElementById('changePositionSection').style.display = 'none';
             addEduRow(); addCapRow();
-        } 
-        modal.show(); 
+        }
+        modal.show();
     }
 
     window.saveEmployee = async function() {
@@ -503,7 +517,7 @@
         const educationData = [];
         for (const row of eduRows) {
             const title = row.querySelector('.edu-title').value.trim();
-            if(!title) continue; 
+            if(!title) continue;
             const fileInput = row.querySelector('.edu-file');
             const hiddenInput = row.querySelector('.edu-existing-urls');
             const existingUrls = JSON.parse(hiddenInput.value || "[]");
@@ -515,7 +529,7 @@
         const capacityData = [];
         for (const row of capRows) {
             const title = row.querySelector('.cap-title').value.trim();
-            if(!title) continue; 
+            if(!title) continue;
             const startDate = row.querySelector('.cap-start').value;
             const endDate = row.querySelector('.cap-end').value;
             const totalHours = row.querySelector('.cap-hours').value;
@@ -529,16 +543,17 @@
             if (fileInput.files.length > 0) { for (let i = 0; i < fileInput.files.length; i++) { let b64 = await toBase64(fileInput.files[i]); filesBase64.push(b64); } }
             capacityData.push({ title: title, startDate: startDate, endDate: endDate, totalHours: totalHours, costType: costType, costAmount: costAmount, files_base64: filesBase64, existingUrls: existingUrls });
         }
-        const employeeData = { 
-            Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Race: document.getElementById('empRace').value, Religion: document.getElementById('empReligion').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value, 
-            ResignDate: document.getElementById('resignSwitch').checked ? document.getElementById('empResign').value : '', 
+        // MODIFIED: Added Sex and MaritalStatus to data object
+        const employeeData = {
+            Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Race: document.getElementById('empRace').value, Sex: document.getElementById('empSex').value, MaritalStatus: document.getElementById('empMaritalStatus').value, Religion: document.getElementById('empReligion').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value,
+            ResignDate: document.getElementById('resignSwitch').checked ? document.getElementById('empResign').value : '',
             image_base64: compressedImageBase64, current_image: document.getElementById('currentImage').value,
             Education: educationData, CapacityBuilding: capacityData
         };
-        const payload = { 
+        const payload = {
             action: rowIndex ? 'editEmployee' : 'addEmployee', token: currentUser.token, employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag, deleted_edu_files: eduFilesToDelete, user: currentUser,
             isChangePosition: document.getElementById('chkChangePosition').checked, newStartDate: document.getElementById('newPosStartDate').value
-        }; 
+        };
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); } else { Swal.fire('Error', data.message, 'error'); } });
     }
 
@@ -566,19 +581,19 @@
     window.markImageForDeletion = function() { document.getElementById('imgPreview').style.display = 'none'; document.getElementById('empPic').value = ''; document.getElementById('btnDeleteImg').style.display = 'none'; compressedImageBase64 = null; deleteImageFlag = true; }
     
     // --- UPDATED REPORT MODAL WITH CHARTS ---
-    window.openReportModal = function() { 
-        const sidebarEl = document.getElementById('sidebarMenu'); 
-        const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); 
-        if(sidebarInstance) sidebarInstance.hide(); 
+    window.openReportModal = function() {
+        const sidebarEl = document.getElementById('sidebarMenu');
+        const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl);
+        if(sidebarInstance) sidebarInstance.hide();
 
-        const total = allData.length; 
-        document.getElementById('totalEmpCount').innerText = total; 
+        const total = allData.length;
+        document.getElementById('totalEmpCount').innerText = total;
 
         // Aggregate Data
-        const deptCounts = {}; allData.forEach(e => { const d = e.Department || 'Unassigned'; deptCounts[d] = (deptCounts[d] || 0) + 1; }); 
-        const posCounts = {}; allData.forEach(e => { const p = e.Position || 'Unassigned'; posCounts[p] = (posCounts[p] || 0) + 1; }); 
+        const deptCounts = {}; allData.forEach(e => { const d = e.Department || 'Unassigned'; deptCounts[d] = (deptCounts[d] || 0) + 1; });
+        const posCounts = {}; allData.forEach(e => { const p = e.Position || 'Unassigned'; posCounts[p] = (posCounts[p] || 0) + 1; });
         
-        new bootstrap.Modal(document.getElementById('reportModal')).show(); 
+        new bootstrap.Modal(document.getElementById('reportModal')).show();
         
         // Render Charts after modal is shown (small delay)
         setTimeout(() => {
@@ -623,44 +638,47 @@
     
     const toBase64 = file => new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); });
 
-    function renderTable() { 
-        const tbody = document.getElementById('tableBody'); 
-        const start = (currentPage - 1) * rowsPerPage; 
-        const pageData = filteredData.slice(start, start + rowsPerPage); 
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        const start = (currentPage - 1) * rowsPerPage;
+        const pageData = filteredData.slice(start, start + rowsPerPage);
         const rowsHtml = pageData.map(row => {
-            let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`; 
-            if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`; 
-            let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`; 
-            if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; } 
-            else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; } 
+            let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`;
+            if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`;
+            let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`;
+            if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; }
+            else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; }
             return `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`;
         }).join('');
         tbody.innerHTML = rowsHtml;
-        updatePaginationInfo(); 
+        updatePaginationInfo();
     }
 
     function loadEmployees() { return fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getEmployees' }) }).then(res => res.json()).then(resp => { if(resp.status === 'success') { allData = resp.data; filterData(); }}); }
     function loadAllDropdowns() { return new Promise((resolve) => { fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllDropdowns' }) }).then(res => res.json()).then(resp => { if(resp.status === 'success') { dropdownData = resp.data; populateSelects(); resolve(); }}); }); }
     
-    function populateSelects() { 
-        populateSingleSelect('empDept', dropdownData['Department']); 
-        populateSingleSelect('empPos', dropdownData['Position']); 
-        populateSingleSelect('empBlood', dropdownData['Blood Type']); 
+    function populateSelects() {
+        populateSingleSelect('empDept', dropdownData['Department']);
+        populateSingleSelect('empPos', dropdownData['Position']);
+        populateSingleSelect('empBlood', dropdownData['Blood Type']);
         populateSingleSelect('empReligion', dropdownData['Religion']);
+        // MODIFIED: Populate new dropdowns
+        populateSingleSelect('empSex', dropdownData['Sex']);
+        populateSingleSelect('empMaritalStatus', dropdownData['Marital Status']);
         
         // Populate Filter Dropdowns
         populateSingleSelect('filterDept', dropdownData['Department'], "All Departments");
         populateSingleSelect('filterPos', dropdownData['Position'], "All Positions");
     }
     
-    function populateSingleSelect(id, items, placeholder="Choose...") { 
-        const select = document.getElementById(id); 
-        select.innerHTML = `<option value="">${placeholder}</option>`; 
-        if(items) items.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`); 
+    function populateSingleSelect(id, items, placeholder="Choose...") {
+        const select = document.getElementById(id);
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        if(items) items.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`);
     }
     
     // --- UPDATED FILTER LOGIC ---
-    function filterData() { 
+    function filterData() {
         const term = document.getElementById('searchInput').value.toLowerCase();
         const dept = document.getElementById('filterDept').value;
         const pos = document.getElementById('filterPos').value;
@@ -671,7 +689,7 @@
             const matchesPos = pos ? i.Position === pos : true;
             return matchesTerm && matchesDept && matchesPos;
         });
-        currentPage = 1; renderTable(); 
+        currentPage = 1; renderTable();
     }
     
     function updatePaginationInfo() { const totalEntries = filteredData.length; const totalPages = Math.ceil(totalEntries / rowsPerPage) || 1; document.getElementById('pageInfo').innerText = `Showing ${(currentPage-1)*rowsPerPage + 1} to ${Math.min(currentPage*rowsPerPage, totalEntries)} of ${totalEntries}`; const ul = document.getElementById('pagination'); let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Prev</a></li><li class="page-item"><input type="number" class="page-input-box" value="${currentPage}" min="1" max="${totalPages}" onchange="jumpToPage(this.value)"></li><li class="page-item disabled"><span class="page-link bg-white text-muted border-start-0">/ ${totalPages}</span></li><li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a></li>`; ul.innerHTML = html; }
