@@ -320,11 +320,11 @@
 
 <script>
     // *** IMPORTANT: REPLACE WITH YOUR DEPLOYED WEB APP URL ***
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxGetJKRXgk9wHXAZSOv0N4WhYtNX_UTXJkz3PjT7HWJ0s6Hp5kD3x8DpkDT0wQbb7KKA/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxO506xcuwp6bQw6ZjrxLFNpNkTipCkepw7p95ktCb_pD6y-inInTIs671OzVvE7fw9Fg/exec";
+    const DATA_SHEET_NAME = "Staff"; // <--- SHEET NAME VARIABLE (Frontend)
     
     let currentUser = { role: null, username: null, department: null, token: null }; // Initialize token
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
-    // MODIFIED: Added Sex and Marital Status to dropdown data
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [], "Religion": [], "Sex": [], "Marital Status": [] };
     let compressedImageBase64 = null, deleteImageFlag = false;
     let eduFilesToDelete = [];
@@ -435,7 +435,6 @@
         let currentClass = emp['Resign Date'] ? 'text-danger' : 'text-success fw-bold';
         posHistoryHtml += `<li class="${currentClass}">${emp.Position} (${formatDate(emp['Start Date'])} to ${currentEnd})</li>`;
 
-        // MODIFIED: Added Sex and Marital Status to view table
         document.getElementById('viewDetailsBody').innerHTML = `
             <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4><div class="mb-3"><span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span></div></div>
             <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist">
@@ -489,7 +488,6 @@
             document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic'];
             document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empRace').value = emp.Race || ""; document.getElementById('empReligion').value = emp.Religion || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
             
-            // MODIFIED: Populate new fields
             document.getElementById('empSex').value = emp.Sex || "";
             document.getElementById('empMaritalStatus').value = emp['Marital Status'] || "";
             
@@ -543,7 +541,6 @@
             if (fileInput.files.length > 0) { for (let i = 0; i < fileInput.files.length; i++) { let b64 = await toBase64(fileInput.files[i]); filesBase64.push(b64); } }
             capacityData.push({ title: title, startDate: startDate, endDate: endDate, totalHours: totalHours, costType: costType, costAmount: costAmount, files_base64: filesBase64, existingUrls: existingUrls });
         }
-        // MODIFIED: Added Sex and MaritalStatus to data object
         const employeeData = {
             Name: document.getElementById('empName').value, Department: document.getElementById('empDept').value, Position: document.getElementById('empPos').value, BloodType: document.getElementById('empBlood').value, Race: document.getElementById('empRace').value, Sex: document.getElementById('empSex').value, MaritalStatus: document.getElementById('empMaritalStatus').value, Religion: document.getElementById('empReligion').value, Nrc: document.getElementById('empNrc').value, Phone: document.getElementById('empPhone').value, Email: document.getElementById('empEmail').value, Address: document.getElementById('empAddr').value, FatherName: document.getElementById('empFather').value, MotherName: document.getElementById('empMother').value, StartDate: document.getElementById('empStart').value,
             ResignDate: document.getElementById('resignSwitch').checked ? document.getElementById('empResign').value : '',
@@ -571,7 +568,11 @@
             if (Array.isArray(CapacityBuildingObject) && CapacityBuildingObject.length > 0) { let caps = [], fees = []; CapacityBuildingObject.forEach(item => { let s = item.startDate ? item.startDate.substring(0, 10) : ""; let e = item.endDate ? item.endDate.substring(0, 10) : ""; let h = item.totalHours ? ` ${item.totalHours} Hrs` : ""; let datePart = ""; if(s || e) { datePart = ` (${s} to ${e}${h})`; } else if (h) { datePart = ` (${h})`; } caps.push(`${item.title}${datePart}`); if(item.costType === 'Paid') { fees.push(item.costAmount || "0"); } else { fees.push("FOC"); } }); capString = caps.join(" || "); feeString = fees.join(" || "); }
             return { ...rest, "Position History": fullHistoryString, "Capacity Building": capString, "Fee": feeString };
         });
-        const ws = XLSX.utils.json_to_sheet(cleanData); XLSX.utils.book_append_sheet(wb, ws, "Employees"); XLSX.writeFile(wb, "Employees_Report.xlsx");
+        const ws = XLSX.utils.json_to_sheet(cleanData); 
+        
+        // Variable ကို အသုံးပြုထားပါသည်
+        XLSX.utils.book_append_sheet(wb, ws, DATA_SHEET_NAME); 
+        XLSX.writeFile(wb, DATA_SHEET_NAME + "_Report.xlsx");
     }
     window.openSettingsModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); renderSettingsList(); new bootstrap.Modal(document.getElementById('settingsModal')).show(); }
     window.renderSettingsList = function() { const category = document.getElementById('settingsCategory').value; const listContainer = document.getElementById('settingsList'); const items = dropdownData[category] || []; listContainer.innerHTML = ''; if(items.length === 0) { listContainer.innerHTML = '<div class="p-3 text-center text-muted">No items found.</div>'; return; } items.forEach(item => { listContainer.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center"><span>${item}</span><button class="btn btn-sm btn-outline-danger" onclick="deleteDropdownItem('${category}', '${item}')"><i class="fas fa-trash"></i></button></div>`; }); }
@@ -662,7 +663,6 @@
         populateSingleSelect('empPos', dropdownData['Position']);
         populateSingleSelect('empBlood', dropdownData['Blood Type']);
         populateSingleSelect('empReligion', dropdownData['Religion']);
-        // MODIFIED: Populate new dropdowns
         populateSingleSelect('empSex', dropdownData['Sex']);
         populateSingleSelect('empMaritalStatus', dropdownData['Marital Status']);
         
