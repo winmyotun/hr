@@ -4,165 +4,303 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Management System</title>
+    <!-- Prevent Flash of White in Dark Mode -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        })();
+    </script>
+    
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Padauk Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Fonts: Inter for English, Padauk for Myanmar -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Padauk:wght@400;700&display=swap" rel="stylesheet">
     <!-- SheetJS for Excel Export -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <!-- Chart.js for Dashboard -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        body { font-family: 'Padauk', sans-serif; background-color: #f4f6f9; }
-        .login-container { max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .main-content { display: none; padding: 20px; }
-        .profile-img-small { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
-        .details-img { width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        .search-box { position: relative; }
-        .search-box input { border-radius: 20px; padding-left: 35px; min-width: 200px; }
-        .search-box i { position: absolute; left: 15px; top: 10px; color: #aaa; }
-        #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; display:none; justify-content:center; align-items:center; }
-        
-        .offcanvas { width: 280px !important; }
-        .sidebar-header-text { font-size: 0.75rem; font-weight: 700; color: #adb5bd; letter-spacing: 1px; padding: 15px 15px 5px 15px; }
-        .sidebar-item { cursor: pointer; transition: 0.2s; border: none; padding: 12px 20px; font-size: 15px; color: #495057; background: transparent; display: block; text-decoration: none; }
-        .sidebar-item:hover { background-color: #f1f3f5; color: #0d6efd; padding-left: 25px; }
-        .sidebar-item i { width: 25px; text-align: center; margin-right: 10px; }
-        
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-        .page-input-box { width: 50px; text-align: center; border: 1px solid #dee2e6; color: #0d6efd; font-weight: 340; padding: 0.14rem 0.4rem; line-height: 1; outline: none; background: #fff; border-radius: 0; display: block; height: 100%; }
-        .page-input-box:focus { border-color: #86b7fe; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); z-index: 2; position: relative; }
-        .pagination .page-item:first-child .page-link { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-        .pagination .page-item:last-child .page-link { border-top-left-radius: 0; border-bottom-left-radius: 0; }
-        
-        .edu-row { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 5px; border: 1px solid #eee; }
-        .file-link-badge { font-size: 0.8rem; margin-right: 5px; display: inline-block; margin-top: 2px; }
-        .delete-file-btn { font-size: 0.7rem; margin-left: 5px; cursor: pointer; color: #dc3545; }
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-radius-lg: 16px;
+            --border-radius-md: 10px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+        }
 
-        /* Chart Canvas Size */
+        [data-bs-theme="dark"] {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.4);
+        }
+
+        body { 
+            font-family: 'Inter', 'Padauk', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; display:none; justify-content:center; align-items:center; backdrop-filter: blur(5px); }
+        [data-bs-theme="dark"] #loadingOverlay { background: rgba(15, 23, 42, 0.85); }
+
+        #loginSection { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-container { width: 100%; max-width: 420px; padding: 40px 30px; background: var(--card-bg); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-lg); border: 1px solid rgba(0,0,0,0.05); }
+        .login-container h3 { font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; margin-bottom: 2rem; }
+        
+        .main-content { display: none; padding: 20px 15px; max-width: 1400px; margin: 0 auto; }
+        
+        .navbar-custom { background: var(--card-bg); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); padding: 15px 25px; margin-bottom: 25px; border: 1px solid rgba(0,0,0,0.02); }
+        [data-bs-theme="dark"] .navbar-custom { border-color: rgba(255,255,255,0.05); }
+
+        .card-custom { background: var(--card-bg); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.03); padding: 25px; }
+        [data-bs-theme="dark"] .card-custom { border-color: rgba(255,255,255,0.05); }
+
+        .profile-img-small { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid var(--card-bg); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s; }
+        .profile-img-small:hover { transform: scale(1.1); }
+        .details-img { width: 130px; height: 130px; object-fit: cover; border-radius: 50%; border: 4px solid var(--card-bg); box-shadow: var(--shadow-lg); margin-bottom: 20px; }
+        
+        /* Fixed Form Select Padding for Dropdown Arrow */
+        .form-control { border-radius: var(--border-radius-md); border: 1px solid #cbd5e1; padding: 0.6rem 1rem; font-size: 0.95rem; color: var(--text-main); background-color: var(--card-bg); transition: all 0.2s; }
+        .form-select { border-radius: var(--border-radius-md); border: 1px solid #cbd5e1; padding: 0.6rem 2.25rem 0.6rem 1rem; font-size: 0.95rem; color: var(--text-main); background-color: var(--card-bg); transition: all 0.2s; }
+        .form-control:focus, .form-select:focus { border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15); }
+        
+        .btn { border-radius: var(--border-radius-md); font-weight: 500; padding: 0.5rem 1rem; transition: all 0.2s; }
+        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); }
+        .btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
+        .btn-outline-primary { color: var(--primary-color); border-color: rgba(79, 70, 229, 0.3); }
+        .btn-outline-primary:hover { background-color: var(--primary-color); border-color: var(--primary-color); }
+
+        /* Fixed Icon Buttons centering */
+        .icon-btn { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: none; background: var(--bg-color); transition: 0.2s; }
+        .icon-btn:hover { filter: brightness(0.95); }
+
+        .search-box { position: relative; width: 100%; max-width: 250px; }
+        .search-box input { border-radius: 20px; padding-left: 40px; background-color: var(--bg-color); border: none; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+        .search-box i { position: absolute; left: 16px; top: 12px; color: var(--text-muted); }
+
+        .table { --bs-table-bg: transparent; --bs-table-color: var(--text-main); margin-bottom: 0; }
+        .table th { border-bottom: 2px solid rgba(0,0,0,0.05); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; padding: 1rem 0.5rem; border-top: none; }
+        .table td { vertical-align: middle; padding: 1rem 0.5rem; border-bottom: 1px solid rgba(0,0,0,0.03); font-size: 0.95rem; }
+        .table tbody tr:hover { background-color: rgba(0,0,0,0.015); }
+        
+        .badge-soft { padding: 0.4em 0.8em; border-radius: 20px; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.3px; }
+        .badge-pos { background-color: rgba(79, 70, 229, 0.1); color: var(--primary-color); cursor: pointer; transition: 0.2s; }
+        .badge-pos:hover { background-color: rgba(79, 70, 229, 0.2); }
+        .badge-dept { background-color: rgba(16, 185, 129, 0.1); color: #059669; cursor: pointer; transition: 0.2s; }
+        .badge-dept:hover { background-color: rgba(16, 185, 129, 0.2); }
+        
+        .btn-action { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; margin-right: 5px; background: transparent; border: 1px solid transparent; }
+        .btn-action-view { color: #0ea5e9; background: rgba(14, 165, 233, 0.1); }
+        .btn-action-edit { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+        .btn-action-del { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); filter: brightness(0.9); }
+
+        .offcanvas { width: 300px !important; border-right: none; box-shadow: var(--shadow-lg); background-color: var(--card-bg); }
+        .offcanvas-header { border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .sidebar-header-text { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; padding: 20px 20px 10px 20px; }
+        .sidebar-item { border: none; padding: 12px 20px; font-size: 0.95rem; color: var(--text-main); background: transparent; display: flex; align-items: center; font-weight: 500; transition: 0.2s; border-radius: 0 20px 20px 0; margin-right: 15px; margin-bottom: 5px; cursor: pointer;}
+        .sidebar-item:hover { background-color: rgba(79, 70, 229, 0.08); color: var(--primary-color); }
+        .sidebar-item i { width: 30px; text-align: center; font-size: 1.1rem; }
+
+        .nav-tabs { border-bottom: 2px solid rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .nav-tabs .nav-link { border: none; border-bottom: 2px solid transparent; color: var(--text-muted); font-weight: 600; padding: 0.8rem 1rem; margin-bottom: -2px; }
+        .nav-tabs .nav-link:hover { border-color: rgba(0,0,0,0.1); }
+        .nav-tabs .nav-link.active { border-bottom-color: var(--primary-color); color: var(--primary-color); background: transparent; }
+
+        .modal-content { background: var(--card-bg); }
+        .modal-header { border-bottom: 1px solid rgba(0,0,0,0.05); background: transparent; color: var(--text-main); }
+        .modal-title { font-weight: 700; }
+        .modal-footer { border-top: 1px solid rgba(0,0,0,0.05); }
+
+        .edu-row { background: var(--bg-color); padding: 15px; border-radius: var(--border-radius-md); margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.03); }
+        
+        .page-input-box { width: 50px; text-align: center; border: 1px solid #cbd5e1; color: var(--primary-color); font-weight: 600; padding: 0.3rem; border-radius: 4px; margin: 0 5px; }
+        .pagination { align-items: center; }
+
+        [data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select, [data-bs-theme="dark"] .page-input-box { border-color: #334155; }
+        [data-bs-theme="dark"] .table th { border-bottom-color: #334155; }
+        [data-bs-theme="dark"] .table td { border-bottom-color: #1e293b; color: #cbd5e1; }
+        [data-bs-theme="dark"] .table tbody tr:hover { background-color: rgba(255,255,255,0.02); }
+        [data-bs-theme="dark"] .offcanvas-header, [data-bs-theme="dark"] .modal-header, [data-bs-theme="dark"] .modal-footer, [data-bs-theme="dark"] .nav-tabs { border-color: rgba(255,255,255,0.05); }
+        [data-bs-theme="dark"] .edu-row { border-color: rgba(255,255,255,0.05); }
+        [data-bs-theme="dark"] .search-box input { background-color: var(--bg-color); box-shadow: none; }
+        [data-bs-theme="dark"] .btn-action-view { background: rgba(14, 165, 233, 0.2); color: #38bdf8; }
+        [data-bs-theme="dark"] .btn-action-edit { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        [data-bs-theme="dark"] .btn-action-del { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        [data-bs-theme="dark"] .badge-pos { background-color: rgba(99, 102, 241, 0.2); color: #818cf8; }
+        [data-bs-theme="dark"] .badge-pos:hover { background-color: rgba(99, 102, 241, 0.3); }
+        [data-bs-theme="dark"] .badge-dept { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
+        [data-bs-theme="dark"] .badge-dept:hover { background-color: rgba(16, 185, 129, 0.3); }
+        [data-bs-theme="dark"] .text-muted { color: #94a3b8 !important; }
+        [data-bs-theme="dark"] .text-secondary { color: #cbd5e1 !important; }
+
         .chart-container { position: relative; height: 300px; width: 100%; }
-    
-    [data-bs-theme="dark"] body { background-color: #212529 !important; color: #f8f9fa; }
-    [data-bs-theme="dark"] .bg-white { background-color: #2b3035 !important; color: #fff; }
-    [data-bs-theme="dark"] .text-secondary, [data-bs-theme="dark"] .text-muted { color: #adb5bd !important; }
-    [data-bs-theme="dark"] .table { color: #e9ecef; --bs-table-hover-color: #e9ecef; --bs-table-hover-bg: #343a40; }
-    [data-bs-theme="dark"] .login-container { background-color: #2b3035; color: #fff; }
-    [data-bs-theme="dark"] .sidebar-item { color: #ced4da; }
-    [data-bs-theme="dark"] .sidebar-item:hover { background-color: #343a40; color: #6ea8fe; }
-    [data-bs-theme="dark"] .modal-content { background-color: #2b3035; border-color: #495057; }
-    [data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select, [data-bs-theme="dark"] .page-input-box, [data-bs-theme="dark"] .form-check-input { background-color: #212529; border-color: #495057; color: #fff; }
-    [data-bs-theme="dark"] .form-check-input:checked { background-color: #0d6efd; border-color: #0d6efd; }
-    [data-bs-theme="dark"] .edu-row { background-color: #343a40; border-color: #495057; }
-    [data-bs-theme="dark"] #loadingOverlay { background: rgba(33, 37, 41, 0.95) !important; }
-    [data-bs-theme="dark"] .bg-light { background-color: #343a40 !important; color: #fff !important; }
-    [data-bs-theme="dark"] .list-group-item { background-color: #2b3035; color: #e9ecef; border-color: #495057; }
-    [data-bs-theme="dark"] .swal2-popup { background: #2b3035 !important; color: #fff !important; border: 1px solid #495057; }
-    [data-bs-theme="dark"] .swal2-title, [data-bs-theme="dark"] .swal2-html-container { color: #fff !important; }
+        
+        .stat-card { background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color: white; border-radius: var(--border-radius-lg); padding: 30px; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2); text-align: center; }
+        [data-bs-theme="dark"] .stat-card { background: linear-gradient(135deg, #3730a3 0%, #1e3a8a 100%); }
+
+        .img-placeholder-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
 
-<div id="loadingOverlay"><div class="spinner-border text-primary" role="status"></div></div>
+<div id="loadingOverlay">
+    <div class="spinner-border" style="color: var(--primary-color); width: 3rem; height: 3rem;" role="status"></div>
+</div>
 
 <!-- Login -->
-<div class="container" id="loginSection">
+<div class="container-fluid" id="loginSection">
     <div class="login-container">
-        <h3 class="text-center text-primary fw-bold mb-4">HR System Login</h3>
+        <div class="text-center mb-4">
+            <div style="width: 70px; height: 70px; background: rgba(79, 70, 229, 0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
+                <i class="fas fa-fingerprint fa-2x" style="color: var(--primary-color);"></i>
+            </div>
+            <h3 class="mb-1">Welcome Back</h3>
+            <p class="text-muted small">Please sign in to your HR account</p>
+        </div>
         <form id="loginForm">
-            <div class="mb-3"><label>Username</label><input type="text" class="form-control" id="username" required></div>
-            <div class="mb-3"><label>Password</label><input type="password" class="form-control" id="password" required></div>
-            <button type="submit" class="btn btn-primary w-100">Sign In</button>
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">USERNAME</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter username" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label text-muted small fw-bold">PASSWORD</label>
+                <input type="password" class="form-control" id="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" style="font-size: 1.05rem;">Sign In</button>
         </form>
     </div>
 </div>
 
 <!-- Dashboard -->
-<div class="container-fluid main-content" id="dashboardSection">
-    <nav class="navbar navbar-light bg-white rounded shadow-sm mb-4 p-3 d-flex justify-content-between">
-    
-        <div class="d-flex align-items-center">
-            <button class="btn btn-outline-primary me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu"><i class="fas fa-bars"></i> Manage</button>
-            <span class="navbar-brand fw-bold text-primary m-0"><i class="fas fa-users-cog"></i> Employee System</span>
+<div class="main-content" id="dashboardSection">
+    <!-- Navbar -->
+    <div class="navbar-custom d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-outline-secondary border-0 icon-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" style="background: var(--bg-color);">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="fs-4 fw-bold mb-0" style="color: var(--text-main); letter-spacing: -0.5px;">
+                <i class="fas fa-users" style="color: var(--primary-color); margin-right: 8px;"></i> HR Hub
+            </span>
         </div>
         
-        <div class="d-flex align-items-center">
-            <span class="me-3 fw-bold text-secondary d-none d-md-block" id="userDisplay"></span>
-            <button class="btn btn-outline-secondary btn-sm me-2" onclick="toggleTheme()" title="Toggle Theme"><i class="fas fa-moon" id="themeIcon"></i></button>
-            <button class="btn btn-outline-success btn-sm me-2" onclick="refreshData()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
-            <button class="btn btn-outline-danger btn-sm" onclick="location.reload()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
-        </div>
-    </nav>
-
-    <!-- Sidebar -->
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
-        <div class="offcanvas-header bg-primary text-white">
-            <h5 class="offcanvas-title fw-bold"><i class="fas fa-cogs"></i> Management</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
-        </div>
-        <div class="offcanvas-body p-0">
-            <div class="list-group list-group-flush" id="sidebarList"></div>
-            <div class="p-3 mt-auto text-muted small border-top">Version 3.6 (Enhanced)</div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="d-none d-md-flex align-items-center bg-light px-3 py-1 rounded-pill border me-2" style="background: var(--bg-color) !important;">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 28px; height: 28px; font-size: 0.8rem;"><i class="fas fa-user"></i></div>
+                <span class="fw-bold fs-6" id="userDisplay" style="color: var(--text-main);"></span>
+            </div>
+            <button class="icon-btn text-muted" onclick="toggleTheme()" title="Toggle Theme">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            <button class="icon-btn text-muted" onclick="refreshData()" title="Refresh Data">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="icon-btn text-danger" style="background: rgba(239, 68, 68, 0.1);" onclick="logout()" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="card p-4 border-0 shadow-sm">
-        <!-- New Feature: Filters Toolbar -->
-        <div class="d-flex justify-content-between flex-wrap gap-3 mb-4 align-items-end">
-            <div>
-                <button class="btn btn-success" id="btnAdd" onclick="openModal('add')" style="display:none;"><i class="fas fa-plus"></i> Add Employee</button>
+    <!-- Sidebar -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
+        <div class="offcanvas-header border-0 pb-0 pt-4 px-4">
+            <h4 class="offcanvas-title fw-bold" style="color: var(--primary-color);">Menu</h4>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" style="filter: var(--bs-btn-close-filter);"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column p-0 mt-3">
+            <div id="sidebarList"></div>
+            <div class="p-4 mt-auto text-center border-top" style="border-color: rgba(0,0,0,0.05) !important;">
+                <span class="badge badge-soft" style="background: rgba(0,0,0,0.05); color: var(--text-muted);">Version 3.6 Pro</span>
             </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <!-- Filters -->
-                <div>
-                    <select class="form-select form-select-sm" id="filterDept" onchange="filterData()" style="min-width: 150px;">
-                        <option value="">All Departments</option>
-                    </select>
-                </div>
-                <div>
-                    <select class="form-select form-select-sm" id="filterPos" onchange="filterData()" style="min-width: 150px;">
-                        <option value="">All Positions</option>
-                    </select>
-                </div>
-                <!-- Search & Pagination -->
-                <select class="form-select form-select-sm w-auto" id="rowsPerPage" onchange="changeRowsPerPage()"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+        </div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="card-custom">
+        <!-- Filters Toolbar -->
+        <div class="d-flex justify-content-between flex-wrap gap-3 mb-4 align-items-center">
+            <div>
+                <button class="btn btn-primary shadow-sm" id="btnAdd" onclick="openModal('add')" style="display:none;">
+                    <i class="fas fa-plus me-1"></i> Add Employee
+                </button>
+            </div>
+            <div class="d-flex gap-3 flex-wrap align-items-center">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Search Name..." onkeyup="filterData()">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search employees..." onkeyup="filterData()">
                 </div>
+                <select class="form-select w-auto" id="filterDept" onchange="filterData()">
+                    <option value="">All Departments</option>
+                </select>
+                <select class="form-select w-auto" id="filterPos" onchange="filterData()">
+                    <option value="">All Positions</option>
+                </select>
+                <select class="form-select w-auto text-muted" id="rowsPerPage" onchange="changeRowsPerPage()" style="background-color: var(--bg-color); border:none; padding-right: 2rem;">
+                    <option value="10">10 / page</option>
+                    <option value="25">25 / page</option>
+                    <option value="50">50 / page</option>
+                </select>
             </div>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="bg-light"><tr><th>Photo</th><th>Sr</th><th>Name</th><th>Position</th><th>Department</th><th>Phone</th><th>Actions</th></tr></thead>
+        <div class="table-responsive" style="min-height: 400px;">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th width="5%">Photo</th>
+                        <th width="5%">Sr</th>
+                        <th width="20%">Name</th>
+                        <th width="20%">Position</th>
+                        <th width="20%">Department</th>
+                        <th width="15%">Phone</th>
+                        <th width="15%" class="text-end">Actions</th>
+                    </tr>
+                </thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
-        <div class="d-flex justify-content-between mt-3">
-            <span id="pageInfo" class="text-muted small"></span>
-            <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+        
+        <div class="d-flex justify-content-between align-items-center mt-4 border-top pt-3" style="border-color: rgba(0,0,0,0.05) !important;">
+            <span id="pageInfo" class="text-muted small fw-medium"></span>
+            <ul class="pagination pagination-sm mb-0 gap-1" id="pagination"></ul>
         </div>
     </div>
 </div>
 
 <!-- Employee Modal -->
 <div class="modal fade" id="employeeModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalTitle">Employee Form</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header pt-4 px-4 pb-2">
+                <h4 class="modal-title" id="modalTitle" style="color: var(--text-main);">Employee Form</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body px-4 pb-4 pt-2">
                 <form id="employeeForm">
                     <input type="hidden" id="editRowIndex">
                     <input type="hidden" id="currentImage">
-                    <ul class="nav nav-tabs mb-3" id="empTabs" role="tablist">
+                    <ul class="nav nav-tabs" id="empTabs" role="tablist">
                         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-basic" type="button">Basic Info</button></li>
                         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-edu" type="button">Education & Files</button></li>
                         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-cap" type="button">Capacity Building</button></li>
@@ -171,121 +309,152 @@
                         <!-- BASIC INFO TAB -->
                         <div class="tab-pane fade show active" id="tab-basic">
                             <div class="row g-3">
-                                <div class="col-12 text-center mb-3">
-                                    <img id="imgPreview" src="" class="details-img" style="display:none; margin: 0 auto 10px auto;">
-                                    <div><label class="btn btn-outline-primary btn-sm"><i class="fas fa-camera"></i> Photo<input type="file" id="empPic" accept="image/*" hidden onchange="previewAndCompress(this)"></label><button type="button" class="btn btn-outline-danger btn-sm" id="btnDeleteImg" onclick="markImageForDeletion()" style="display:none;">Remove</button></div>
+                                <div class="col-12 text-center mb-2">
+                                    <div class="position-relative d-inline-block">
+                                        <img id="imgPreview" src="" class="details-img" style="display:none; margin-bottom: 5px;">
+                                        <div id="imgPlaceholder" class="details-img img-placeholder-box bg-light text-muted mx-auto" style="font-size: 3rem; margin-bottom: 5px; border-color: rgba(0,0,0,0.05);">
+                                            <i class="fas fa-camera"></i>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <label class="btn btn-sm btn-outline-primary rounded-pill px-3"><i class="fas fa-upload me-1"></i> Upload Photo<input type="file" id="empPic" accept="image/*" hidden onchange="previewAndCompress(this)"></label>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" id="btnDeleteImg" onclick="markImageForDeletion()" style="display:none;"><i class="fas fa-trash me-1"></i> Remove</button>
+                                    </div>
                                 </div>
-                                <div class="col-md-6"><label>Name</label><input type="text" class="form-control" id="empName" required></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Full Name</label><input type="text" class="form-control" id="empName" required></div>
                                 
-                                <div class="col-md-6"><label>Department</label><select class="form-select" id="empDept"><option value="">Loading...</option></select></div>
-                                <div class="col-md-6"><label>Blood Type</label><select class="form-select" id="empBlood"><option value="">Loading...</option></select></div>
-                                <div class="col-md-6"><label>Race</label><input type="text" class="form-control" id="empRace"></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Department</label><select class="form-select" id="empDept"><option value="">Loading...</option></select></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Blood Type</label><select class="form-select" id="empBlood"><option value="">Loading...</option></select></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Race</label><input type="text" class="form-control" id="empRace"></div>
                                 
-                                <!-- MODIFIED: Added Sex and Marital Status -->
-                                <div class="col-md-6"><label>Sex</label><select class="form-select" id="empSex"><option value="">Choose...</option></select></div>
-                                <div class="col-md-6"><label>Marital Status</label><select class="form-select" id="empMaritalStatus"><option value="">Choose...</option></select></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Sex</label><select class="form-select" id="empSex"><option value="">Choose...</option></select></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Marital Status</label><select class="form-select" id="empMaritalStatus"><option value="">Choose...</option></select></div>
 
-                                <div class="col-md-6"><label>Religion</label><select class="form-select" id="empReligion"><option value="">Loading...</option></select></div>
-                                <div class="col-md-6"><label>Phone</label><input type="text" class="form-control" id="empPhone"></div>
-                                <div class="col-md-6"><label>Email</label><input type="email" class="form-control" id="empEmail"></div>
-                                <div class="col-md-6"><label>NRC No.</label><input type="text" class="form-control" id="empNrc"></div>
-                                <div class="col-md-6"><label>Father Name</label><input type="text" class="form-control" id="empFather"></div>
-                                <div class="col-md-6"><label>Mother Name</label><input type="text" class="form-control" id="empMother"></div>
-                                <div class="col-md-6"><label>Start Date</label><input type="date" class="form-control" id="empStart"></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Religion</label><select class="form-select" id="empReligion"><option value="">Loading...</option></select></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Phone</label><input type="text" class="form-control" id="empPhone"></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Email</label><input type="email" class="form-control" id="empEmail"></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">NRC No.</label><input type="text" class="form-control" id="empNrc"></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Father Name</label><input type="text" class="form-control" id="empFather"></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Mother Name</label><input type="text" class="form-control" id="empMother"></div>
+                                <div class="col-md-6"><label class="form-label text-muted small fw-bold mb-1">Start Date</label><input type="date" class="form-control" id="empStart"></div>
                                 
                                 <div class="col-md-6">
-                                    <label class="form-label">Employment Status</label>
-                                    <div class="d-flex align-items-center p-2 border rounded bg-light" style="height: 38px;">
+                                    <label class="form-label text-muted small fw-bold mb-1">Employment Status</label>
+                                    <div class="d-flex align-items-center p-2 rounded" style="background: var(--bg-color); border: 1px solid rgba(0,0,0,0.05); height: 42px;">
                                         <div class="form-check form-switch mb-0 me-3">
                                             <input class="form-check-input" type="checkbox" role="switch" id="resignSwitch">
-                                            <label class="form-check-label small" for="resignSwitch" style="margin-top: 2px;">Current</label>
+                                            <label class="form-check-label small fw-bold" for="resignSwitch" style="margin-top: 2px; color: var(--primary-color);">Current</label>
                                         </div>
                                         <div id="resignDateContainer" style="display:none; flex-grow: 1;">
-                                            <input type="date" class="form-control form-control-sm" id="empResign">
+                                            <input type="date" class="form-control form-control-sm border-0 bg-transparent shadow-none" id="empResign" style="padding:0;">
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-12"><label>Address</label><textarea class="form-control" id="empAddr" rows="2"></textarea></div>
+                                <div class="col-12"><label class="form-label text-muted small fw-bold mb-1">Address</label><textarea class="form-control" id="empAddr" rows="2"></textarea></div>
                                 
                                 <div class="col-12">
                                     <div class="row g-2">
                                         <div class="col-md-6">
-                                            <label class="form-label">Position</label>
+                                            <label class="form-label text-muted small fw-bold mb-1">Current Position</label>
                                             <select class="form-select" id="empPos"><option value="">Loading...</option></select>
                                         </div>
                                         <div class="col-md-6">
                                             <div id="changePositionSection" style="display:none;">
-                                                <label class="form-label">Promotion / Change Position?</label>
-                                                <div class="d-flex align-items-center p-2 border rounded bg-light" style="height: 38px;">
+                                                <label class="form-label text-muted small fw-bold mb-1">Change Position / Promote?</label>
+                                                <div class="d-flex align-items-center p-2 rounded" style="background: var(--bg-color); border: 1px solid rgba(0,0,0,0.05); height: 42px;">
                                                     <div class="form-check mb-0 me-3">
                                                         <input class="form-check-input" type="checkbox" id="chkChangePosition">
                                                         <label class="form-check-label small" for="chkChangePosition" style="margin-top:2px;">Enable</label>
                                                     </div>
                                                     <div id="newPosDateContainer" style="display:none; flex-grow: 1;">
-                                                        <input type="date" class="form-control form-control-sm" id="newPosStartDate">
+                                                        <input type="date" class="form-control form-control-sm border-0 bg-transparent shadow-none" id="newPosStartDate" style="padding:0;">
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="editPosHistoryContainer" class="mt-2 border-top pt-2" style="display:none;">
-                                        <label class="small text-muted fw-bold mb-1"><i class="fas fa-history"></i> Past Positions</label>
-                                        <ul class="list-group list-group-flush small" id="editPosHistoryList" style="font-size:0.85rem; max-height: 150px; overflow-y:auto;"></ul>
+                                    <div id="editPosHistoryContainer" class="mt-3 p-3 rounded" style="display:none; background: var(--bg-color); border: 1px solid rgba(0,0,0,0.03);">
+                                        <label class="small text-muted fw-bold mb-2"><i class="fas fa-history me-1"></i> Past Positions Timeline</label>
+                                        <ul class="list-group list-group-flush small" id="editPosHistoryList" style="font-size:0.85rem; max-height: 150px; overflow-y:auto; background: transparent;"></ul>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                         <!-- EDUCATION TAB -->
                         <div class="tab-pane fade" id="tab-edu">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="fw-bold">Degrees / Certificates</label>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addEduRow()"><i class="fas fa-plus"></i> Add Row</button>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <label class="fw-bold mb-0" style="color: var(--text-main);">Degrees / Certificates</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill d-inline-flex align-items-center" onclick="addEduRow()"><i class="fas fa-plus me-1"></i> Add Record</button>
                             </div>
                             <div id="eduContainer"></div>
                         </div>
                         <!-- CAPACITY BUILDING TAB -->
                         <div class="tab-pane fade" id="tab-cap">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="fw-bold">Trainings / Workshops</label>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCapRow()"><i class="fas fa-plus"></i> Add Row</button>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <label class="fw-bold mb-0" style="color: var(--text-main);">Trainings / Workshops</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill d-inline-flex align-items-center" onclick="addCapRow()"><i class="fas fa-plus me-1"></i> Add Record</button>
                             </div>
                             <div id="capContainer"></div>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="saveEmployee()">Save Changes</button></div>
+            <div class="modal-footer px-4 py-3 border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary px-4" onclick="saveEmployee()">Save Changes</button>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Settings Modal -->
-<div class="modal fade" id="settingsModal" tabindex="-1" style="z-index: 1060;"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Manage Dropdowns</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="mb-3"><label class="fw-bold">Select Category:</label><select class="form-select" id="settingsCategory" onchange="renderSettingsList()"><option value="Department">Department</option><option value="Position">Position</option><option value="Blood Type">Blood Type</option><option value="Religion">Religion</option><option value="Sex">Sex</option><option value="Marital Status">Marital Status</option></select></div><div class="input-group mb-3"><input type="text" class="form-control" id="newItemName" placeholder="New Item Name"><button class="btn btn-primary" onclick="addDropdownItem()">Add</button></div><h6 class="text-muted">Current Items:</h6><div class="list-group" id="settingsList" style="max-height: 250px; overflow-y: auto;"></div></div></div></div></div>
-
-<!-- UPDATED Report Modal with Charts -->
-<div class="modal fade" id="reportModal" tabindex="-1" style="z-index: 1060;">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="settingsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title"><i class="fas fa-chart-pie"></i> Summary Dashboard</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header pt-4 px-4 pb-3">
+                <h5 class="modal-title fw-bold">Manage Dropdowns</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body px-4 pb-4">
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">Select Category</label>
+                    <select class="form-select" id="settingsCategory" onchange="renderSettingsList()">
+                        <option value="Department">Department</option><option value="Position">Position</option><option value="Blood Type">Blood Type</option><option value="Religion">Religion</option><option value="Sex">Sex</option><option value="Marital Status">Marital Status</option>
+                    </select>
+                </div>
+                <div class="input-group mb-4">
+                    <input type="text" class="form-control" id="newItemName" placeholder="Type new item name...">
+                    <button class="btn btn-primary px-4" onclick="addDropdownItem()"><i class="fas fa-plus"></i> Add</button>
+                </div>
+                <h6 class="text-muted fw-bold small mb-2 text-uppercase">Current Items</h6>
+                <div class="list-group rounded" id="settingsList" style="max-height: 250px; overflow-y: auto; border: 1px solid rgba(0,0,0,0.05);"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Modal with Charts -->
+<div class="modal fade" id="reportModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pt-4 px-4">
+                <h4 class="modal-title fw-bold text-primary"><i class="fas fa-chart-pie me-2"></i> HR Dashboard Analytics</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pb-4">
                 <div class="row mb-4">
                     <div class="col-md-12">
-                        <div class="card bg-light border-0 p-3 text-center">
-                            <h3 class="display-6 fw-bold text-primary" id="totalEmpCount">0</h3>
-                            <span class="text-muted">Total Employees</span>
+                        <div class="stat-card">
+                            <span class="text-white-50 text-uppercase fw-bold tracking-wide" style="letter-spacing: 2px; font-size: 0.85rem;">Total Workforce</span>
+                            <h1 class="display-3 fw-bold mb-0 mt-2" id="totalEmpCount" style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">0</h1>
                         </div>
                     </div>
                 </div>
-                <!-- Charts Area -->
                 <div class="row g-4">
                     <div class="col-md-6">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-header bg-white fw-bold">Department Distribution</div>
-                            <div class="card-body">
+                        <div class="card card-custom h-100 p-0 border-0 shadow-sm">
+                            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 fw-bold fs-5">Department Distribution</div>
+                            <div class="card-body px-4 pb-4">
                                 <div class="chart-container">
                                     <canvas id="deptChartCanvas"></canvas>
                                 </div>
@@ -293,9 +462,9 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-header bg-white fw-bold">Position Distribution</div>
-                            <div class="card-body">
+                        <div class="card card-custom h-100 p-0 border-0 shadow-sm">
+                            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 fw-bold fs-5">Position Distribution</div>
+                            <div class="card-body px-4 pb-4">
                                 <div class="chart-container">
                                     <canvas id="posChartCanvas"></canvas>
                                 </div>
@@ -304,53 +473,74 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
         </div>
     </div>
 </div>
 
 <!-- View Details Modal -->
-<div class="modal fade" id="viewModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-body" id="viewDetailsBody"></div><div class="modal-footer p-1">
-    <button type="button" class="btn btn-dark btn-sm me-auto" onclick="generateAndDownloadPDF()"><i class="fas fa-file-pdf text-danger"></i> Export</button>
-    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-</div></div></div></div>
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body p-4" id="viewDetailsBody"></div>
+            <div class="modal-footer px-4 py-3 border-0 bg-light rounded-bottom" style="background: var(--bg-color) !important;">
+                <button type="button" class="btn btn-outline-danger btn-sm me-auto rounded-pill px-3" onclick="generateAndDownloadPDF()"><i class="fas fa-file-pdf me-1"></i> Export Profile PDF</button>
+                <button type="button" class="btn btn-light btn-sm rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     // *** IMPORTANT: REPLACE WITH YOUR DEPLOYED WEB APP URL ***
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxO506xcuwp6bQw6ZjrxLFNpNkTipCkepw7p95ktCb_pD6y-inInTIs671OzVvE7fw9Fg/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx5UwwDzOW_YfLbamNaNhN1PSn8_6d2wcUbtvWzPALIKmV8Bf9ApLJtCKL0wm8L8nKZAA/exec";
     const DATA_SHEET_NAME = "Staff"; // <--- SHEET NAME VARIABLE (Frontend)
     
-    let currentUser = { role: null, username: null, department: null, token: null }; // Initialize token
+    let currentUser = null;
     let allData = [], filteredData = [], currentPage = 1, rowsPerPage = 10;
     let dropdownData = { "Department": [], "Position": [], "Blood Type": [], "Religion": [], "Sex": [], "Marital Status": [] };
     let compressedImageBase64 = null, deleteImageFlag = false;
     let eduFilesToDelete = [];
     let currentViewedEmp = null;
-    let deptChart = null, posChart = null; // Chart Instances
+    let deptChart = null, posChart = null; 
 
-    document.getElementById('loginForm').addEventListener('submit', function(e) { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: document.getElementById('username').value, password: document.getElementById('password').value }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { currentUser = { token: data.token, role: data.role, username: document.getElementById('username').value, department: data.department }; initDashboard(); } else Swal.fire('Error', data.message, 'error'); }).catch(e => { showLoading(false); Swal.fire('Connection Error', e.toString(), 'error'); }); });
+    document.getElementById('loginForm').addEventListener('submit', function(e) { e.preventDefault(); showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: document.getElementById('username').value, password: document.getElementById('password').value }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { const user = { token: data.token, role: data.role, username: data.username, department: data.department }; sessionStorage.setItem('currentUser', JSON.stringify(user)); currentUser = user; initDashboard(); } else Swal.fire({title: 'Error', text: data.message, icon: 'error', confirmButtonColor: '#4f46e5'}); }).catch(e => { showLoading(false); Swal.fire('Connection Error', e.toString(), 'error'); }); });
+
+    function logout() {
+        sessionStorage.removeItem('currentUser');
+        location.reload();
+    }
 
     function initDashboard() {
-        document.getElementById('loginSection').style.display = 'none'; document.getElementById('dashboardSection').style.display = 'block'; document.getElementById('userDisplay').innerText = `${currentUser.username} (${currentUser.role})`;
+        document.getElementById('loginSection').style.display = 'none'; 
+        document.getElementById('dashboardSection').style.display = 'block'; 
+        document.getElementById('userDisplay').innerText = `${currentUser.username} (${currentUser.role})`;
+        
         const sidebarList = document.getElementById('sidebarList');
         let sidebarHTML = '';
         if(currentUser.role === 'Root') {
             document.getElementById('btnAdd').style.display = 'inline-block';
-            sidebarHTML = `<div class="sidebar-header-text">ADMINISTRATION</div><a class="list-group-item sidebar-item" onclick="openSettingsModal()"><i class="fas fa-list-alt text-primary"></i> Manage Dropdowns</a><div class="sidebar-header-text mt-2">REPORTS</div><a class="list-group-item sidebar-item" onclick="openReportModal()"><i class="fas fa-chart-pie text-info"></i> Summary Dashboard</a><a class="list-group-item sidebar-item" onclick="exportToExcel()"><i class="fas fa-file-excel text-success"></i> Export to Excel</a>`;
+            sidebarHTML = `
+                <div class="sidebar-header-text">Administration</div>
+                <a class="sidebar-item text-decoration-none" onclick="openSettingsModal()"><i class="fas fa-list-ul" style="color:#8b5cf6;"></i> Dropdown Setup</a>
+                <div class="sidebar-header-text mt-3">Reports & Export</div>
+                <a class="sidebar-item text-decoration-none" onclick="openReportModal()"><i class="fas fa-chart-pie text-info"></i> Analytics Dashboard</a>
+                <a class="sidebar-item text-decoration-none" onclick="exportToExcel()"><i class="fas fa-file-excel text-success"></i> Export All Data</a>`;
         } else {
             document.getElementById('btnAdd').style.display = 'none';
-            sidebarHTML = `<div class="sidebar-header-text mt-2">REPORTS</div><a class="list-group-item sidebar-item" onclick="openReportModal()"><i class="fas fa-chart-pie text-info"></i> Summary Dashboard</a>`;
+            sidebarHTML = `
+                <div class="sidebar-header-text mt-2">Reports</div>
+                <a class="sidebar-item text-decoration-none" onclick="openReportModal()"><i class="fas fa-chart-pie text-info"></i> Analytics Dashboard</a>`;
         }
         sidebarList.innerHTML = sidebarHTML;
         
         document.getElementById('resignSwitch').addEventListener('change', function() {
             const resignDateContainer = document.getElementById('resignDateContainer');
             const label = document.querySelector('label[for="resignSwitch"]');
-            if (this.checked) { resignDateContainer.style.display = 'block'; label.textContent = 'Resigned'; }
-            else { resignDateContainer.style.display = 'none'; document.getElementById('empResign').value = ''; label.textContent = 'Current'; }
+            if (this.checked) { resignDateContainer.style.display = 'block'; label.textContent = 'Resigned'; label.style.color = '#ef4444'; }
+            else { resignDateContainer.style.display = 'none'; document.getElementById('empResign').value = ''; label.textContent = 'Current'; label.style.color = 'var(--primary-color)'; }
         });
 
         document.getElementById('chkChangePosition').addEventListener('change', function() {
@@ -369,7 +559,12 @@
         .catch(e => { showLoading(false); Swal.fire('Error', 'Failed to load data', 'error'); });
     }
 
-    // --- Education & Capacity Building (Existing Functions) ---
+    window.setFilterAndSearch = function(filterId, value) {
+        document.getElementById(filterId).value = value || "";
+        filterData();
+    }
+
+    // --- Education & Capacity Building ---
     function addEduRow(title = "", urls = "") {
         const container = document.getElementById('eduContainer');
         const div = document.createElement('div');
@@ -378,8 +573,8 @@
         let urlList = [];
         if(Array.isArray(urls)) { urlList = urls; }
         else if (typeof urls === 'string' && urls.trim() !== "") { try { if (urls.startsWith('[')) urlList = JSON.parse(urls); else urlList = urls.split(" || "); } catch(e) { urlList = [urls]; } }
-        urlList.forEach((link, idx) => { if(link.trim()) fileDisplay += `<span class="badge bg-success text-decoration-none me-1 mb-1 file-link-badge">File ${idx+1} <a href="${link}" target="_blank" class="text-white"><i class="fas fa-download"></i></a><i class="fas fa-times-circle delete-file-btn" onclick="markFileForDelete(this, '${link}')"></i></span>`; });
-        div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate Name" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png" multiple><div class="mt-1" id="fileList">${fileDisplay}</div><input type="hidden" class="edu-existing-urls" value='${JSON.stringify(urlList)}'></div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeEduRow(this)"><i class="fas fa-times"></i></button></div>`;
+        urlList.forEach((link, idx) => { if(link.trim()) fileDisplay += `<span class="badge bg-success bg-opacity-10 text-success border border-success me-1 mb-1 file-link-badge d-inline-flex align-items-center">File ${idx+1} <a href="${link}" target="_blank" class="text-success ms-1 d-inline-flex align-items-center"><i class="fas fa-external-link-alt"></i></a><i class="fas fa-times-circle ms-1 delete-file-btn d-inline-flex align-items-center" onclick="markFileForDelete(this, '${link}')" style="cursor:pointer; color:#ef4444;"></i></span>`; });
+        div.innerHTML = `<div class="col-5"><input type="text" class="form-control form-control-sm edu-title" placeholder="Certificate / Degree Name" value="${title}"></div><div class="col-6"><input type="file" class="form-control form-control-sm edu-file" accept=".pdf,.jpg,.jpeg,.png" multiple><div class="mt-2" id="fileList">${fileDisplay}</div><input type="hidden" class="edu-existing-urls" value='${JSON.stringify(urlList)}'></div><div class="col-1 text-end"><button type="button" class="btn btn-sm btn-light text-danger border-0 rounded-circle d-inline-flex align-items-center justify-content-center" onclick="removeEduRow(this)" style="width: 32px; height: 32px;"><i class="fas fa-times"></i></button></div>`;
         container.appendChild(div);
     }
     window.removeEduRow = function(btn) { const row = btn.closest('.edu-row'); const hiddenInput = row.querySelector('.edu-existing-urls'); const urls = JSON.parse(hiddenInput.value || "[]"); if (urls.length > 0) { urls.forEach(url => eduFilesToDelete.push(url)); } row.remove(); }
@@ -387,24 +582,24 @@
     function addCapRow(title = "", urls = "", start = "", end = "", hours = "", costType = "FOC", costAmount = "") {
         const container = document.getElementById('capContainer');
         const div = document.createElement('div');
-        div.className = 'edu-row p-3 mb-2 border rounded bg-light';
+        div.className = 'edu-row';
         let fileDisplay = "";
         let urlList = [];
         if(Array.isArray(urls)) { urlList = urls; }
         else if (typeof urls === 'string' && urls.trim() !== "") { try { if (urls.startsWith('[')) urlList = JSON.parse(urls); else urlList = urls.split(" || "); } catch(e) { urlList = [urls]; } }
-        urlList.forEach((link, idx) => { if(link.trim()) fileDisplay += `<span class="badge bg-success text-decoration-none me-1 mb-1 file-link-badge">File ${idx+1} <a href="${link}" target="_blank" class="text-white"><i class="fas fa-download"></i></a><i class="fas fa-times-circle delete-file-btn" onclick="markFileForDelete(this, '${link}')"></i></span>`; });
+        urlList.forEach((link, idx) => { if(link.trim()) fileDisplay += `<span class="badge bg-success bg-opacity-10 text-success border border-success me-1 mb-1 file-link-badge d-inline-flex align-items-center">File ${idx+1} <a href="${link}" target="_blank" class="text-success ms-1 d-inline-flex align-items-center"><i class="fas fa-external-link-alt"></i></a><i class="fas fa-times-circle ms-1 delete-file-btn d-inline-flex align-items-center" onclick="markFileForDelete(this, '${link}')" style="cursor:pointer; color:#ef4444;"></i></span>`; });
         const isPaid = costType === 'Paid';
         const displayStyle = isPaid ? 'block' : 'none';
         const checkState = isPaid ? 'checked' : '';
         div.innerHTML = `
             <div class="row g-2">
-                <div class="col-12"><label class="small text-muted">Training / Workshop Title</label><input type="text" class="form-control fw-bold cap-title" placeholder="Enter Title..." value="${title}"></div>
-                <div class="col-md-4"><label class="small text-muted">Start Date</label><input type="date" class="form-control form-control-sm cap-start" value="${start}"></div>
-                <div class="col-md-4"><label class="small text-muted">End Date</label><input type="date" class="form-control form-control-sm cap-end" value="${end}"></div>
-                <div class="col-md-4"><label class="small text-muted">Total Hours</label><input type="number" class="form-control form-control-sm cap-hours" placeholder="e.g. 20" value="${hours}"></div>
-                <div class="col-md-6 d-flex align-items-center mt-3"><div class="form-check form-switch me-3"><input class="form-check-input cap-cost-toggle" type="checkbox" id="costSwitch${Date.now()}" onchange="toggleCostInput(this)" ${checkState}><label class="form-check-label fw-bold text-primary" for="costSwitch${Date.now()}">${isPaid ? 'Paid' : 'FOC'}</label></div><div class="cap-cost-box" style="display:${displayStyle}; flex-grow:1;"><input type="number" class="form-control form-control-sm cap-cost-amount" placeholder="Amount (MMK)" value="${costAmount}"></div></div>
-                <div class="col-md-6 mt-3"><input type="file" class="form-control form-control-sm cap-file" accept=".pdf,.jpg,.jpeg,.png" multiple><div class="mt-1" id="fileList">${fileDisplay}</div><input type="hidden" class="cap-existing-urls" value='${JSON.stringify(urlList)}'></div>
-                <div class="col-12 text-end mt-2 border-top pt-2"><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCapRow(this)"><i class="fas fa-trash"></i> Remove</button></div>
+                <div class="col-12"><label class="small text-muted fw-bold mb-1">Training Title</label><input type="text" class="form-control fw-bold cap-title" placeholder="Enter Title..." value="${title}"></div>
+                <div class="col-md-4"><label class="small text-muted fw-bold mb-1">Start Date</label><input type="date" class="form-control form-control-sm cap-start" value="${start}"></div>
+                <div class="col-md-4"><label class="small text-muted fw-bold mb-1">End Date</label><input type="date" class="form-control form-control-sm cap-end" value="${end}"></div>
+                <div class="col-md-4"><label class="small text-muted fw-bold mb-1">Total Hours</label><input type="number" class="form-control form-control-sm cap-hours" placeholder="e.g. 20" value="${hours}"></div>
+                <div class="col-md-6 d-flex align-items-center mt-3"><div class="form-check form-switch me-3 d-flex align-items-center"><input class="form-check-input cap-cost-toggle m-0 me-2" type="checkbox" id="costSwitch${Date.now()}" onchange="toggleCostInput(this)" ${checkState}><label class="form-check-label fw-bold text-primary m-0" for="costSwitch${Date.now()}">${isPaid ? 'Paid' : 'FOC'}</label></div><div class="cap-cost-box" style="display:${displayStyle}; flex-grow:1;"><input type="number" class="form-control form-control-sm cap-cost-amount" placeholder="Amount (MMK)" value="${costAmount}"></div></div>
+                <div class="col-md-6 mt-3"><input type="file" class="form-control form-control-sm cap-file" accept=".pdf,.jpg,.jpeg,.png" multiple><div class="mt-2" id="fileList">${fileDisplay}</div><input type="hidden" class="cap-existing-urls" value='${JSON.stringify(urlList)}'></div>
+                <div class="col-12 text-end mt-3 pt-2" style="border-top: 1px dashed rgba(0,0,0,0.1);"><button type="button" class="btn btn-sm btn-light text-danger rounded-pill d-inline-flex align-items-center justify-content-center" onclick="removeCapRow(this)"><i class="fas fa-trash-alt me-1"></i> Remove</button></div>
             </div>`;
         container.appendChild(div);
     }
@@ -415,49 +610,46 @@
     // --- Detail View ---
     window.viewDetails = function(rowIndex) {
         const emp = allData.find(r => r.row_index === rowIndex);
-        currentViewedEmp = { ...emp }; // Clone
-        const pdfBtn = document.querySelector('#viewModal .btn-dark');
+        currentViewedEmp = { ...emp }; 
+        const pdfBtn = document.querySelector('#viewModal .btn-outline-danger');
         pdfBtn.disabled = false;
-        pdfBtn.innerHTML = '<i class="fas fa-file-pdf text-danger"></i> Export';
-        if (currentUser.role === 'User') { pdfBtn.disabled = true; pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted'; }
-        else if (currentUser.role === 'Admin') { if ((currentUser.department || "").trim() !== (emp.Department || "").trim()) { pdfBtn.disabled = true; pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Restricted'; } }
+        pdfBtn.innerHTML = '<i class="fas fa-file-pdf me-1"></i> Export Profile PDF';
+        if (currentUser.role === 'User') { pdfBtn.disabled = true; pdfBtn.innerHTML = '<i class="fas fa-lock me-1"></i> Restricted'; }
+        else if (currentUser.role === 'Admin') { if ((currentUser.department || "").trim() !== (emp.Department || "").trim()) { pdfBtn.disabled = true; pdfBtn.innerHTML = '<i class="fas fa-lock me-1"></i> Restricted'; } }
 
-        let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img">` : `<div class="details-img d-flex align-items-center justify-content-center bg-secondary text-white mx-auto"><i class="fas fa-user fa-3x"></i></div>`;
-        let eduHtml = '<p class="text-muted small">No education info</p>';
-        if(emp.EducationObject && emp.EducationObject.length > 0) { eduHtml = '<ul class="list-group list-group-flush text-start">'; emp.EducationObject.forEach(item => { let linksHtml = ''; let urlArray = Array.isArray(item.urls) ? item.urls : []; urlArray.forEach((link, idx) => { if(link.trim()) { if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-primary text-decoration-none ms-1">File ${idx+1}</a>`; } else { linksHtml += `<span class="badge bg-secondary ms-1"><i class="fas fa-lock"></i></span>`; } } }); eduHtml += `<li class="list-group-item py-1 px-0 d-flex justify-content-between align-items-center"><span>${item.title}</span> <div>${linksHtml}</div></li>`; }); eduHtml += '</ul>'; }
+        let pic = emp['Profile Pic'] ? `<img src="${emp['Profile Pic']}" class="details-img shadow-sm border-0 mb-3" style="width:110px; height:110px;">` : `<div class="details-img d-flex align-items-center justify-content-center bg-light text-secondary mx-auto mb-3 border-0 shadow-sm" style="width:110px; height:110px;"><i class="fas fa-user fa-3x"></i></div>`;
+        let eduHtml = '<p class="text-muted small fst-italic">No education records found</p>';
+        if(emp.EducationObject && emp.EducationObject.length > 0) { eduHtml = '<ul class="list-group list-group-flush text-start">'; emp.EducationObject.forEach(item => { let linksHtml = ''; let urlArray = Array.isArray(item.urls) ? item.urls : []; urlArray.forEach((link, idx) => { if(link.trim()) { if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-primary bg-opacity-10 text-primary text-decoration-none ms-1 border border-primary d-inline-flex align-items-center">File ${idx+1}</a>`; } else { linksHtml += `<span class="badge bg-secondary ms-1 d-inline-flex align-items-center"><i class="fas fa-lock"></i></span>`; } } }); eduHtml += `<li class="list-group-item py-2 px-0 d-flex justify-content-between align-items-center bg-transparent border-bottom" style="border-color: rgba(0,0,0,0.05)!important;"><span class="fw-medium">${item.title}</span> <div>${linksHtml}</div></li>`; }); eduHtml += '</ul>'; }
         const formatDate = (dateStr) => { if (!dateStr) return ''; const d = new Date(dateStr); return isNaN(d.getTime()) ? dateStr : d.toISOString().split('T')[0]; };
-        let capHtml = '<p class="text-muted small">No capacity building info</p>';
-        if(emp.CapacityBuildingObject && emp.CapacityBuildingObject.length > 0) { capHtml = '<div class="list-group list-group-flush">'; emp.CapacityBuildingObject.forEach(item => { let linksHtml = ''; let urlArray = Array.isArray(item.urls) ? item.urls : []; urlArray.forEach((link, idx) => { if(link.trim()) { if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-success text-decoration-none me-1">File ${idx+1}</a>`; } else { linksHtml += `<span class="badge bg-secondary me-1"><i class="fas fa-lock"></i></span>`; } } }); let durationStr = ""; if(item.startDate) durationStr += `<i class="far fa-calendar-alt text-muted"></i> ${formatDate(item.startDate)}`; if(item.endDate) durationStr += ` to ${formatDate(item.endDate)}`; if(item.totalHours) durationStr += ` <span class="badge bg-info text-dark ms-2"><i class="far fa-clock"></i> ${item.totalHours} Hrs</span>`; let costBadge = ""; if(item.costType === 'Paid') { costBadge = `<span class="badge bg-warning text-dark border border-warning">Paid: ${item.costAmount} MMK</span>`; } else { costBadge = `<span class="badge bg-light text-dark border">FOC</span>`; } capHtml += `<div class="list-group-item px-0"><div class="d-flex justify-content-between align-items-start"><div><h6 class="mb-1 fw-bold">${item.title}</h6><div class="small text-muted mb-1">${durationStr}</div><div>${costBadge}</div></div><div class="text-end">${linksHtml}</div></div></div>`; }); capHtml += '</div>'; }
+        let capHtml = '<p class="text-muted small fst-italic">No training records found</p>';
+        if(emp.CapacityBuildingObject && emp.CapacityBuildingObject.length > 0) { capHtml = '<div class="list-group list-group-flush">'; emp.CapacityBuildingObject.forEach(item => { let linksHtml = ''; let urlArray = Array.isArray(item.urls) ? item.urls : []; urlArray.forEach((link, idx) => { if(link.trim()) { if (currentUser.role === 'Root') { linksHtml += `<a href="${link}" target="_blank" class="badge bg-success bg-opacity-10 text-success border border-success text-decoration-none me-1 d-inline-flex align-items-center">File ${idx+1}</a>`; } else { linksHtml += `<span class="badge bg-secondary me-1 d-inline-flex align-items-center"><i class="fas fa-lock"></i></span>`; } } }); let durationStr = ""; if(item.startDate) durationStr += `<span class="d-inline-flex align-items-center"><i class="far fa-calendar-alt text-muted me-1"></i> ${formatDate(item.startDate)}</span>`; if(item.endDate) durationStr += ` to ${formatDate(item.endDate)}`; if(item.totalHours) durationStr += ` <span class="badge bg-info bg-opacity-10 text-info border border-info ms-2 d-inline-flex align-items-center"><i class="far fa-clock me-1"></i> ${item.totalHours} Hrs</span>`; let costBadge = ""; if(item.costType === 'Paid') { costBadge = `<span class="badge bg-warning bg-opacity-10 text-warning border border-warning mt-1">Paid: ${item.costAmount} MMK</span>`; } else { costBadge = `<span class="badge bg-secondary bg-opacity-10 text-secondary border mt-1">FOC</span>`; } capHtml += `<div class="list-group-item px-0 py-3 bg-transparent border-bottom" style="border-color: rgba(0,0,0,0.05)!important;"><div class="d-flex justify-content-between align-items-start"><div><h6 class="mb-1 fw-bold text-main">${item.title}</h6><div class="small text-muted mb-1 d-flex flex-wrap align-items-center">${durationStr}</div><div>${costBadge}</div></div><div class="text-end">${linksHtml}</div></div></div>`; }); capHtml += '</div>'; }
         
         let posHistoryHtml = '';
-        if (emp.PositionHistory && emp.PositionHistory.length > 0) { emp.PositionHistory.forEach(ph => { posHistoryHtml += `<li class="text-muted small">${ph.position} (${ph.startDate} to ${ph.endDate})</li>`; }); }
-        let currentEnd = emp['Resign Date'] ? formatDate(emp['Resign Date']) : 'Current';
-        let currentClass = emp['Resign Date'] ? 'text-danger' : 'text-success fw-bold';
-        posHistoryHtml += `<li class="${currentClass}">${emp.Position} (${formatDate(emp['Start Date'])} to ${currentEnd})</li>`;
+        if (emp.PositionHistory && emp.PositionHistory.length > 0) { emp.PositionHistory.forEach(ph => { posHistoryHtml += `<li class="text-muted small mb-2 ps-3 position-relative" style="border-left: 2px solid #e2e8f0;"><strong>${ph.position}</strong><br><span style="font-size:0.75rem;">${ph.startDate} &rarr; ${ph.endDate}</span></li>`; }); }
+        let currentEnd = emp['Resign Date'] ? formatDate(emp['Resign Date']) : 'Present';
+        let currentClass = emp['Resign Date'] ? 'text-danger' : 'text-primary';
+        posHistoryHtml += `<li class="${currentClass} small mb-1 ps-3 position-relative" style="border-left: 2px solid var(--primary-color);"><strong>${emp.Position}</strong><br><span style="font-size:0.75rem;">${formatDate(emp['Start Date'])} &rarr; ${currentEnd}</span></li>`;
 
         document.getElementById('viewDetailsBody').innerHTML = `
-            <div class="text-center">${pic} <h4 class="fw-bold">${emp.Name}</h4><div class="mb-3"><span class="badge bg-secondary">${emp.Position || 'No Pos'}</span> | <span class="badge bg-primary">${emp.Department || 'No Dept'}</span></div></div>
-            <ul class="nav nav-tabs mb-2" id="viewTabs" role="tablist">
-                <li class="nav-item"><button class="nav-link active py-1" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Info</button></li>
-                <li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li>
-                <li class="nav-item"><button class="nav-link py-1" data-bs-toggle="tab" data-bs-target="#view-cap" type="button">Capacity Building</button></li>
+            <div class="text-center mb-4">${pic} <h4 class="fw-bold mb-1" style="color:var(--text-main);">${emp.Name}</h4><div class="mb-0"><span class="badge badge-pos" onclick="setFilterAndSearch('filterPos', '${emp.Position||''}')" data-bs-dismiss="modal" title="Click to filter by position">${emp.Position || 'No Pos'}</span> &nbsp; <span class="badge badge-dept" onclick="setFilterAndSearch('filterDept', '${emp.Department||''}')" data-bs-dismiss="modal" title="Click to filter by department">${emp.Department || 'No Dept'}</span></div></div>
+            <ul class="nav nav-tabs mb-3" id="viewTabs" role="tablist">
+                <li class="nav-item"><button class="nav-link active py-2 px-3" data-bs-toggle="tab" data-bs-target="#view-basic" type="button">Details</button></li>
+                <li class="nav-item"><button class="nav-link py-2 px-3" data-bs-toggle="tab" data-bs-target="#view-edu" type="button">Education</button></li>
+                <li class="nav-item"><button class="nav-link py-2 px-3" data-bs-toggle="tab" data-bs-target="#view-cap" type="button">Training</button></li>
             </ul>
             <div class="tab-content text-start">
                 <div class="tab-pane fade show active" id="view-basic">
-                    <table class="table table-bordered table-sm mb-0">
-                        <tr><th width="35%">Sr No.</th><td>${emp['Sr No.']}</td></tr>
-                        <tr><th>NRC No.</th><td>${emp['NRC No.'] || '-'}</td></tr>
-                        <tr><th>Sex</th><td>${emp.Sex || '-'}</td></tr>
-                        <tr><th>Marital Status</th><td>${emp['Marital Status'] || '-'}</td></tr>
-                        <tr><th>Father Name</th><td>${emp['Father Name'] || '-'}</td></tr>
-                        <tr><th>Mother Name</th><td>${emp['Mother Name'] || '-'}</td></tr>
-                        <tr><th>Phone</th><td>${emp.Phone || '-'}</td></tr>
-                        <tr><th>Email</th><td>${emp.Email || '-'}</td></tr>
-                        <tr><th>Address</th><td>${emp.Address || '-'}</td></tr>
-                        <tr><th>Current Status</th><td>${emp['Resign Date'] ? '<span class="badge bg-danger">Resigned</span>' : '<span class="badge bg-success">Active</span>'}</td></tr>
-                        <tr><th colspan="2" class="bg-light">Position Timeline</th></tr>
-                        <tr><td colspan="2"><ul class="list-unstyled mb-0 ps-2" style="line-height: 1.8;">${posHistoryHtml}</ul></td></tr>
-                    </table>
+                    <div class="row g-2 text-main" style="font-size:0.9rem;">
+                        <div class="col-6"><span class="text-muted d-block" style="font-size:0.75rem;">Employee ID</span> <strong>${emp['Sr No.']}</strong></div>
+                        <div class="col-6"><span class="text-muted d-block" style="font-size:0.75rem;">Status</span> ${emp['Resign Date'] ? '<span class="text-danger fw-bold d-inline-flex align-items-center"><i class="fas fa-circle me-1" style="font-size:8px;"></i> Resigned</span>' : '<span class="text-success fw-bold d-inline-flex align-items-center"><i class="fas fa-circle me-1" style="font-size:8px;"></i> Active</span>'}</div>
+                        <div class="col-6 mt-3"><span class="text-muted d-block" style="font-size:0.75rem;">Phone</span> ${emp.Phone || '-'}</div>
+                        <div class="col-6 mt-3"><span class="text-muted d-block" style="font-size:0.75rem;">Email</span> ${emp.Email || '-'}</div>
+                        <div class="col-12 mt-3"><span class="text-muted d-block" style="font-size:0.75rem;">NRC No.</span> ${emp['NRC No.'] || '-'}</div>
+                        <div class="col-6 mt-3"><span class="text-muted d-block" style="font-size:0.75rem;">Sex / Marital</span> ${emp.Sex || '-'} / ${emp['Marital Status'] || '-'}</div>
+                        <div class="col-6 mt-3"><span class="text-muted d-block" style="font-size:0.75rem;">Parents</span> ${emp['Father Name'] || '-'} & ${emp['Mother Name'] || '-'}</div>
+                        <div class="col-12 mt-3"><span class="text-muted d-block" style="font-size:0.75rem;">Address</span> ${emp.Address || '-'}</div>
+                        <div class="col-12 mt-4 pt-3 border-top" style="border-color: rgba(0,0,0,0.05)!important;"><span class="text-muted fw-bold d-block mb-2" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Timeline</span><ul class="list-unstyled mb-0 ms-1">${posHistoryHtml}</ul></div>
+                    </div>
                 </div>
                 <div class="tab-pane fade" id="view-edu">${eduHtml}</div>
                 <div class="tab-pane fade" id="view-cap">${capHtml}</div>
@@ -472,32 +664,39 @@
         document.getElementById('eduContainer').innerHTML = '';
         document.getElementById('capContainer').innerHTML = '';
         compressedImageBase64 = null; deleteImageFlag = false; eduFilesToDelete = [];
-        document.getElementById('imgPreview').style.display = 'none'; document.getElementById('btnDeleteImg').style.display = 'none';
+        
+        document.getElementById('imgPreview').style.display = 'none'; 
+        document.getElementById('btnDeleteImg').style.display = 'none'; 
+        document.getElementById('imgPlaceholder').style.display = 'flex';
+        
         var firstTabEl = document.querySelector('#empTabs button[data-bs-target="#tab-basic"]'); var firstTab = new bootstrap.Tab(firstTabEl); firstTab.show();
 
         const resignSwitch = document.getElementById('resignSwitch');
         const resignDateContainer = document.getElementById('resignDateContainer');
         const resignLabel = document.querySelector('label[for="resignSwitch"]');
-        resignSwitch.checked = false; resignDateContainer.style.display = 'none'; resignLabel.textContent = 'Current';
+        resignSwitch.checked = false; resignDateContainer.style.display = 'none'; resignLabel.textContent = 'Current'; resignLabel.style.color = 'var(--primary-color)';
 
         document.getElementById('chkChangePosition').checked = false; document.getElementById('newPosDateContainer').style.display = 'none'; document.getElementById('newPosStartDate').value = '';
         const historyList = document.getElementById('editPosHistoryList'); const historyContainer = document.getElementById('editPosHistoryContainer'); historyList.innerHTML = ''; historyContainer.style.display = 'none';
 
         if(mode === 'edit') {
             const emp = allData.find(r => r.row_index === rowIndex);
-            document.getElementById('modalTitle').innerText = "Edit Employee"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic'];
+            document.getElementById('modalTitle').innerText = "Edit Profile"; document.getElementById('editRowIndex').value = rowIndex; document.getElementById('currentImage').value = emp['Profile Pic'];
             document.getElementById('empName').value = emp.Name; document.getElementById('empDept').value = emp.Department || ""; document.getElementById('empPos').value = emp.Position || ""; document.getElementById('empBlood').value = emp['Blood Type'] || ""; document.getElementById('empRace').value = emp.Race || ""; document.getElementById('empReligion').value = emp.Religion || ""; document.getElementById('empPhone').value = emp.Phone; document.getElementById('empEmail').value = emp.Email; document.getElementById('empNrc').value = emp['NRC No.']; document.getElementById('empFather').value = emp['Father Name']; document.getElementById('empMother').value = emp['Mother Name']; document.getElementById('empAddr').value = emp.Address;
-            
-            document.getElementById('empSex').value = emp.Sex || "";
-            document.getElementById('empMaritalStatus').value = emp['Marital Status'] || "";
+            document.getElementById('empSex').value = emp.Sex || ""; document.getElementById('empMaritalStatus').value = emp['Marital Status'] || "";
             
             if(emp['Start Date']) document.getElementById('empStart').value = new Date(emp['Start Date']).toISOString().split('T')[0];
-            if(emp['Resign Date']) { document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; resignSwitch.checked = true; resignDateContainer.style.display = 'block'; resignLabel.textContent = 'Resigned'; }
+            if(emp['Resign Date']) { document.getElementById('empResign').value = new Date(emp['Resign Date']).toISOString().split('T')[0]; resignSwitch.checked = true; resignDateContainer.style.display = 'block'; resignLabel.textContent = 'Resigned'; resignLabel.style.color = '#ef4444'; }
             
             document.getElementById('changePositionSection').style.display = 'block';
-            if (emp.PositionHistory && emp.PositionHistory.length > 0) { historyContainer.style.display = 'block'; emp.PositionHistory.forEach(h => { historyList.innerHTML += `<li class="list-group-item p-1 bg-transparent border-0"><i class="fas fa-history text-secondary me-1"></i> <strong>${h.position}</strong> <br> <span class="text-muted ms-3" style="font-size:0.75rem;">${h.startDate} ~ ${h.endDate}</span></li>`; }); }
+            if (emp.PositionHistory && emp.PositionHistory.length > 0) { historyContainer.style.display = 'block'; emp.PositionHistory.forEach(h => { historyList.innerHTML += `<li class="list-group-item px-0 py-2 bg-transparent border-bottom" style="border-color: rgba(0,0,0,0.05)!important;"><i class="fas fa-angle-right text-primary me-2"></i> <strong style="color:var(--text-main);">${h.position}</strong> <br> <span class="text-muted ms-4" style="font-size:0.75rem;">${h.startDate} to ${h.endDate}</span></li>`; }); }
 
-            if (emp['Profile Pic']) { document.getElementById('imgPreview').src = emp['Profile Pic']; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; }
+            if (emp['Profile Pic']) { 
+                document.getElementById('imgPlaceholder').style.display = 'none'; 
+                document.getElementById('imgPreview').src = emp['Profile Pic']; 
+                document.getElementById('imgPreview').style.display = 'block'; 
+                document.getElementById('btnDeleteImg').style.display = 'inline-block'; 
+            }
             if(emp.EducationObject && emp.EducationObject.length > 0) { emp.EducationObject.forEach(item => addEduRow(item.title, item.urls)); }
             if(emp.CapacityBuildingObject && emp.CapacityBuildingObject.length > 0) { emp.CapacityBuildingObject.forEach(item => { addCapRow(item.title, item.urls, item.startDate, item.endDate, item.totalHours, item.costType, item.costAmount); }); }
         } else {
@@ -551,10 +750,10 @@
             action: rowIndex ? 'editEmployee' : 'addEmployee', token: currentUser.token, employee: employeeData, rowIndex: rowIndex ? parseInt(rowIndex) : null, deleteImageFlag: deleteImageFlag, deleted_edu_files: eduFilesToDelete, user: currentUser,
             isChangePosition: document.getElementById('chkChangePosition').checked, newStartDate: document.getElementById('newPosStartDate').value
         };
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire('Success', data.message, 'success'); loadEmployees(); } else { Swal.fire('Error', data.message, 'error'); } });
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide(); Swal.fire({title:'Success', text:data.message, icon:'success', confirmButtonColor:'#10b981'}); loadEmployees(); } else { Swal.fire({title:'Error', text:data.message, icon:'error', confirmButtonColor:'#ef4444'}); } });
     }
 
-    window.deleteEmployee = function(rowIndex) { Swal.fire({ title: 'Delete?', text: "This action cannot be undone!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((result) => { if (result.isConfirmed) { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteEmployee', token: currentUser.token, rowIndex: rowIndex, user: currentUser }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { Swal.fire('Deleted!', 'Employee has been deleted.', 'success'); loadEmployees(); } else { Swal.fire('Error', data.message, 'error'); } }); } }); }
+    window.deleteEmployee = function(rowIndex) { Swal.fire({ title: 'Are you sure?', text: "You won't be able to revert this!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#64748b', confirmButtonText: 'Yes, delete it!' }).then((result) => { if (result.isConfirmed) { showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteEmployee', token: currentUser.token, rowIndex: rowIndex, user: currentUser }) }).then(res => res.json()).then(data => { showLoading(false); if(data.status === 'success') { Swal.fire({title:'Deleted!', text:'Employee record removed.', icon:'success', confirmButtonColor:'#10b981'}); loadEmployees(); } else { Swal.fire({title:'Error', text:data.message, icon:'error', confirmButtonColor:'#ef4444'}); } }); } }); }
     window.exportToExcel = function() {
         const wb = XLSX.utils.book_new();
         const cleanData = allData.map(item => {
@@ -569,19 +768,17 @@
             return { ...rest, "Position History": fullHistoryString, "Capacity Building": capString, "Fee": feeString };
         });
         const ws = XLSX.utils.json_to_sheet(cleanData); 
-        
-        // Variable ကို အသုံးပြုထားပါသည်
         XLSX.utils.book_append_sheet(wb, ws, DATA_SHEET_NAME); 
         XLSX.writeFile(wb, DATA_SHEET_NAME + "_Report.xlsx");
     }
     window.openSettingsModal = function() { const sidebarEl = document.getElementById('sidebarMenu'); const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl); if(sidebarInstance) sidebarInstance.hide(); renderSettingsList(); new bootstrap.Modal(document.getElementById('settingsModal')).show(); }
-    window.renderSettingsList = function() { const category = document.getElementById('settingsCategory').value; const listContainer = document.getElementById('settingsList'); const items = dropdownData[category] || []; listContainer.innerHTML = ''; if(items.length === 0) { listContainer.innerHTML = '<div class="p-3 text-center text-muted">No items found.</div>'; return; } items.forEach(item => { listContainer.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center"><span>${item}</span><button class="btn btn-sm btn-outline-danger" onclick="deleteDropdownItem('${category}', '${item}')"><i class="fas fa-trash"></i></button></div>`; }); }
+    window.renderSettingsList = function() { const category = document.getElementById('settingsCategory').value; const listContainer = document.getElementById('settingsList'); const items = dropdownData[category] || []; listContainer.innerHTML = ''; if(items.length === 0) { listContainer.innerHTML = '<div class="p-4 text-center text-muted fst-italic">No items found.</div>'; return; } items.forEach(item => { listContainer.innerHTML += `<div class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-bottom" style="border-color: rgba(0,0,0,0.05)!important;"><span class="fw-medium text-main">${item}</span><button class="btn btn-sm btn-light text-danger rounded-circle d-inline-flex align-items-center justify-content-center" style="width:30px; height:30px; padding:0;" onclick="deleteDropdownItem('${category}', '${item}')"><i class="fas fa-trash-alt"></i></button></div>`; }); }
     window.addDropdownItem = function() { const category = document.getElementById('settingsCategory').value; const value = document.getElementById('newItemName').value.trim(); if(!value) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addDropdownItem', token: currentUser.token, category: category, value: value, user: currentUser }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { document.getElementById('newItemName').value = ''; loadAllDropdowns().then(renderSettingsList); } else { Swal.fire('Error', resp.message, 'error'); } }); }
     window.deleteDropdownItem = function(category, value) { if(!confirm(`Delete "${value}"?`)) return; showLoading(true); fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteDropdownItem', token: currentUser.token, category: category, value: value, user: currentUser }) }).then(res => res.json()).then(resp => { showLoading(false); if(resp.status === 'success') { loadAllDropdowns().then(renderSettingsList); } else { Swal.fire('Error', resp.message, 'error'); } }); }
-    window.previewAndCompress = function(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { const img = new Image(); img.src = e.target.result; img.onload = function() { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 800; let width = img.width, height = img.height; if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } } canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height); compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7); document.getElementById('imgPreview').src = compressedImageBase64; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; deleteImageFlag = false; } }; reader.readAsDataURL(input.files[0]); } }
-    window.markImageForDeletion = function() { document.getElementById('imgPreview').style.display = 'none'; document.getElementById('empPic').value = ''; document.getElementById('btnDeleteImg').style.display = 'none'; compressedImageBase64 = null; deleteImageFlag = true; }
+    window.previewAndCompress = function(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { const img = new Image(); img.src = e.target.result; img.onload = function() { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 800; let width = img.width, height = img.height; if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } } canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height); compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.7); document.getElementById('imgPlaceholder').style.display = 'none'; document.getElementById('imgPreview').src = compressedImageBase64; document.getElementById('imgPreview').style.display = 'block'; document.getElementById('btnDeleteImg').style.display = 'inline-block'; deleteImageFlag = false; } }; reader.readAsDataURL(input.files[0]); } }
+    window.markImageForDeletion = function() { document.getElementById('imgPreview').style.display = 'none'; document.getElementById('imgPlaceholder').style.display = 'flex'; document.getElementById('empPic').value = ''; document.getElementById('btnDeleteImg').style.display = 'none'; compressedImageBase64 = null; deleteImageFlag = true; }
     
-    // --- UPDATED REPORT MODAL WITH CHARTS ---
+    // --- REPORT MODAL WITH CHARTS ---
     window.openReportModal = function() {
         const sidebarEl = document.getElementById('sidebarMenu');
         const sidebarInstance = bootstrap.Offcanvas.getInstance(sidebarEl);
@@ -590,13 +787,11 @@
         const total = allData.length;
         document.getElementById('totalEmpCount').innerText = total;
 
-        // Aggregate Data
         const deptCounts = {}; allData.forEach(e => { const d = e.Department || 'Unassigned'; deptCounts[d] = (deptCounts[d] || 0) + 1; });
         const posCounts = {}; allData.forEach(e => { const p = e.Position || 'Unassigned'; posCounts[p] = (posCounts[p] || 0) + 1; });
         
         new bootstrap.Modal(document.getElementById('reportModal')).show();
         
-        // Render Charts after modal is shown (small delay)
         setTimeout(() => {
             renderChart('deptChartCanvas', 'Department', deptCounts, 'pie');
             renderChart('posChartCanvas', 'Position', posCounts, 'bar');
@@ -607,9 +802,8 @@
         const ctx = document.getElementById(canvasId).getContext('2d');
         const labels = Object.keys(dataObj);
         const data = Object.values(dataObj);
-        const colors = [ '#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14', '#ffc107', '#198754', '#20c997', '#0dcaf0' ];
+        const colors = [ '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#0ea5e9', '#8b5cf6', '#ec4899', '#f97316', '#14b8a6', '#64748b' ];
         
-        // Destroy existing chart if any
         if (canvasId === 'deptChartCanvas' && deptChart) { deptChart.destroy(); }
         if (canvasId === 'posChartCanvas' && posChart) { posChart.destroy(); }
 
@@ -620,18 +814,24 @@
                 datasets: [{
                     label: label + ' Count',
                     data: data,
-                    backgroundColor: colors.slice(0, labels.length),
-                    borderWidth: 1
+                    backgroundColor: type === 'pie' ? colors.slice(0, labels.length) : 'rgba(79, 70, 229, 0.8)',
+                    borderRadius: type === 'bar' ? 6 : 0,
+                    borderWidth: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: type === 'pie', position: 'bottom' }
-                }
+                    legend: { display: type === 'pie', position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
+                },
+                scales: type === 'bar' ? { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } } : {}
             }
         };
+        
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        if (isDark && type === 'bar') { config.options.scales.y.grid.color = 'rgba(255,255,255,0.05)'; config.options.scales.y.ticks = { color: '#94a3b8' }; config.options.scales.x.ticks = { color: '#94a3b8' }; }
+        if (isDark && type === 'pie') { config.options.plugins.legend.labels.color = '#94a3b8'; }
 
         if (canvasId === 'deptChartCanvas') deptChart = new Chart(ctx, config);
         else posChart = new Chart(ctx, config);
@@ -644,12 +844,12 @@
         const start = (currentPage - 1) * rowsPerPage;
         const pageData = filteredData.slice(start, start + rowsPerPage);
         const rowsHtml = pageData.map(row => {
-            let picHtml = `<div class="profile-img-small d-flex justify-content-center align-items-center bg-secondary text-white" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`;
-            if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small" onclick="viewDetails(${row.row_index})">`;
-            let actions = `<button class="btn btn-info btn-sm me-1" onclick="viewDetails(${row.row_index})"><i class="fas fa-eye"></i></button>`;
-            if (currentUser.role === 'Root') { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${row.row_index})"><i class="fas fa-trash"></i></button>`; }
-            else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn btn-warning btn-sm me-1" onclick="openModal('edit', ${row.row_index})"><i class="fas fa-edit"></i></button>`; }
-            return `<tr><td>${picHtml}</td><td>${row['Sr No.']}</td><td class="fw-bold">${row.Name}</td><td><span class="badge bg-secondary">${row.Position || '-'}</span></td><td><span class="badge bg-primary">${row.Department || '-'}</span></td><td>${row.Phone}</td><td>${actions}</td></tr>`;
+            let picHtml = `<div class="profile-img-small d-inline-flex justify-content-center align-items-center bg-light text-secondary mx-auto border-0" onclick="viewDetails(${row.row_index})"><i class="fas fa-user"></i></div>`;
+            if (row['Profile Pic']) picHtml = `<img src="${row['Profile Pic']}" class="profile-img-small mx-auto d-block" onclick="viewDetails(${row.row_index})">`;
+            let actions = `<button class="btn-action btn-action-view" onclick="viewDetails(${row.row_index})" title="View Details"><i class="fas fa-eye"></i></button>`;
+            if (currentUser.role === 'Root') { actions += `<button class="btn-action btn-action-edit" onclick="openModal('edit', ${row.row_index})" title="Edit"><i class="fas fa-pen"></i></button><button class="btn-action btn-action-del" onclick="deleteEmployee(${row.row_index})" title="Delete"><i class="fas fa-trash"></i></button>`; }
+            else if (currentUser.role === 'Admin' && row.Department === currentUser.department) { actions += `<button class="btn-action btn-action-edit" onclick="openModal('edit', ${row.row_index})" title="Edit"><i class="fas fa-pen"></i></button>`; }
+            return `<tr><td class="text-center">${picHtml}</td><td class="text-muted fw-bold">${row['Sr No.']}</td><td class="fw-bold" style="color:var(--text-main);">${row.Name}</td><td><span class="badge badge-pos" onclick="setFilterAndSearch('filterPos', '${row.Position||''}')" title="Click to filter by position">${row.Position || '-'}</span></td><td><span class="badge badge-dept" onclick="setFilterAndSearch('filterDept', '${row.Department||''}')" title="Click to filter by department">${row.Department || '-'}</span></td><td><span class="text-muted small fw-medium d-inline-flex align-items-center"><i class="fas fa-phone-alt me-1" style="font-size:0.7rem;"></i> ${row.Phone || '-'}</span></td><td class="text-end text-nowrap">${actions}</td></tr>`;
         }).join('');
         tbody.innerHTML = rowsHtml;
         updatePaginationInfo();
@@ -666,7 +866,6 @@
         populateSingleSelect('empSex', dropdownData['Sex']);
         populateSingleSelect('empMaritalStatus', dropdownData['Marital Status']);
         
-        // Populate Filter Dropdowns
         populateSingleSelect('filterDept', dropdownData['Department'], "All Departments");
         populateSingleSelect('filterPos', dropdownData['Position'], "All Positions");
     }
@@ -677,7 +876,6 @@
         if(items) items.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`);
     }
     
-    // --- UPDATED FILTER LOGIC ---
     function filterData() {
         const term = document.getElementById('searchInput').value.toLowerCase();
         const dept = document.getElementById('filterDept').value;
@@ -692,14 +890,31 @@
         currentPage = 1; renderTable();
     }
     
-    function updatePaginationInfo() { const totalEntries = filteredData.length; const totalPages = Math.ceil(totalEntries / rowsPerPage) || 1; document.getElementById('pageInfo').innerText = `Showing ${(currentPage-1)*rowsPerPage + 1} to ${Math.min(currentPage*rowsPerPage, totalEntries)} of ${totalEntries}`; const ul = document.getElementById('pagination'); let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Prev</a></li><li class="page-item"><input type="number" class="page-input-box" value="${currentPage}" min="1" max="${totalPages}" onchange="jumpToPage(this.value)"></li><li class="page-item disabled"><span class="page-link bg-white text-muted border-start-0">/ ${totalPages}</span></li><li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a></li>`; ul.innerHTML = html; }
+    function updatePaginationInfo() { const totalEntries = filteredData.length; const totalPages = Math.ceil(totalEntries / rowsPerPage) || 1; document.getElementById('pageInfo').innerText = `Showing ${(currentPage-1)*rowsPerPage + 1} to ${Math.min(currentPage*rowsPerPage, totalEntries)} of ${totalEntries}`; const ul = document.getElementById('pagination'); let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><button class="btn btn-sm btn-light border me-1 d-inline-flex align-items-center justify-content-center" onclick="changePage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></button></li><li class="page-item d-flex align-items-center"><input type="number" class="page-input-box bg-transparent" value="${currentPage}" min="1" max="${totalPages}" onchange="jumpToPage(this.value)"><span class="text-muted mx-1">of ${totalPages}</span></li><li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><button class="btn btn-sm btn-light border ms-1 d-inline-flex align-items-center justify-content-center" onclick="changePage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></button></li>`; ul.innerHTML = html; }
     window.changePage = function(p) { if (p < 1 || p > Math.ceil(filteredData.length / rowsPerPage)) return; currentPage = p; renderTable(); }
     window.jumpToPage = function(val) { const pageNum = parseInt(val); const totalPages = Math.ceil(filteredData.length / rowsPerPage); if (pageNum >= 1 && pageNum <= totalPages) { currentPage = pageNum; } renderTable(); }
     window.changeRowsPerPage = function() { rowsPerPage = parseInt(document.getElementById('rowsPerPage').value); currentPage = 1; renderTable(); }
     function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
-    document.addEventListener('DOMContentLoaded', (event) => { const savedTheme = localStorage.getItem('theme') || 'light'; applyTheme(savedTheme); });
+    
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+
+        const savedUserJSON = sessionStorage.getItem('currentUser');
+        if (savedUserJSON) {
+            currentUser = JSON.parse(savedUserJSON);
+            initDashboard();
+        }
+    });
+
     function toggleTheme() { const html = document.documentElement; const currentTheme = html.getAttribute('data-bs-theme'); const newTheme = currentTheme === 'dark' ? 'light' : 'dark'; applyTheme(newTheme); localStorage.setItem('theme', newTheme); }
-    function applyTheme(theme) { document.documentElement.setAttribute('data-bs-theme', theme); const icon = document.getElementById('themeIcon'); if(theme === 'dark') { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); } else { icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); } }
+    function applyTheme(theme) { 
+        document.documentElement.setAttribute('data-bs-theme', theme); 
+        const icon = document.getElementById('themeIcon'); 
+        if(theme === 'dark') { icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); icon.style.color = '#fbbf24'; } 
+        else { icon.classList.remove('fa-sun'); icon.classList.add('fa-moon'); icon.style.color = ''; } 
+    }
+    
     window.generateAndDownloadPDF = function() {
         if(!currentViewedEmp) return;
         showLoading(true);
